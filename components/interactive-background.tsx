@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react"
 export default function InteractiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const animationFrameRef = useRef<number>()
+  const animationFrameRef = useRef<number>(0)
 
   useEffect(() => {
     const canvas = canvasRef.current

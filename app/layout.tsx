@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   title: "Yash - Full Stack Software Engineer",
   description:
     "Software builder specializing in JavaScript, React, Ruby on Rails, and modern web applications. Creating scalable solutions with efficient code.",
-  generator: "v0.app",
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
@@ -24,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${dmSans.variable} antialiased dark`}>
-      <body className="font-sans bg-gray-950 text-white overflow-x-hidden">{children}</body>
+      <body className="font-sans bg-gray-950 text-white overflow-x-hidden" suppressHydrationWarning={true}>
+        {children}
+      </body>
     </html>
   )
 }

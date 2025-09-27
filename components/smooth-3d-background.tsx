@@ -36,16 +36,20 @@ function FloatingCodeBlocks() {
 
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2
-      const radius = 4 + Math.random() * 2
+      // Use deterministic values based on index to avoid hydration mismatch
+      const seedA = (i * 0.618) % 1 // Golden ratio for pseudo-random distribution
+      const seedB = (i * 0.414) % 1
+      const seedC = (i * 0.732) % 1
+      const radius = 4 + seedA * 2
       elements.push({
-        position: [Math.cos(angle) * radius, (Math.random() - 0.5) * 4, Math.sin(angle) * radius] as [
+        position: [Math.cos(angle) * radius, (seedB - 0.5) * 4, Math.sin(angle) * radius] as [
           number,
           number,
           number,
         ],
-        rotation: [Math.random() * Math.PI, Math.random() * Math.PI, 0] as [number, number, number],
-        text: codeSnippets[Math.floor(Math.random() * codeSnippets.length)],
-        speed: 0.2 + Math.random() * 0.3, // Slower animation speed
+        rotation: [seedA * Math.PI, seedB * Math.PI, 0] as [number, number, number],
+        text: codeSnippets[Math.floor(seedC * codeSnippets.length)],
+        speed: 0.2 + seedA * 0.3, // Deterministic speed based on index
         angle: angle,
         radius: radius,
       })

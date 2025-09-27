@@ -8,7 +8,7 @@ export default function MouseCursor() {
   const trailRef = useRef<HTMLDivElement>(null)
   const positionRef = useRef({ x: 0, y: 0 })
   const targetRef = useRef({ x: 0, y: 0 })
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
   const isHoveringRef = useRef(false)
 
   useEffect(() => {

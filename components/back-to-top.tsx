@@ -30,7 +30,7 @@ export default function BackToTop() {
     <button
       onClick={scrollToTop}
       className={`
-        fixed bottom-8 right-8 z-40 p-3 rounded-full
+        !fixed bottom-8 right-8 z-50 p-3 rounded-full !right-8 !left-auto
         bg-gradient-to-r from-blue-600 to-cyan-600
         text-white shadow-lg cursor-pointer
         transition-all duration-300 ease-in-out
