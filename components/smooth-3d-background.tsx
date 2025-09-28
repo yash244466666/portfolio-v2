@@ -1,10 +1,14 @@
 "use client"
 
 import { Canvas } from "@react-three/fiber"
-import { useRef, useMemo, Suspense } from "react"
+import { useRef, useMemo, Suspense, useEffect, useState } from "react"
 import { useFrame } from "@react-three/fiber"
 import { Text, Box } from "@react-three/drei"
 import type * as THREE from "three"
+
+// Global mouse position state
+let globalMouse = { x: 0, y: 0 }
+let isInHeroSection = true
 
 function FloatingCodeBlocks() {
   const groupRef = useRef<THREE.Group>(null!)
@@ -61,10 +65,11 @@ function FloatingCodeBlocks() {
     if (groupRef.current) {
       groupRef.current.rotation.y += 0.002
 
-      // Gentle mouse interaction
-      const mouse = state.mouse
-      groupRef.current.rotation.x = mouse.y * 0.05
-      groupRef.current.rotation.y += mouse.x * 0.01
+      // Gentle mouse interaction - only when not in hero section
+      if (!isInHeroSection) {
+        groupRef.current.rotation.x = globalMouse.y * 0.05
+        groupRef.current.rotation.y += globalMouse.x * 0.01
+      }
     }
   })
 
@@ -166,7 +171,43 @@ function BackgroundFallback() {
 }
 
 export default function Smooth3DBackground() {
-  if (typeof window === "undefined") {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+
+    const updateMousePosition = (e: MouseEvent) => {
+      // Normalize mouse coordinates to [-1, 1] range
+      globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1
+      globalMouse.y = -(e.clientY / window.innerHeight) * 2 + 1
+    }
+
+    const checkCurrentSection = () => {
+      // Find the hero section (first section with min-h-screen class)
+      const heroSection = document.querySelector('section.min-h-screen')
+      if (heroSection) {
+        const rect = heroSection.getBoundingClientRect()
+        // Consider hero section active if it's more than 80% visible
+        isInHeroSection = rect.bottom > window.innerHeight * 0.8
+      }
+    }
+
+    // Add mouse move listener
+    window.addEventListener('mousemove', updateMousePosition)
+
+    // Check section on scroll
+    window.addEventListener('scroll', checkCurrentSection)
+
+    // Initial check
+    checkCurrentSection()
+
+    return () => {
+      window.removeEventListener('mousemove', updateMousePosition)
+      window.removeEventListener('scroll', checkCurrentSection)
+    }
+  }, [])
+
+  if (!mounted || typeof window === "undefined") {
     return <BackgroundFallback />
   }
 
