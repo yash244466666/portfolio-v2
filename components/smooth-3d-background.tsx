@@ -6,9 +6,12 @@ import { useFrame } from "@react-three/fiber"
 import { Text, Box } from "@react-three/drei"
 import type * as THREE from "three"
 
-// Global mouse position state
+// Global interaction state
 let globalMouse = { x: 0, y: 0 }
 let isInHeroSection = true
+let isMobileDevice = false
+let scrollVelocity = 0
+let lastScrollY = 0
 
 function FloatingCodeBlocks() {
   const groupRef = useRef<THREE.Group>(null!)
@@ -65,10 +68,17 @@ function FloatingCodeBlocks() {
     if (groupRef.current) {
       groupRef.current.rotation.y += 0.002
 
-      // Gentle mouse interaction - only when not in hero section
+      // Interaction only when not in hero section
       if (!isInHeroSection) {
-        groupRef.current.rotation.x = globalMouse.y * 0.05
-        groupRef.current.rotation.y += globalMouse.x * 0.01
+        if (isMobileDevice) {
+          // Mobile: Use scroll velocity and touch for interaction
+          groupRef.current.rotation.x += scrollVelocity * 0.1
+          groupRef.current.rotation.y += globalMouse.x * 0.02
+        } else {
+          // Desktop: Use mouse interaction
+          groupRef.current.rotation.x = globalMouse.y * 0.05
+          groupRef.current.rotation.y += globalMouse.x * 0.01
+        }
       }
     }
   })
@@ -176,10 +186,37 @@ export default function Smooth3DBackground() {
   useEffect(() => {
     setMounted(true)
 
+    // Detect mobile device
+    const detectMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+        window.innerWidth < 768
+    }
+
+    isMobileDevice = detectMobile()
+
     const updateMousePosition = (e: MouseEvent) => {
       // Normalize mouse coordinates to [-1, 1] range
       globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1
       globalMouse.y = -(e.clientY / window.innerHeight) * 2 + 1
+    }
+
+    const updateTouchPosition = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0]
+        // Normalize touch coordinates to [-1, 1] range
+        globalMouse.x = (touch.clientX / window.innerWidth) * 2 - 1
+        globalMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1
+      }
+    }
+
+    const updateScrollVelocity = () => {
+      const currentScrollY = window.scrollY
+      scrollVelocity = (currentScrollY - lastScrollY) * 0.01
+      lastScrollY = currentScrollY
+
+      // Decay scroll velocity over time
+      scrollVelocity *= 0.95
     }
 
     const checkCurrentSection = () => {
@@ -192,17 +229,32 @@ export default function Smooth3DBackground() {
       }
     }
 
-    // Add mouse move listener
-    window.addEventListener('mousemove', updateMousePosition)
+    // Add appropriate event listeners based on device type
+    if (isMobileDevice) {
+      // Mobile: touch and scroll events
+      window.addEventListener('touchmove', updateTouchPosition, { passive: true })
+      window.addEventListener('touchstart', updateTouchPosition, { passive: true })
+      window.addEventListener('scroll', updateScrollVelocity, { passive: true })
+    } else {
+      // Desktop: mouse events
+      window.addEventListener('mousemove', updateMousePosition)
+    }
 
-    // Check section on scroll
-    window.addEventListener('scroll', checkCurrentSection)
+    // Check section on scroll for both
+    window.addEventListener('scroll', checkCurrentSection, { passive: true })
 
-    // Initial check
+    // Initial checks
     checkCurrentSection()
+    lastScrollY = window.scrollY
 
     return () => {
-      window.removeEventListener('mousemove', updateMousePosition)
+      if (isMobileDevice) {
+        window.removeEventListener('touchmove', updateTouchPosition)
+        window.removeEventListener('touchstart', updateTouchPosition)
+        window.removeEventListener('scroll', updateScrollVelocity)
+      } else {
+        window.removeEventListener('mousemove', updateMousePosition)
+      }
       window.removeEventListener('scroll', checkCurrentSection)
     }
   }, [])
