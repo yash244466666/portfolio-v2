@@ -1,10 +1,17 @@
 "use client"
 
 import { Canvas } from "@react-three/fiber"
-import { useRef, useMemo, Suspense } from "react"
+import { useRef, useMemo, Suspense, useEffect, useState } from "react"
 import { useFrame } from "@react-three/fiber"
 import { Text, Box } from "@react-three/drei"
 import type * as THREE from "three"
+
+// Global interaction state
+let globalMouse = { x: 0, y: 0 }
+let isInHeroSection = true
+let isMobileDevice = false
+let scrollVelocity = 0
+let lastScrollY = 0
 
 function FloatingCodeBlocks() {
   const groupRef = useRef<THREE.Group>(null!)
@@ -61,10 +68,18 @@ function FloatingCodeBlocks() {
     if (groupRef.current) {
       groupRef.current.rotation.y += 0.002
 
-      // Gentle mouse interaction
-      const mouse = state.mouse
-      groupRef.current.rotation.x = mouse.y * 0.05
-      groupRef.current.rotation.y += mouse.x * 0.01
+      // Interaction only when not in hero section
+      if (!isInHeroSection) {
+        if (isMobileDevice) {
+          // Mobile: Use scroll velocity and touch for interaction
+          groupRef.current.rotation.x += scrollVelocity * 0.1
+          groupRef.current.rotation.y += globalMouse.x * 0.02
+        } else {
+          // Desktop: Use mouse interaction
+          groupRef.current.rotation.x = globalMouse.y * 0.05
+          groupRef.current.rotation.y += globalMouse.x * 0.01
+        }
+      }
     }
   })
 
@@ -166,7 +181,85 @@ function BackgroundFallback() {
 }
 
 export default function Smooth3DBackground() {
-  if (typeof window === "undefined") {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+
+    // Detect mobile device
+    const detectMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+        window.innerWidth < 768
+    }
+
+    isMobileDevice = detectMobile()
+
+    const updateMousePosition = (e: MouseEvent) => {
+      // Normalize mouse coordinates to [-1, 1] range
+      globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1
+      globalMouse.y = -(e.clientY / window.innerHeight) * 2 + 1
+    }
+
+    const updateTouchPosition = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0]
+        // Normalize touch coordinates to [-1, 1] range
+        globalMouse.x = (touch.clientX / window.innerWidth) * 2 - 1
+        globalMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1
+      }
+    }
+
+    const updateScrollVelocity = () => {
+      const currentScrollY = window.scrollY
+      scrollVelocity = (currentScrollY - lastScrollY) * 0.01
+      lastScrollY = currentScrollY
+
+      // Decay scroll velocity over time
+      scrollVelocity *= 0.95
+    }
+
+    const checkCurrentSection = () => {
+      // Find the hero section (first section with min-h-screen class)
+      const heroSection = document.querySelector('section.min-h-screen')
+      if (heroSection) {
+        const rect = heroSection.getBoundingClientRect()
+        // Consider hero section active if it's more than 80% visible
+        isInHeroSection = rect.bottom > window.innerHeight * 0.8
+      }
+    }
+
+    // Add appropriate event listeners based on device type
+    if (isMobileDevice) {
+      // Mobile: touch and scroll events
+      window.addEventListener('touchmove', updateTouchPosition, { passive: true })
+      window.addEventListener('touchstart', updateTouchPosition, { passive: true })
+      window.addEventListener('scroll', updateScrollVelocity, { passive: true })
+    } else {
+      // Desktop: mouse events
+      window.addEventListener('mousemove', updateMousePosition)
+    }
+
+    // Check section on scroll for both
+    window.addEventListener('scroll', checkCurrentSection, { passive: true })
+
+    // Initial checks
+    checkCurrentSection()
+    lastScrollY = window.scrollY
+
+    return () => {
+      if (isMobileDevice) {
+        window.removeEventListener('touchmove', updateTouchPosition)
+        window.removeEventListener('touchstart', updateTouchPosition)
+        window.removeEventListener('scroll', updateScrollVelocity)
+      } else {
+        window.removeEventListener('mousemove', updateMousePosition)
+      }
+      window.removeEventListener('scroll', checkCurrentSection)
+    }
+  }, [])
+
+  if (!mounted || typeof window === "undefined") {
     return <BackgroundFallback />
   }
 

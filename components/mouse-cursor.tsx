@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export default function MouseCursor() {
+  const [isMobile, setIsMobile] = useState(false)
   const cursorRef = useRef<HTMLDivElement>(null)
   const outerRef = useRef<HTMLDivElement>(null)
   const trailRef = useRef<HTMLDivElement>(null)
@@ -12,6 +13,20 @@ export default function MouseCursor() {
   const isHoveringRef = useRef(false)
 
   useEffect(() => {
+    // Detect mobile device
+    const detectMobile = () => {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+        window.innerWidth < 768
+    }
+
+    setIsMobile(detectMobile())
+
+    // If it's mobile, don't initialize cursor
+    if (detectMobile()) {
+      return
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       targetRef.current = { x: e.clientX, y: e.clientY }
     }
@@ -90,6 +105,11 @@ export default function MouseCursor() {
       }
     }
   }, [])
+
+  // Don't render cursor on mobile devices
+  if (isMobile) {
+    return null
+  }
 
   return (
     <>
