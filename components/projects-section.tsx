@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ExternalLink, Github } from "lucide-react"
 import { Canvas } from "@react-three/fiber"
 import { Float, Octahedron, MeshDistortMaterial } from "@react-three/drei"
+import { getSectionContent, getProjects, getButtonTexts } from "@/lib/content/utils"
 
 function FloatingShapes() {
   return (
@@ -44,6 +45,11 @@ export default function ProjectsSection() {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
+  // Get content from centralized content module
+  const sectionContent = getSectionContent('projects')
+  const projects = getProjects()
+  const buttonTexts = getButtonTexts()
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -61,63 +67,6 @@ export default function ProjectsSection() {
     return () => observer.disconnect()
   }, [])
 
-  const projects = [
-    {
-      title: "Sendout.ai - SaaS Platform",
-      description:
-        "Currently maintaining and developing features for this AI-powered automation platform. Implementing reverse engineering solutions and bug fixes.",
-      image: "/modern-saas-dashboard.png",
-      tech: ["React", "Node.js", "AI Integration", "SaaS"],
-      github: "#",
-      live: "https://sendout.ai",
-    },
-    {
-      title: "ERP & CRM Systems",
-      description:
-        "Developed comprehensive business management applications using MERN stack with ticket systems and workflow automation.",
-      image: "/business-management-dashboard.png",
-      tech: ["MongoDB", "Express.js", "React", "Node.js"],
-      github: "#",
-      live: "#",
-    },
-    {
-      title: "Unity Game Development",
-      description:
-        "Built interactive games using Unity and C# with advanced gameplay mechanics and user engagement features.",
-      image: "/unity-game-interface.png",
-      tech: ["Unity", "C#", "Game Development", "UI/UX"],
-      github: "#",
-      live: "#",
-    },
-    {
-      title: "Ruby on Rails Web App",
-      description:
-        "Developed scalable web applications with Ruby on Rails, React, and PostgreSQL achieving 100% client satisfaction through rigorous testing.",
-      image: "/ruby-on-rails-web-application.png",
-      tech: ["Ruby on Rails", "React", "PostgreSQL", "RSpec"],
-      github: "#",
-      live: "#",
-    },
-    {
-      title: "Lost & Found Mobile App",
-      description:
-        "Improved existing application reducing bugs by 30% and enhancing performance by 25% through optimization and testing.",
-      image: "/mobile-app-interface-lost-and-found.png",
-      tech: ["Mobile Development", "Performance Optimization", "Testing"],
-      github: "#",
-      live: "#",
-    },
-    {
-      title: "Government R&H System",
-      description:
-        "Built robust applications for government department achieving 99% satisfaction rate through comprehensive testing and modern techniques.",
-      image: "/government-system-dashboard.png",
-      tech: ["Full Stack", "Government Systems", "Quality Assurance"],
-      github: "#",
-      live: "#",
-    },
-  ]
-
   return (
     <section id="projects" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -132,10 +81,9 @@ export default function ProjectsSection() {
         <div
           className={`text-center mb-12 sm:mb-16 transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">Featured Projects</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">{sectionContent.heading}</h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
-            Here are some of my professional projects spanning SaaS platforms, enterprise applications, and mobile
-            solutions that demonstrate my expertise in full-stack development.
+            {sectionContent.description}
           </p>
         </div>
 
@@ -172,13 +120,13 @@ export default function ProjectsSection() {
                   <Button variant="outline" size="sm" asChild>
                     <a href={project.github} target="_blank" rel="noopener noreferrer">
                       <Github className="w-4 h-4 mr-2" />
-                      Code
+                      {buttonTexts.code}
                     </a>
                   </Button>
                   <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
                     <a href={project.live} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Live Demo
+                      {buttonTexts.liveDemo}
                     </a>
                   </Button>
                 </div>
