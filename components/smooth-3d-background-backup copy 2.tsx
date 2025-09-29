@@ -17,82 +17,70 @@ let clickWave = { active: false, intensity: 0, decay: 0.95 }
 let touchPressure = 0
 let scrollDirection = 0
 
-// Physics world boundaries - properly sized for natural containment
-const worldBounds = { width: 7, height: 4, depth: 4 } // Slightly smaller for better containment
+// Physics world boundaries - smaller to ensure viewport containment
+const worldBounds = { width: 10, height: 6, depth: 6 }
 
-// Physics boundary walls component with proper containment
+// Physics boundary walls component
 function PhysicsBoundaries() {
-  const wallThickness = 15 // Extra thick walls for reliable collision detection
+  const wallThickness = 0.5
 
-  // Create boundary walls positioned to fully contain objects
+  // Create thicker invisible walls for physics boundaries
   const [leftWall] = useBox(() => ({
     position: [-worldBounds.width / 2 - wallThickness / 2, 0, 0],
-    args: [wallThickness, worldBounds.height + wallThickness * 2, worldBounds.depth + wallThickness * 2],
+    args: [wallThickness, worldBounds.height + 2, worldBounds.depth + 2],
     type: 'Static',
     material: {
-      friction: 0.1, // Low friction for smooth bouncing
-      restitution: 0.8, // Good bounce for natural wall collisions
-      contactEquationStiffness: 1e8, // High stiffness to prevent penetration
-      contactEquationRelaxation: 2,
+      friction: 0.01, // Almost frictionless walls
+      restitution: 0.98, // Extremely bouncy walls
     }
   }))
   const [rightWall] = useBox(() => ({
     position: [worldBounds.width / 2 + wallThickness / 2, 0, 0],
-    args: [wallThickness, worldBounds.height + wallThickness * 2, worldBounds.depth + wallThickness * 2],
+    args: [wallThickness, worldBounds.height + 2, worldBounds.depth + 2],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.01,
+      restitution: 0.98,
     }
   }))
   const [topWall] = useBox(() => ({
     position: [0, worldBounds.height / 2 + wallThickness / 2, 0],
-    args: [worldBounds.width + wallThickness * 2, wallThickness, worldBounds.depth + wallThickness * 2],
+    args: [worldBounds.width + 2, wallThickness, worldBounds.depth + 2],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.01,
+      restitution: 0.98,
     }
   }))
   const [bottomWall] = useBox(() => ({
     position: [0, -worldBounds.height / 2 - wallThickness / 2, 0],
-    args: [worldBounds.width + wallThickness * 2, wallThickness, worldBounds.depth + wallThickness * 2],
+    args: [worldBounds.width + 2, wallThickness, worldBounds.depth + 2],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.01,
+      restitution: 0.98,
     }
   }))
   const [frontWall] = useBox(() => ({
     position: [0, 0, worldBounds.depth / 2 + wallThickness / 2],
-    args: [worldBounds.width + wallThickness * 2, worldBounds.height + wallThickness * 2, wallThickness],
+    args: [worldBounds.width + 2, worldBounds.height + 2, wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.75, // Slightly less bouncy for depth control
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.01,
+      restitution: 0.95, // Slightly less bouncy for depth control
     }
   }))
   const [backWall] = useBox(() => ({
     position: [0, 0, -worldBounds.depth / 2 - wallThickness / 2],
-    args: [worldBounds.width + wallThickness * 2, worldBounds.height + wallThickness * 2, wallThickness],
+    args: [worldBounds.width + 2, worldBounds.height + 2, wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.75,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.01,
+      restitution: 0.95,
     }
   }))
 
-  return null // Invisible walls - physics only
+  return null // Invisible walls
 }
 
 function FloatingCodeBlocks() {
@@ -136,6 +124,7 @@ function FloatingCodeBlocks() {
 
     // Increase number of elements for more lively animation
     for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2
       // Use deterministic values based on index to avoid hydration mismatch
       const seedA = (i * 0.618) % 1 // Golden ratio for pseudo-random distribution
       const seedB = (i * 0.414) % 1
@@ -143,14 +132,9 @@ function FloatingCodeBlocks() {
       const seedD = (i * 0.123) % 1
       const seedE = (i * 0.891) % 1
       const seedF = (i * 0.267) % 1
-
-      // Spread objects across the full available space to ensure wall collisions
-      const spreadX = (seedA - 1) * (worldBounds.width * 1) // Use 180% - extend beyond bounds to ensure wall hits
-      const spreadY = (seedB - 1) * (worldBounds.height * 1) // Use 180% - extend beyond bounds  
-      const spreadZ = (seedC - 1) * (worldBounds.depth * 1) // Use 180% - extend beyond bounds
-
+      const radius = 1 + seedA * 1.5 // Much smaller distribution to stay within bounds
       elements.push({
-        position: [spreadX, spreadY, spreadZ] as [
+        position: [Math.cos(angle) * radius, (seedB - 0.5) * 2, Math.sin(angle) * radius] as [
           number,
           number,
           number,
@@ -158,8 +142,8 @@ function FloatingCodeBlocks() {
         rotation: [seedA * Math.PI, seedB * Math.PI, seedC * Math.PI] as [number, number, number],
         text: codeSnippets[Math.floor(seedC * codeSnippets.length)],
         speed: 0.02 + seedA * 0.08, // Even slower for natural collisions
-        angle: seedA * Math.PI * 2, // Individual angle for variety
-        radius: 1 + seedB * 2, // Individual radius for variety
+        angle: angle,
+        radius: radius,
         pulsePhase: seedD * Math.PI * 2, // For pulsing animation
         reactivity: 0.3 + seedA * 0.7, // More variation in reactivity
         timeOffset: seedE * 25, // Much longer staggered timing
@@ -256,27 +240,27 @@ function FloatingElement({
   chaosY: number
   chaosZ: number
 }) {
-  // Create physics body with natural individual properties
-  const individualMass = 1 + (Math.abs(Math.sin(chaosX * 100)) * 2) // Varied mass 1-3 (natural range)
-  const individualFriction = 0.1 + (Math.abs(Math.cos(chaosY * 100)) * 0.2) // Varied friction 0.1-0.3
-  const individualRestitution = 0.6 + (Math.abs(Math.sin(chaosZ * 100)) * 0.25) // Varied restitution 0.6-0.85
+  // Create physics body with individual properties for variation
+  const individualMass = 0.3 + (Math.abs(Math.sin(chaosX * 100)) * 0.4) // Varied mass 0.3-0.7
+  const individualFriction = 0.01 + (Math.abs(Math.cos(chaosY * 100)) * 0.04) // Varied friction 0.01-0.05
+  const individualRestitution = 0.9 + (Math.abs(Math.sin(chaosZ * 100)) * 0.09) // Varied restitution 0.9-0.99
 
   const [ref, api] = useBox(() => ({
     mass: individualMass,
     position: position,
     rotation: rotation,
-    args: [1.2, 0.6, 0.5], // Thicker collision box to prevent tunneling
+    args: [1.2, 0.6, 0.1], // Box dimensions for collision
     material: {
       friction: individualFriction,
       restitution: individualRestitution,
-      contactEquationStiffness: 1e8, // Higher stiffness to prevent penetration
-      contactEquationRelaxation: 2, // Lower relaxation for firmer contact
-      frictionEquationStiffness: 1e7, // Higher friction stiffness
-      frictionEquationRelaxation: 2,
+      contactEquationStiffness: 1e8, // Individual solid object stiffness
+      contactEquationRelaxation: 3,
+      frictionEquationStiffness: 1e7,
+      frictionEquationRelaxation: 3,
     },
-    linearDamping: 0.02, // Lower damping to maintain momentum in zero gravity
-    angularDamping: 0.02, // Lower angular damping
-    allowSleep: false, // Prevent sleep to avoid sticking in zero gravity
+    linearDamping: 0.1 + (Math.abs(Math.sin(chaosX * 200)) * 0.2), // Lower damping for more bounce
+    angularDamping: 0.1 + (Math.abs(Math.cos(chaosY * 200)) * 0.15), // Lower damping for rotation
+    allowSleep: true,
     type: 'Dynamic',
     fixedRotation: false, // Allow rotation on collision
   }))
@@ -287,7 +271,7 @@ function FloatingElement({
   const velocityRef = useRef([0, 0, 0])
   const positionRef = useRef([0, 0, 0])
 
-  // Subscribe to physics updates and add collision response for penetration prevention
+  // Subscribe to physics updates and collision events
   useEffect(() => {
     const unsubscribeVel = api.velocity.subscribe((velocity) => {
       velocityRef.current = velocity
@@ -296,16 +280,19 @@ function FloatingElement({
       positionRef.current = position
     })
 
-    // Add natural collision response for better bouncing
+    // Add collision event listener for strong separation
     const unsubscribeCollision = api.collisionResponse.subscribe((value) => {
       if (value) {
-        // On collision, add slight natural randomness to bounce direction
-        const naturalVariation = 0.05 // Small random component for natural bouncing
+        // On collision, apply strong separation impulse
+        const separationStrength = 0.2 + Math.random() * 0.15
         api.applyImpulse([
-          (Math.random() - 0.5) * naturalVariation,
-          (Math.random() - 0.5) * naturalVariation,
-          (Math.random() - 0.5) * naturalVariation
+          (Math.random() - 0.5) * separationStrength,
+          (Math.random() - 0.5) * separationStrength,
+          (Math.random() - 0.5) * separationStrength
         ], [0, 0, 0])
+
+        // Wake up the object to prevent sticking
+        api.wakeUp()
       }
     })
 
@@ -316,75 +303,93 @@ function FloatingElement({
     }
   }, [api])
 
-  // Apply minimal natural floating forces with collision detection
+  // Apply continuous forces for floating behavior with collision awareness
   useFrame((state) => {
     if (meshRef.current && api && ref.current) {
       const time = state.clock.elapsedTime + timeOffset
-      const currentPos = positionRef.current
-      const currentVel = velocityRef.current
 
-      // Natural collision detection - let physics walls handle bouncing
-      if (currentPos && ref.current) {
-        // Only check for extreme velocities that could cause tunneling
-        const speed = Math.sqrt(currentVel[0] ** 2 + currentVel[1] ** 2 + currentVel[2] ** 2)
-
-        // Gentle velocity limiting to prevent extreme speeds (but allow natural bouncing)
-        if (speed > 8) { // Higher threshold - only prevent extreme velocities
-          const dampingFactor = 0.9 // Less aggressive damping
-          api.velocity.set(
-            currentVel[0] * dampingFactor,
-            currentVel[1] * dampingFactor,
-            currentVel[2] * dampingFactor
-          )
-        }
-
-        // Remove manual boundary corrections - let physics walls handle all collisions naturally
+      // Wake up sleeping bodies periodically to prevent permanent clustering
+      if (Math.random() < 0.001) { // 0.1% chance per frame
+        api.wakeUp()
       }
 
-      // Natural Brownian motion with thermal noise and drift
-      // Random walk with Gaussian noise for natural particle movement
-      const thermalNoise = 0.35 // Higher thermal energy to reach walls
-      const driftStrength = 0.12 // Stronger drift for more movement
+      // Completely desynchronized individual forces
+      const uniqueTimeX = time * speed * (0.02 + chaosX * 0.015) + orbitPhase * 3.7
+      const uniqueTimeY = time * speed * (0.025 + chaosY * 0.02) + floatPhase * 2.3
+      const uniqueTimeZ = time * speed * (0.022 + chaosZ * 0.018) + orbitPhase * 4.1
 
-      // Generate random forces with Gaussian distribution (Box-Muller transform)
-      const u1 = Math.random()
-      const u2 = Math.random()
-      const gaussian1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-      const gaussian2 = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2)
-      const gaussian3 = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random())
+      const orbitForceX = Math.cos(uniqueTimeX) * (0.05 + Math.abs(chaosX) * 0.03)
+      const orbitForceZ = Math.sin(uniqueTimeZ) * (0.05 + Math.abs(chaosZ) * 0.03)
+      const floatForceY = Math.sin(uniqueTimeY) * (0.04 + Math.abs(chaosY) * 0.02)
 
-      // Thermal random forces (Brownian motion)
-      const thermalForceX = gaussian1 * thermalNoise
-      const thermalForceY = gaussian2 * thermalNoise
-      const thermalForceZ = gaussian3 * thermalNoise
+      // Individual random micro-forces to break synchronization
+      const microForceX = Math.sin(time * 6.32 + chaosX * 11.7) * 0.015
+      const microForceY = Math.cos(time * 4.84 + chaosY * 13.3) * 0.01
+      const microForceZ = Math.sin(time * 5.91 + chaosZ * 16.9) * 0.015
 
-      // Subtle drift forces with individual variation
-      const driftX = Math.sin(time * 0.1 + chaosX) * driftStrength
-      const driftY = Math.cos(time * 0.08 + chaosY) * driftStrength * 0.5
-      const driftZ = Math.sin(time * 0.12 + chaosZ) * driftStrength
+      // Get current position for centering force
+      const currentPos = positionRef.current
+      if (currentPos) {
+        const centeringForceX = -currentPos[0] * (0.01 + Math.abs(chaosX) * 0.005)
+        const centeringForceY = -currentPos[1] * (0.01 + Math.abs(chaosY) * 0.005)
+        const centeringForceZ = -currentPos[2] * (0.01 + Math.abs(chaosZ) * 0.005)
 
-      // Apply natural forces (thermal noise + gentle drift)
-      api.applyForce([
-        thermalForceX + driftX,
-        thermalForceY + driftY,
-        thermalForceZ + driftZ
-      ], [0, 0, 0])
+        // Check if velocity is too low (potential clustering) and apply wake-up force
+        const velocity = velocityRef.current
+        const speed = Math.sqrt(velocity[0] ** 2 + velocity[1] ** 2 + velocity[2] ** 2)
+        let wakeUpForce = [0, 0, 0]
 
-      // Very subtle interactive forces for user engagement
-      if (clickWave.active) {
-        const gentleWaveForce = clickWave.intensity * reactivity * 0.2
-        api.applyImpulse([
-          (Math.random() - 0.5) * gentleWaveForce,
-          Math.abs(Math.random() - 0.5) * gentleWaveForce * 0.3,
-          (Math.random() - 0.5) * gentleWaveForce
+        if (speed < 0.1) { // If moving too slowly, apply random impulse
+          const wakeUpStrength = 0.05 + Math.random() * 0.05
+          wakeUpForce = [
+            (Math.random() - 0.5) * wakeUpStrength,
+            (Math.random() - 0.5) * wakeUpStrength,
+            (Math.random() - 0.5) * wakeUpStrength
+          ]
+        }
+
+        api.applyForce([
+          orbitForceX + centeringForceX + microForceX + wakeUpForce[0],
+          floatForceY + centeringForceY + microForceY + wakeUpForce[1],
+          orbitForceZ + centeringForceZ + microForceZ + wakeUpForce[2]
         ], [0, 0, 0])
       }
 
-      // Gentle mouse interaction (only when not in hero section)
+      // Strong anti-clustering separation impulses
+      if (Math.random() < 0.005) { // Reduced frequency but stronger force
+        const separationImpulse = 0.15 + (Math.random() * 0.1)
+        api.applyImpulse([
+          (Math.random() - 0.5) * separationImpulse,
+          (Math.random() - 0.5) * separationImpulse,
+          (Math.random() - 0.5) * separationImpulse
+        ], [0, 0, 0])
+      }
+
+      // Reduced interactive forces to prevent escaping viewport
+      if (clickWave.active) {
+        const waveForce = clickWave.intensity * reactivity * 1
+        api.applyImpulse([
+          (Math.random() - 0.5) * waveForce,
+          (Math.random() - 0.5) * waveForce * 0.5, // Reduce Y force
+          (Math.random() - 0.5) * waveForce
+        ], [0, 0, 0])
+      }
+
+      // Gentle mouse/touch interaction forces
       if (!isInHeroSection) {
-        const mouseForceX = globalMouse.x * reactivity * 0.005
-        const mouseForceY = -globalMouse.y * reactivity * 0.005
+        const mouseForceX = globalMouse.x * reactivity * 0.03
+        const mouseForceY = -globalMouse.y * reactivity * 0.03
         api.applyForce([mouseForceX, mouseForceY, 0], [0, 0, 0])
+
+        // Gentle touch pressure
+        if (isMobileDevice && touchPressure > 0) {
+          api.applyForce([0, touchPressure * 0.5, 0], [0, 0, 0])
+        }
+      }
+
+      // Gentle scroll interaction
+      if (Math.abs(scrollDirection) > 0.1) {
+        api.applyForce([0, scrollDirection * reactivity * 0.3, 0], [0, 0, 0])
       }
 
       // Visual rotation effects (not affecting physics)
@@ -844,20 +849,18 @@ export default function Smooth3DBackground() {
           dpr={Math.min(window.devicePixelRatio, 2)}
         >
           <Physics
-            gravity={[0, 0, 0]} // Zero gravity environment
+            gravity={[0, 0, 0]}
             defaultContactMaterial={{
-              friction: 0.15, // Natural friction
-              restitution: 0.75, // Moderate bounce for realistic behavior
-              contactEquationStiffness: 1e8, // Higher stiffness to prevent penetration
-              contactEquationRelaxation: 2, // Lower relaxation for firmer contacts
-              frictionEquationStiffness: 1e7, // Higher friction stiffness
-              frictionEquationRelaxation: 2,
+              friction: 0.02, // Minimal friction for smooth bouncing
+              restitution: 0.98, // Very high restitution for solid bounces
+              contactEquationStiffness: 1e8, // Higher stiffness for solid objects
+              contactEquationRelaxation: 3, // Lower relaxation for firmness
+              frictionEquationStiffness: 1e7, // Firm friction response
+              frictionEquationRelaxation: 3,
             }}
             broadphase="SAP" // More efficient collision detection
-            allowSleep={false} // Disable sleep in zero gravity to prevent sticking
-            iterations={25} // Much higher iterations for zero gravity collision resolution
-            size={1000} // Larger physics world size
-            stepSize={1 / 120} // Smaller timestep for better collision detection (120 FPS physics)
+            allowSleep={true} // Allow sleep for performance
+            iterations={6} // Balanced iterations for stability
           >
             <PhysicsBoundaries />
             <FloatingCodeBlocks />

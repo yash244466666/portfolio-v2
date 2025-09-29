@@ -4,7 +4,6 @@ import { Canvas } from "@react-three/fiber"
 import { useRef, useMemo, Suspense, useEffect, useState } from "react"
 import { useFrame } from "@react-three/fiber"
 import { Text, Box } from "@react-three/drei"
-import { Physics, useBox, useSphere, Debug } from "@react-three/cannon"
 import type * as THREE from "three"
 
 // Global interaction state
@@ -17,82 +16,48 @@ let clickWave = { active: false, intensity: 0, decay: 0.95 }
 let touchPressure = 0
 let scrollDirection = 0
 
-// Physics world boundaries - properly sized for natural containment
-const worldBounds = { width: 7, height: 4, depth: 4 } // Slightly smaller for better containment
+// Collision system
+let elementPositions: Array<{ x: number; y: number; z: number; radius: number; velocity: { x: number; y: number; z: number } }> = []
+let displayBounds = { width: 16, height: 12, depth: 16 } // 3D space boundaries
 
-// Physics boundary walls component with proper containment
-function PhysicsBoundaries() {
-  const wallThickness = 15 // Extra thick walls for reliable collision detection
+// Collision detection utilities
+function checkElementCollision(pos1: { x: number; y: number; z: number }, pos2: { x: number; y: number; z: number }, radius1: number, radius2: number) {
+  const dx = pos1.x - pos2.x
+  const dy = pos1.y - pos2.y
+  const dz = pos1.z - pos2.z
+  const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+  const minDistance = radius1 + radius2
 
-  // Create boundary walls positioned to fully contain objects
-  const [leftWall] = useBox(() => ({
-    position: [-worldBounds.width / 2 - wallThickness / 2, 0, 0],
-    args: [wallThickness, worldBounds.height + wallThickness * 2, worldBounds.depth + wallThickness * 2],
-    type: 'Static',
-    material: {
-      friction: 0.1, // Low friction for smooth bouncing
-      restitution: 0.8, // Good bounce for natural wall collisions
-      contactEquationStiffness: 1e8, // High stiffness to prevent penetration
-      contactEquationRelaxation: 2,
-    }
-  }))
-  const [rightWall] = useBox(() => ({
-    position: [worldBounds.width / 2 + wallThickness / 2, 0, 0],
-    args: [wallThickness, worldBounds.height + wallThickness * 2, worldBounds.depth + wallThickness * 2],
-    type: 'Static',
-    material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
-    }
-  }))
-  const [topWall] = useBox(() => ({
-    position: [0, worldBounds.height / 2 + wallThickness / 2, 0],
-    args: [worldBounds.width + wallThickness * 2, wallThickness, worldBounds.depth + wallThickness * 2],
-    type: 'Static',
-    material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
-    }
-  }))
-  const [bottomWall] = useBox(() => ({
-    position: [0, -worldBounds.height / 2 - wallThickness / 2, 0],
-    args: [worldBounds.width + wallThickness * 2, wallThickness, worldBounds.depth + wallThickness * 2],
-    type: 'Static',
-    material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
-    }
-  }))
-  const [frontWall] = useBox(() => ({
-    position: [0, 0, worldBounds.depth / 2 + wallThickness / 2],
-    args: [worldBounds.width + wallThickness * 2, worldBounds.height + wallThickness * 2, wallThickness],
-    type: 'Static',
-    material: {
-      friction: 0.1,
-      restitution: 0.75, // Slightly less bouncy for depth control
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
-    }
-  }))
-  const [backWall] = useBox(() => ({
-    position: [0, 0, -worldBounds.depth / 2 - wallThickness / 2],
-    args: [worldBounds.width + wallThickness * 2, worldBounds.height + wallThickness * 2, wallThickness],
-    type: 'Static',
-    material: {
-      friction: 0.1,
-      restitution: 0.75,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
-    }
-  }))
+  // High collision sensitivity for better detection
+  const collisionDistance = minDistance * 1.8 // 80% larger collision zone
 
-  return null // Invisible walls - physics only
+  return distance < collisionDistance ? {
+    collision: true,
+    distance: Math.max(distance, 0.01), // Prevent division by zero
+    dx,
+    dy,
+    dz,
+    overlap: collisionDistance - distance
+  } : {
+    collision: false,
+    distance,
+    dx: 0,
+    dy: 0,
+    dz: 0,
+    overlap: 0
+  }
+}
+
+function checkBoundaryCollision(pos: { x: number; y: number; z: number }, radius: number) {
+  const collisions = {
+    left: pos.x - radius < -displayBounds.width / 2,
+    right: pos.x + radius > displayBounds.width / 2,
+    top: pos.y + radius > displayBounds.height / 2,
+    bottom: pos.y - radius < -displayBounds.height / 2,
+    front: pos.z + radius > displayBounds.depth / 2,
+    back: pos.z - radius < -displayBounds.depth / 2
+  }
+  return collisions
 }
 
 function FloatingCodeBlocks() {
@@ -136,6 +101,7 @@ function FloatingCodeBlocks() {
 
     // Increase number of elements for more lively animation
     for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2
       // Use deterministic values based on index to avoid hydration mismatch
       const seedA = (i * 0.618) % 1 // Golden ratio for pseudo-random distribution
       const seedB = (i * 0.414) % 1
@@ -143,14 +109,9 @@ function FloatingCodeBlocks() {
       const seedD = (i * 0.123) % 1
       const seedE = (i * 0.891) % 1
       const seedF = (i * 0.267) % 1
-
-      // Spread objects across the full available space to ensure wall collisions
-      const spreadX = (seedA - 1) * (worldBounds.width * 1) // Use 180% - extend beyond bounds to ensure wall hits
-      const spreadY = (seedB - 1) * (worldBounds.height * 1) // Use 180% - extend beyond bounds  
-      const spreadZ = (seedC - 1) * (worldBounds.depth * 1) // Use 180% - extend beyond bounds
-
+      const radius = 3.5 + seedA * 3 // Wider distribution
       elements.push({
-        position: [spreadX, spreadY, spreadZ] as [
+        position: [Math.cos(angle) * radius, (seedB - 0.5) * 5, Math.sin(angle) * radius] as [
           number,
           number,
           number,
@@ -158,8 +119,8 @@ function FloatingCodeBlocks() {
         rotation: [seedA * Math.PI, seedB * Math.PI, seedC * Math.PI] as [number, number, number],
         text: codeSnippets[Math.floor(seedC * codeSnippets.length)],
         speed: 0.02 + seedA * 0.08, // Even slower for natural collisions
-        angle: seedA * Math.PI * 2, // Individual angle for variety
-        radius: 1 + seedB * 2, // Individual radius for variety
+        angle: angle,
+        radius: radius,
         pulsePhase: seedD * Math.PI * 2, // For pulsing animation
         reactivity: 0.3 + seedA * 0.7, // More variation in reactivity
         timeOffset: seedE * 25, // Much longer staggered timing
@@ -175,6 +136,15 @@ function FloatingCodeBlocks() {
         chaosZ: (seedC - 0.5) * 2,
       })
     }
+
+    // Initialize collision tracking
+    elementPositions = elements.map((element, index) => ({
+      x: element.position[0],
+      y: element.position[1],
+      z: element.position[2],
+      radius: 0.8, // Smaller collision radius for better detection
+      velocity: { x: 0, y: 0, z: 0 }
+    }))
 
     return elements
   }, [])
@@ -256,201 +226,235 @@ function FloatingElement({
   chaosY: number
   chaosZ: number
 }) {
-  // Create physics body with natural individual properties
-  const individualMass = 1 + (Math.abs(Math.sin(chaosX * 100)) * 2) // Varied mass 1-3 (natural range)
-  const individualFriction = 0.1 + (Math.abs(Math.cos(chaosY * 100)) * 0.2) // Varied friction 0.1-0.3
-  const individualRestitution = 0.6 + (Math.abs(Math.sin(chaosZ * 100)) * 0.25) // Varied restitution 0.6-0.85
-
-  const [ref, api] = useBox(() => ({
-    mass: individualMass,
-    position: position,
-    rotation: rotation,
-    args: [1.2, 0.6, 0.5], // Thicker collision box to prevent tunneling
-    material: {
-      friction: individualFriction,
-      restitution: individualRestitution,
-      contactEquationStiffness: 1e8, // Higher stiffness to prevent penetration
-      contactEquationRelaxation: 2, // Lower relaxation for firmer contact
-      frictionEquationStiffness: 1e7, // Higher friction stiffness
-      frictionEquationRelaxation: 2,
-    },
-    linearDamping: 0.02, // Lower damping to maintain momentum in zero gravity
-    angularDamping: 0.02, // Lower angular damping
-    allowSleep: false, // Prevent sleep to avoid sticking in zero gravity
-    type: 'Dynamic',
-    fixedRotation: false, // Allow rotation on collision
-  }))
-
   const meshRef = useRef<THREE.Group>(null!)
+  const initialPosition = useMemo(() => position, [position])
+  const velocity = useRef({ x: 0, y: 0, z: 0 })
+  const elementIndex = useRef(-1)
 
-  // Store velocity and position for collision detection
-  const velocityRef = useRef([0, 0, 0])
-  const positionRef = useRef([0, 0, 0])
-
-  // Subscribe to physics updates and add collision response for penetration prevention
+  // Get element index for collision tracking based on text content (unique identifier)
   useEffect(() => {
-    const unsubscribeVel = api.velocity.subscribe((velocity) => {
-      velocityRef.current = velocity
-    })
-    const unsubscribePos = api.position.subscribe((position) => {
-      positionRef.current = position
-    })
-
-    // Add natural collision response for better bouncing
-    const unsubscribeCollision = api.collisionResponse.subscribe((value) => {
-      if (value) {
-        // On collision, add slight natural randomness to bounce direction
-        const naturalVariation = 0.05 // Small random component for natural bouncing
-        api.applyImpulse([
-          (Math.random() - 0.5) * naturalVariation,
-          (Math.random() - 0.5) * naturalVariation,
-          (Math.random() - 0.5) * naturalVariation
-        ], [0, 0, 0])
+    // Find the index based on the text content to ensure consistent mapping
+    for (let i = 0; i < elementPositions.length; i++) {
+      if (Math.abs(elementPositions[i].x - position[0]) < 0.1 &&
+        Math.abs(elementPositions[i].y - position[1]) < 0.1 &&
+        Math.abs(elementPositions[i].z - position[2]) < 0.1) {
+        elementIndex.current = i
+        break
       }
-    })
-
-    return () => {
-      unsubscribeVel()
-      unsubscribePos()
-      unsubscribeCollision()
     }
-  }, [api])
+  }, [])
 
-  // Apply minimal natural floating forces with collision detection
   useFrame((state) => {
-    if (meshRef.current && api && ref.current) {
+    if (meshRef.current) {
       const time = state.clock.elapsedTime + timeOffset
-      const currentPos = positionRef.current
-      const currentVel = velocityRef.current
 
-      // Natural collision detection - let physics walls handle bouncing
-      if (currentPos && ref.current) {
-        // Only check for extreme velocities that could cause tunneling
-        const speed = Math.sqrt(currentVel[0] ** 2 + currentVel[1] ** 2 + currentVel[2] ** 2)
-
-        // Gentle velocity limiting to prevent extreme speeds (but allow natural bouncing)
-        if (speed > 8) { // Higher threshold - only prevent extreme velocities
-          const dampingFactor = 0.9 // Less aggressive damping
-          api.velocity.set(
-            currentVel[0] * dampingFactor,
-            currentVel[1] * dampingFactor,
-            currentVel[2] * dampingFactor
-          )
-        }
-
-        // Remove manual boundary corrections - let physics walls handle all collisions naturally
-      }
-
-      // Natural Brownian motion with thermal noise and drift
-      // Random walk with Gaussian noise for natural particle movement
-      const thermalNoise = 0.35 // Higher thermal energy to reach walls
-      const driftStrength = 0.12 // Stronger drift for more movement
-
-      // Generate random forces with Gaussian distribution (Box-Muller transform)
-      const u1 = Math.random()
-      const u2 = Math.random()
-      const gaussian1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-      const gaussian2 = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2)
-      const gaussian3 = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random())
-
-      // Thermal random forces (Brownian motion)
-      const thermalForceX = gaussian1 * thermalNoise
-      const thermalForceY = gaussian2 * thermalNoise
-      const thermalForceZ = gaussian3 * thermalNoise
-
-      // Subtle drift forces with individual variation
-      const driftX = Math.sin(time * 0.1 + chaosX) * driftStrength
-      const driftY = Math.cos(time * 0.08 + chaosY) * driftStrength * 0.5
-      const driftZ = Math.sin(time * 0.12 + chaosZ) * driftStrength
-
-      // Apply natural forces (thermal noise + gentle drift)
-      api.applyForce([
-        thermalForceX + driftX,
-        thermalForceY + driftY,
-        thermalForceZ + driftZ
-      ], [0, 0, 0])
-
-      // Very subtle interactive forces for user engagement
+      // Base rotations with ultra-slow individual phases, varied movement and chaos
+      meshRef.current.rotation.x += (0.0003 + Math.sin(time * 0.2 + rotationPhases[0]) * 0.0002 + chaosX * 0.0001) * speed
+      meshRef.current.rotation.y += (0.0002 + Math.cos(time * 0.15 + rotationPhases[1]) * 0.0001 + chaosY * 0.0001) * speed
+      meshRef.current.rotation.z += (0.0004 + Math.sin(time * 0.25 + rotationPhases[2]) * 0.0002 + chaosZ * 0.0001) * speed      // Click wave reaction - creates ripple effect
       if (clickWave.active) {
-        const gentleWaveForce = clickWave.intensity * reactivity * 0.2
-        api.applyImpulse([
-          (Math.random() - 0.5) * gentleWaveForce,
-          Math.abs(Math.random() - 0.5) * gentleWaveForce * 0.3,
-          (Math.random() - 0.5) * gentleWaveForce
-        ], [0, 0, 0])
+        const distance = Math.sqrt(
+          (meshRef.current.position.x - 0) ** 2 +
+          (meshRef.current.position.z - 0) ** 2
+        )
+        const waveEffect = clickWave.intensity * Math.sin(time * 15 - distance) * reactivity
+        meshRef.current.rotation.x += waveEffect * 0.1
+        meshRef.current.rotation.y += waveEffect * 0.1
+        meshRef.current.rotation.z += waveEffect * 0.15
+        meshRef.current.position.y += waveEffect * 0.2
       }
 
-      // Gentle mouse interaction (only when not in hero section)
+      // Scroll reaction - elements bounce based on scroll direction
+      if (Math.abs(scrollDirection) > 0.1) {
+        meshRef.current.rotation.x += scrollDirection * 0.03 * reactivity
+        meshRef.current.rotation.z += scrollDirection * 0.02 * reactivity
+        meshRef.current.position.y += scrollDirection * 0.1 * reactivity
+      }
+
+      // Reactive rotation based on mouse/touch interaction
       if (!isInHeroSection) {
-        const mouseForceX = globalMouse.x * reactivity * 0.005
-        const mouseForceY = -globalMouse.y * reactivity * 0.005
-        api.applyForce([mouseForceX, mouseForceY, 0], [0, 0, 0])
+        meshRef.current.rotation.x += globalMouse.y * 0.015 * reactivity
+        meshRef.current.rotation.y += globalMouse.x * 0.015 * reactivity
+        meshRef.current.rotation.z += (globalMouse.x + globalMouse.y) * 0.008 * reactivity
+
+        // Touch pressure reaction for mobile
+        if (isMobileDevice && touchPressure > 0) {
+          meshRef.current.rotation.x += touchPressure * 0.02 * reactivity
+          meshRef.current.rotation.y += touchPressure * 0.02 * reactivity
+          meshRef.current.scale.setScalar(1 + touchPressure * 0.3 * reactivity)
+        }
       }
 
-      // Visual rotation effects (not affecting physics)
-      if (meshRef.current) {
-        meshRef.current.rotation.x += (0.002 + Math.sin(time * 0.3 + rotationPhases[0]) * 0.001) * speed
-        meshRef.current.rotation.y += (0.001 + Math.cos(time * 0.2 + rotationPhases[1]) * 0.0005) * speed
-        meshRef.current.rotation.z += (0.0015 + Math.sin(time * 0.4 + rotationPhases[2]) * 0.0008) * speed
+      // Enhanced orbital movement with extremely slow, chaotic timing
+      const orbitTime = (time * speed * 0.01) + orbitPhase // Extremely slow orbital movement
+      const pulseIntensity = Math.sin(time * 1.2 + pulsePhase) * 0.2 // Slower, smaller pulses
+      const clickBoost = clickWave.active ? clickWave.intensity * 0.5 : 0
+      const orbitVariation = Math.sin(time * 0.08 + orbitPhase + chaosX) * 0.4 // Slower, more chaotic variation
+      const driftX = Math.cos(time * 0.02 + chaosX) * 0.5 // Slow drift patterns
+      const driftZ = Math.sin(time * 0.025 + chaosZ) * 0.5
+      const newRadius = radius + pulseIntensity + clickBoost + orbitVariation
 
-        // Scale pulsing
-        const primaryPulse = Math.sin(time * 3 + pulsePhase) * 0.1
-        const secondaryPulse = Math.cos(time * 1.5 + pulsePhase + 2) * 0.05
-        const baseScale = 1 + primaryPulse + secondaryPulse
-        const clickScale = clickWave.active ? 1 + clickWave.intensity * 0.4 * reactivity : 1
-        meshRef.current.scale.setScalar(baseScale * clickScale)
+      // Calculate target position with chaos and drift
+      let targetX = Math.cos(angle + orbitTime) * newRadius + driftX
+      let targetZ = Math.sin(angle + orbitTime) * newRadius + driftZ
+
+      // Vertical floating with slower, more irregular patterns
+      const primaryFloat = Math.sin(time * speed * 0.4 + floatPhase) * 0.3 // Slower, smaller float
+      const secondaryFloat = Math.cos(time * speed * 0.3 + floatPhase + chaosY) * 0.15 // Add chaos
+      const chaosFloat = Math.sin(time * 0.1 + chaosX + chaosZ) * 0.1 // Very slow chaos drift
+      const scrollBounce = Math.abs(scrollVelocity) * 2 * reactivity
+      let targetY = initialPosition[1] + primaryFloat + secondaryFloat + chaosFloat + scrollBounce
+
+      // Apply collision physics
+      const currentPos = { x: meshRef.current.position.x, y: meshRef.current.position.y, z: meshRef.current.position.z }
+      const elementRadius = 0.8
+
+      // Check boundary collisions
+      const boundaryCollisions = checkBoundaryCollision(currentPos, elementRadius)
+
+      // Boundary collision response
+      if (boundaryCollisions.left || boundaryCollisions.right) {
+        velocity.current.x *= -0.8 // Bounce with energy loss
+        targetX = boundaryCollisions.left ? -displayBounds.width / 2 + elementRadius : displayBounds.width / 2 - elementRadius
+      }
+      if (boundaryCollisions.top || boundaryCollisions.bottom) {
+        velocity.current.y *= -0.8
+        targetY = boundaryCollisions.top ? displayBounds.height / 2 - elementRadius : -displayBounds.height / 2 + elementRadius
+      }
+      if (boundaryCollisions.front || boundaryCollisions.back) {
+        velocity.current.z *= -0.8
+        targetZ = boundaryCollisions.front ? displayBounds.depth / 2 - elementRadius : -displayBounds.depth / 2 + elementRadius
+      }
+
+      // Check element-to-element collisions with all other elements
+      for (let i = 0; i < elementPositions.length; i++) {
+        if (i !== elementIndex.current) {
+          const otherPos = elementPositions[i]
+          if (otherPos) {
+            const collision = checkElementCollision(currentPos, otherPos, elementRadius, otherPos.radius)
+
+            if (collision.collision && collision.overlap > 0) {
+              // Calculate collision response with stronger force for visibility
+              const separationForce = collision.overlap * 0.8 // Stronger force for visible collisions
+              const normalX = collision.distance > 0 ? collision.dx / collision.distance : 1
+              const normalY = collision.distance > 0 ? collision.dy / collision.distance : 0
+              const normalZ = collision.distance > 0 ? collision.dz / collision.distance : 0
+
+              // Apply strong separation force with chaos for realistic bounce
+              velocity.current.x += (normalX * separationForce) + (chaosX * 0.2)
+              velocity.current.y += (normalY * separationForce * 0.6) + (chaosY * 0.1)
+              velocity.current.z += (normalZ * separationForce) + (chaosZ * 0.2)
+
+              // Add very visible collision effects
+              const collisionIntensity = Math.min(collision.overlap / elementRadius, 2)
+              meshRef.current.rotation.x += collisionIntensity * 1.5
+              meshRef.current.rotation.y += collisionIntensity * 1.2
+              meshRef.current.rotation.z += collisionIntensity * 1.0
+
+              // Strong scale pulse on collision
+              const scalePulse = 1 + collisionIntensity * 0.8
+              meshRef.current.scale.setScalar(scalePulse)
+
+              // Add color flash effect by temporarily increasing opacity
+              const boxes = meshRef.current.children
+              boxes.forEach((box: any) => {
+                if (box.material && box.material.opacity !== undefined) {
+                  box.material.opacity = Math.min(box.material.opacity + 0.3, 1.0)
+                }
+              })
+            }
+          }
+        }
+      }
+
+      // Apply very gentle integration for ultra-natural movement
+      velocity.current.x += (targetX - currentPos.x) * 0.003 // Ultra-slow integration
+      velocity.current.y += (targetY - currentPos.y) * 0.003
+      velocity.current.z += (targetZ - currentPos.z) * 0.003
+
+      // Apply very strong damping for stable movement
+      velocity.current.x *= 0.98 // Strong damping for stability
+      velocity.current.y *= 0.98
+      velocity.current.z *= 0.98
+
+      // Update position with velocity
+      meshRef.current.position.x = currentPos.x + velocity.current.x
+      meshRef.current.position.y = currentPos.y + velocity.current.y
+      meshRef.current.position.z = currentPos.z + velocity.current.z
+
+      // Update collision tracking - always update if we have a valid index
+      if (elementIndex.current >= 0 && elementIndex.current < elementPositions.length) {
+        elementPositions[elementIndex.current].x = meshRef.current.position.x
+        elementPositions[elementIndex.current].y = meshRef.current.position.y
+        elementPositions[elementIndex.current].z = meshRef.current.position.z
+        elementPositions[elementIndex.current].velocity = { ...velocity.current }
+      }      // Scale pulsing with individual timing phases
+      const primaryPulse = Math.sin(time * 3 + pulsePhase) * 0.1
+      const secondaryPulse = Math.cos(time * 1.5 + pulsePhase + 2) * 0.05
+      const breathingPulse = Math.sin(time * 0.8 + timeOffset) * 0.03
+      const baseScale = 1 + primaryPulse + secondaryPulse + breathingPulse
+      const clickScale = clickWave.active ? 1 + clickWave.intensity * 0.4 * reactivity : 1
+      const scaleVariation = baseScale * clickScale
+
+      // Reactive scale boost
+      if (!isInHeroSection) {
+        const mouseDistance = Math.sqrt(globalMouse.x ** 2 + globalMouse.y ** 2)
+        const scaleBoost = 1 + mouseDistance * 0.25 * reactivity
+        meshRef.current.scale.setScalar(scaleVariation * scaleBoost)
+      } else {
+        meshRef.current.scale.setScalar(scaleVariation)
       }
     }
   })
 
   return (
-    <group ref={ref}>
-      <group ref={meshRef}>
-        {/* Outer glow effect */}
-        <Box args={[1.3, 0.7, 0.12]} position={[0, 0, -0.01]}>
-          <meshBasicMaterial color="#3b82f6" transparent opacity={0.1} />
-        </Box>
+    <group ref={meshRef} position={position} rotation={rotation}>
+      {/* Outer glow effect */}
+      <Box args={[1.3, 0.7, 0.12]} position={[0, 0, -0.01]}>
+        <meshBasicMaterial color="#3b82f6" transparent opacity={0.1} />
+      </Box>
 
-        {/* Main card background */}
-        <Box args={[1.2, 0.6, 0.1]} position={[0, 0, 0]}>
-          <meshBasicMaterial color="#1e293b" transparent opacity={0.5} />
-        </Box>
+      {/* Main card background */}
+      <Box args={[1.2, 0.6, 0.1]} position={[0, 0, 0]}>
+        <meshBasicMaterial color="#1e293b" transparent opacity={0.5} />
+      </Box>
 
-        {/* Inner card front */}
-        <Box args={[1.1, 0.5, 0.05]} position={[0, 0, 0.05]}>
-          <meshBasicMaterial color="#0f172a" transparent opacity={0.7} />
-        </Box>
+      {/* Inner card front */}
+      <Box args={[1.1, 0.5, 0.05]} position={[0, 0, 0.05]}>
+        <meshBasicMaterial color="#0f172a" transparent opacity={0.7} />
+      </Box>
 
-        {/* Inner card back */}
-        <Box args={[1.1, 0.5, 0.05]} position={[0, 0, -0.05]}>
-          <meshBasicMaterial color="#0f172a" transparent opacity={0.7} />
-        </Box>
+      {/* Inner card back */}
+      <Box args={[1.1, 0.5, 0.05]} position={[0, 0, -0.05]}>
+        <meshBasicMaterial color="#0f172a" transparent opacity={0.7} />
+      </Box>
 
-        {/* Accent border */}
-        <Box args={[1.15, 0.55, 0.02]} position={[0, 0, 0.06]}>
-          <meshBasicMaterial color="#60a5fa" transparent opacity={0.3} wireframe />
-        </Box>
+      {/* Accent border */}
+      <Box args={[1.15, 0.55, 0.02]} position={[0, 0, 0.06]}>
+        <meshBasicMaterial color="#60a5fa" transparent opacity={0.3} wireframe />
+      </Box>
 
-        {/* Front side text */}
-        <Text position={[0, 0, 0.08]} fontSize={0.14} color="#e2e8f0" anchorX="center" anchorY="middle">
-          {text}
-        </Text>
+      {/* Front side text */}
+      <Text position={[0, 0, 0.08]} fontSize={0.14} color="#e2e8f0" anchorX="center" anchorY="middle">
+        {text}
+      </Text>
 
-        {/* Back side text (rotated 180 degrees) */}
-        <Text
-          position={[0, 0, -0.08]}
-          fontSize={0.14}
-          color="#e2e8f0"
-          anchorX="center"
-          anchorY="middle"
-          rotation={[0, Math.PI, 0]}
-        >
-          {text}
-        </Text>
-      </group>
+      {/* Back side text (rotated 180 degrees) */}
+      <Text
+        position={[0, 0, -0.08]}
+        fontSize={0.14}
+        color="#e2e8f0"
+        anchorX="center"
+        anchorY="middle"
+        rotation={[0, Math.PI, 0]}
+      >
+        {text}
+      </Text>
     </group>
   )
-} function OrbitingShape({
+}
+
+function OrbitingShape({
   position,
   geometry,
   color,
@@ -542,8 +546,28 @@ function FloatingParticles() {
         const primaryFloat = Math.sin(time * data.speed + data.phase) * 0.002
         const secondaryFloat = Math.cos(time * data.speed * 0.6 + data.floatPhase) * 0.001
 
-        // Simple floating movement
-        particle.position.y += primaryFloat + secondaryFloat
+        // Boundary collision for particles
+        const particleRadius = data.size * 20 // Scale up for collision detection
+        const pos = { x: particle.position.x, y: particle.position.y, z: particle.position.z }
+        const boundaryCollisions = checkBoundaryCollision(pos, particleRadius)
+
+        if (boundaryCollisions.left || boundaryCollisions.right) {
+          particle.position.x = boundaryCollisions.left ? -displayBounds.width / 2 + particleRadius : displayBounds.width / 2 - particleRadius
+          particle.rotation.y += 0.5 // Visual bounce effect
+        }
+        if (boundaryCollisions.top || boundaryCollisions.bottom) {
+          particle.position.y = boundaryCollisions.top ? displayBounds.height / 2 - particleRadius : -displayBounds.height / 2 + particleRadius
+          particle.rotation.x += 0.5
+        }
+        if (boundaryCollisions.front || boundaryCollisions.back) {
+          particle.position.z = boundaryCollisions.front ? displayBounds.depth / 2 - particleRadius : -displayBounds.depth / 2 + particleRadius
+          particle.rotation.z += 0.5
+        }
+
+        // Normal floating movement if no collisions
+        if (!boundaryCollisions.left && !boundaryCollisions.right && !boundaryCollisions.top && !boundaryCollisions.bottom && !boundaryCollisions.front && !boundaryCollisions.back) {
+          particle.position.y += primaryFloat + secondaryFloat
+        }
 
         // Individual rotation speeds and phases
         particle.rotation.x += data.rotationSpeed * (1 + Math.sin(time * 0.3 + data.phase) * 0.5)
@@ -619,11 +643,31 @@ function TechGeometry() {
       const baseRotationX = Math.sin(time * 0.1) * 0.3
       const scrollInfluence = scrollDirection * 0.1
 
-      // Simplified geometry movement without collision logic
-      meshRef.current.rotation.x = baseRotationX + scrollInfluence
-      meshRef.current.rotation.y += 0.005 + Math.abs(scrollVelocity) * 0.02
-      meshRef.current.rotation.z = Math.sin(time * 0.15) * 0.2 + scrollDirection * 0.05
-      meshRef.current.position.y = Math.sin(time * 0.2) * 0.3 + Math.abs(scrollVelocity) * 2
+      // Check if central geometry would collide with any code elements
+      const centralPos = { x: 0, y: Math.sin(time * 0.2) * 0.3, z: -2 }
+      let collisionInfluence = 0
+
+      for (let i = 0; i < elementPositions.length; i++) {
+        const elementPos = elementPositions[i]
+        const distance = Math.sqrt(
+          (centralPos.x - elementPos.x) ** 2 +
+          (centralPos.y - elementPos.y) ** 2 +
+          (centralPos.z - elementPos.z) ** 2
+        )
+
+        if (distance < 3) { // Influence radius
+          collisionInfluence += (3 - distance) / 3
+          // Push away from nearby elements
+          const pushForce = (3 - distance) * 0.1
+          meshRef.current.rotation.x += pushForce
+          meshRef.current.rotation.y += pushForce * 0.5
+        }
+      }
+
+      meshRef.current.rotation.x = baseRotationX + scrollInfluence + collisionInfluence * 0.2
+      meshRef.current.rotation.y += 0.005 + Math.abs(scrollVelocity) * 0.02 + collisionInfluence * 0.1
+      meshRef.current.rotation.z = Math.sin(time * 0.15) * 0.2 + scrollDirection * 0.05 + collisionInfluence * 0.15
+      meshRef.current.position.y = centralPos.y + Math.abs(scrollVelocity) * 2
 
       // Inner cube counter-rotation with scroll reaction
       innerRef.current.rotation.x -= 0.003 + scrollVelocity * 0.01
@@ -843,27 +887,9 @@ export default function Smooth3DBackground() {
           }}
           dpr={Math.min(window.devicePixelRatio, 2)}
         >
-          <Physics
-            gravity={[0, 0, 0]} // Zero gravity environment
-            defaultContactMaterial={{
-              friction: 0.15, // Natural friction
-              restitution: 0.75, // Moderate bounce for realistic behavior
-              contactEquationStiffness: 1e8, // Higher stiffness to prevent penetration
-              contactEquationRelaxation: 2, // Lower relaxation for firmer contacts
-              frictionEquationStiffness: 1e7, // Higher friction stiffness
-              frictionEquationRelaxation: 2,
-            }}
-            broadphase="SAP" // More efficient collision detection
-            allowSleep={false} // Disable sleep in zero gravity to prevent sticking
-            iterations={25} // Much higher iterations for zero gravity collision resolution
-            size={1000} // Larger physics world size
-            stepSize={1 / 120} // Smaller timestep for better collision detection (120 FPS physics)
-          >
-            <PhysicsBoundaries />
-            <FloatingCodeBlocks />
-            <FloatingParticles />
-            <TechGeometry />
-          </Physics>
+          <FloatingCodeBlocks />
+          <FloatingParticles />
+          <TechGeometry />
         </Canvas>
       </Suspense>
     </div>

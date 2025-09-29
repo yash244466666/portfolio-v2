@@ -17,82 +17,70 @@ let clickWave = { active: false, intensity: 0, decay: 0.95 }
 let touchPressure = 0
 let scrollDirection = 0
 
-// Physics world boundaries - properly sized for natural containment
-const worldBounds = { width: 7, height: 4, depth: 4 } // Slightly smaller for better containment
+// Physics world boundaries - proper viewport containment
+const worldBounds = { width: 8, height: 5, depth: 5 }
 
-// Physics boundary walls component with proper containment
+// Physics boundary walls component with proper dimensions
 function PhysicsBoundaries() {
-  const wallThickness = 15 // Extra thick walls for reliable collision detection
+  const wallThickness = 12 // Thick walls for reliable collision detection (>10 as recommended)
 
-  // Create boundary walls positioned to fully contain objects
+  // Create proper boundary walls with sufficient depth
   const [leftWall] = useBox(() => ({
     position: [-worldBounds.width / 2 - wallThickness / 2, 0, 0],
-    args: [wallThickness, worldBounds.height + wallThickness * 2, worldBounds.depth + wallThickness * 2],
+    args: [wallThickness, worldBounds.height + wallThickness, worldBounds.depth + wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1, // Low friction for smooth bouncing
-      restitution: 0.8, // Good bounce for natural wall collisions
-      contactEquationStiffness: 1e8, // High stiffness to prevent penetration
-      contactEquationRelaxation: 2,
+      friction: 0.2, // Natural friction for realistic bouncing
+      restitution: 0.7, // Moderate bounce - not too extreme
     }
   }))
   const [rightWall] = useBox(() => ({
     position: [worldBounds.width / 2 + wallThickness / 2, 0, 0],
-    args: [wallThickness, worldBounds.height + wallThickness * 2, worldBounds.depth + wallThickness * 2],
+    args: [wallThickness, worldBounds.height + wallThickness, worldBounds.depth + wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.2,
+      restitution: 0.7,
     }
   }))
   const [topWall] = useBox(() => ({
     position: [0, worldBounds.height / 2 + wallThickness / 2, 0],
-    args: [worldBounds.width + wallThickness * 2, wallThickness, worldBounds.depth + wallThickness * 2],
+    args: [worldBounds.width + wallThickness, wallThickness, worldBounds.depth + wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.2,
+      restitution: 0.7,
     }
   }))
   const [bottomWall] = useBox(() => ({
     position: [0, -worldBounds.height / 2 - wallThickness / 2, 0],
-    args: [worldBounds.width + wallThickness * 2, wallThickness, worldBounds.depth + wallThickness * 2],
+    args: [worldBounds.width + wallThickness, wallThickness, worldBounds.depth + wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.8,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.2,
+      restitution: 0.7,
     }
   }))
   const [frontWall] = useBox(() => ({
     position: [0, 0, worldBounds.depth / 2 + wallThickness / 2],
-    args: [worldBounds.width + wallThickness * 2, worldBounds.height + wallThickness * 2, wallThickness],
+    args: [worldBounds.width + wallThickness, worldBounds.height + wallThickness, wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.75, // Slightly less bouncy for depth control
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.2,
+      restitution: 0.6, // Slightly less bouncy for depth containment
     }
   }))
   const [backWall] = useBox(() => ({
     position: [0, 0, -worldBounds.depth / 2 - wallThickness / 2],
-    args: [worldBounds.width + wallThickness * 2, worldBounds.height + wallThickness * 2, wallThickness],
+    args: [worldBounds.width + wallThickness, worldBounds.height + wallThickness, wallThickness],
     type: 'Static',
     material: {
-      friction: 0.1,
-      restitution: 0.75,
-      contactEquationStiffness: 1e8,
-      contactEquationRelaxation: 2,
+      friction: 0.2,
+      restitution: 0.6,
     }
   }))
 
-  return null // Invisible walls - physics only
+  return null // Invisible walls
 }
 
 function FloatingCodeBlocks() {
@@ -136,6 +124,7 @@ function FloatingCodeBlocks() {
 
     // Increase number of elements for more lively animation
     for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2
       // Use deterministic values based on index to avoid hydration mismatch
       const seedA = (i * 0.618) % 1 // Golden ratio for pseudo-random distribution
       const seedB = (i * 0.414) % 1
@@ -143,14 +132,9 @@ function FloatingCodeBlocks() {
       const seedD = (i * 0.123) % 1
       const seedE = (i * 0.891) % 1
       const seedF = (i * 0.267) % 1
-
-      // Spread objects across the full available space to ensure wall collisions
-      const spreadX = (seedA - 1) * (worldBounds.width * 1) // Use 180% - extend beyond bounds to ensure wall hits
-      const spreadY = (seedB - 1) * (worldBounds.height * 1) // Use 180% - extend beyond bounds  
-      const spreadZ = (seedC - 1) * (worldBounds.depth * 1) // Use 180% - extend beyond bounds
-
+      const radius = 1 + seedA * 1.5 // Much smaller distribution to stay within bounds
       elements.push({
-        position: [spreadX, spreadY, spreadZ] as [
+        position: [Math.cos(angle) * radius, (seedB - 0.5) * 2, Math.sin(angle) * radius] as [
           number,
           number,
           number,
@@ -158,8 +142,8 @@ function FloatingCodeBlocks() {
         rotation: [seedA * Math.PI, seedB * Math.PI, seedC * Math.PI] as [number, number, number],
         text: codeSnippets[Math.floor(seedC * codeSnippets.length)],
         speed: 0.02 + seedA * 0.08, // Even slower for natural collisions
-        angle: seedA * Math.PI * 2, // Individual angle for variety
-        radius: 1 + seedB * 2, // Individual radius for variety
+        angle: angle,
+        radius: radius,
         pulsePhase: seedD * Math.PI * 2, // For pulsing animation
         reactivity: 0.3 + seedA * 0.7, // More variation in reactivity
         timeOffset: seedE * 25, // Much longer staggered timing
@@ -296,15 +280,15 @@ function FloatingElement({
       positionRef.current = position
     })
 
-    // Add natural collision response for better bouncing
+    // Add collision detection to prevent sticking and penetration
     const unsubscribeCollision = api.collisionResponse.subscribe((value) => {
       if (value) {
-        // On collision, add slight natural randomness to bounce direction
-        const naturalVariation = 0.05 // Small random component for natural bouncing
+        // On collision, ensure objects don't stick by applying a small separation impulse
+        const separationStrength = 0.1
         api.applyImpulse([
-          (Math.random() - 0.5) * naturalVariation,
-          (Math.random() - 0.5) * naturalVariation,
-          (Math.random() - 0.5) * naturalVariation
+          (Math.random() - 0.5) * separationStrength,
+          (Math.random() - 0.5) * separationStrength,
+          (Math.random() - 0.5) * separationStrength
         ], [0, 0, 0])
       }
     })
@@ -323,14 +307,14 @@ function FloatingElement({
       const currentPos = positionRef.current
       const currentVel = velocityRef.current
 
-      // Natural collision detection - let physics walls handle bouncing
+      // Position-based penetration detection and resolution
       if (currentPos && ref.current) {
-        // Only check for extreme velocities that could cause tunneling
+        // Check for potential penetration with other objects by checking velocity
         const speed = Math.sqrt(currentVel[0] ** 2 + currentVel[1] ** 2 + currentVel[2] ** 2)
 
-        // Gentle velocity limiting to prevent extreme speeds (but allow natural bouncing)
-        if (speed > 8) { // Higher threshold - only prevent extreme velocities
-          const dampingFactor = 0.9 // Less aggressive damping
+        // If object is moving fast, apply counter-force to prevent tunneling
+        if (speed > 5) { // Speed threshold for tunneling prevention
+          const dampingFactor = 0.8
           api.velocity.set(
             currentVel[0] * dampingFactor,
             currentVel[1] * dampingFactor,
@@ -338,36 +322,49 @@ function FloatingElement({
           )
         }
 
-        // Remove manual boundary corrections - let physics walls handle all collisions naturally
+        // Boundary containment check - push objects back if escaping
+        const margin = 0.6 // Collision shape half-size
+        if (Math.abs(currentPos[0]) > worldBounds.width / 2 - margin) {
+          api.position.set(
+            Math.sign(currentPos[0]) * (worldBounds.width / 2 - margin),
+            currentPos[1],
+            currentPos[2]
+          )
+          api.velocity.set(-currentVel[0] * 0.7, currentVel[1], currentVel[2])
+        }
+        if (Math.abs(currentPos[1]) > worldBounds.height / 2 - margin) {
+          api.position.set(
+            currentPos[0],
+            Math.sign(currentPos[1]) * (worldBounds.height / 2 - margin),
+            currentPos[2]
+          )
+          api.velocity.set(currentVel[0], -currentVel[1] * 0.7, currentVel[2])
+        }
+        if (Math.abs(currentPos[2]) > worldBounds.depth / 2 - margin) {
+          api.position.set(
+            currentPos[0],
+            currentPos[1],
+            Math.sign(currentPos[2]) * (worldBounds.depth / 2 - margin)
+          )
+          api.velocity.set(currentVel[0], currentVel[1], -currentVel[2] * 0.7)
+        }
       }
 
-      // Natural Brownian motion with thermal noise and drift
-      // Random walk with Gaussian noise for natural particle movement
-      const thermalNoise = 0.35 // Higher thermal energy to reach walls
-      const driftStrength = 0.12 // Stronger drift for more movement
+      // Very gentle floating forces - let physics handle collisions naturally
+      const uniqueTimeX = time * speed * 0.3 + orbitPhase * 1.5
+      const uniqueTimeY = time * speed * 0.4 + floatPhase * 1.2
+      const uniqueTimeZ = time * speed * 0.35 + orbitPhase * 1.8
 
-      // Generate random forces with Gaussian distribution (Box-Muller transform)
-      const u1 = Math.random()
-      const u2 = Math.random()
-      const gaussian1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-      const gaussian2 = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2)
-      const gaussian3 = Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random())
+      // Reduced forces to prevent high-speed collisions
+      const gentleOrbitForceX = Math.cos(uniqueTimeX) * 0.4
+      const gentleOrbitForceZ = Math.sin(uniqueTimeZ) * 0.4
+      const gentleFloatForceY = Math.sin(uniqueTimeY) * 0.3
 
-      // Thermal random forces (Brownian motion)
-      const thermalForceX = gaussian1 * thermalNoise
-      const thermalForceY = gaussian2 * thermalNoise
-      const thermalForceZ = gaussian3 * thermalNoise
-
-      // Subtle drift forces with individual variation
-      const driftX = Math.sin(time * 0.1 + chaosX) * driftStrength
-      const driftY = Math.cos(time * 0.08 + chaosY) * driftStrength * 0.5
-      const driftZ = Math.sin(time * 0.12 + chaosZ) * driftStrength
-
-      // Apply natural forces (thermal noise + gentle drift)
+      // Apply gentle forces
       api.applyForce([
-        thermalForceX + driftX,
-        thermalForceY + driftY,
-        thermalForceZ + driftZ
+        gentleOrbitForceX,
+        gentleFloatForceY,
+        gentleOrbitForceZ
       ], [0, 0, 0])
 
       // Very subtle interactive forces for user engagement

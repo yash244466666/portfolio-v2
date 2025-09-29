@@ -37,7 +37,7 @@ export type {
 // PERSONAL INFORMATION
 // =============================================================================
 export const personalInfo: PersonalInfo = {
-  name: "Yash",
+  name: "Yash Sikdar",
   fullName: "MD. Mohi Minul Islam Yash",
   title: "Full Stack Software Engineer",
   greeting: "Hi, I'm",
@@ -50,6 +50,7 @@ export const personalInfo: PersonalInfo = {
     "Backend Expert",
     "React Developer",
     "Ruby on Rails Developer",
+    "testing testing testing testing testing ",
   ],
 
   tagline:
@@ -86,6 +87,11 @@ export const socialLinks: SocialLink[] = [
   {
     name: "Email",
     url: "mailto:info@yashcodes.com",
+    icon: "Mail",
+  },
+  {
+    name: "testing",
+    url: "mailto:info@testing.com",
     icon: "Mail",
   },
 ];
@@ -153,6 +159,27 @@ export const skills: Skill[] = [
       "TDD approach with RSpec, bug reduction by 30%, and performance optimization by 25%.",
     icon: "Zap",
   },
+  {
+    title:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
+    description:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
+    icon: "Zap",
+  },
+  {
+    title:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
+    description:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
+    icon: "Zap",
+  },
+  {
+    title:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
+    description:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
+    icon: "Zap",
+  },
 ];
 
 // =============================================================================
@@ -213,6 +240,20 @@ export const projects: Project[] = [
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
   },
+  {
+    title:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
+    description:
+      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
+    image: "/government-system-dashboard.png",
+    tech: [
+      "Testing Testing Testing",
+      "Testing Testing",
+      "Testing Testing Testing Testing",
+    ],
+    github: "#", // TODO: Add actual GitHub link
+    live: "#", // TODO: Add actual live demo link
+  },
 ];
 
 // =============================================================================
@@ -222,6 +263,7 @@ export const navigationItems = [
   { label: "About", target: "about" },
   { label: "Projects", target: "projects" },
   { label: "Contact", target: "contact" },
+  { label: "Testing", target: "contact" },
 ];
 
 export const buttonTexts: ButtonTexts = {
