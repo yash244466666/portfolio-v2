@@ -161,8 +161,8 @@ function HexagonalInstancedMesh() {
       dummy.position.copy(positions[i])
 
       // Improved mouse distance calculation for smoother interaction
-      const mouseWorldX = globalMouse.x * 50
-      const mouseWorldY = globalMouse.y * 50
+      const mouseWorldX = globalMouse.x * 100
+      const mouseWorldY = globalMouse.y * 100
       const dx = positions[i].x - mouseWorldX
       const dy = positions[i].y - mouseWorldY
       const mouseDistance = Math.sqrt(dx * dx + dy * dy) / 20
@@ -289,16 +289,17 @@ function DynamicLights() {
   useFrame((state) => {
     if (!light1Ref.current || !light2Ref.current) return
 
-    // Position lights at mouse location like the original
+    // Position lights at mouse location across full screen
+    const screenScale = 100 // Increased scale to cover entire viewport
     light1Ref.current.position.set(
-      globalMouse.x * 50,
-      globalMouse.y * 50,
+      globalMouse.x * screenScale,
+      globalMouse.y * screenScale,
       5
     )
 
     light2Ref.current.position.set(
-      globalMouse.x * 50,
-      globalMouse.y * 50,
+      globalMouse.x * screenScale,
+      globalMouse.y * screenScale,
       -20
     )
 
