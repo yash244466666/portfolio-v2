@@ -11,6 +11,7 @@ export default function MouseCursor() {
   const targetRef = useRef({ x: 0, y: 0 })
   const animationRef = useRef<number | undefined>(undefined)
   const isHoveringRef = useRef(false)
+  const isRunningRef = useRef(false)
 
   useEffect(() => {
     // Detect mobile device
@@ -20,15 +21,19 @@ export default function MouseCursor() {
         window.innerWidth < 768
     }
 
-    setIsMobile(detectMobile())
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const shouldDisableCursor = detectMobile() || prefersReducedMotion.matches
 
-    // If it's mobile, don't initialize cursor
-    if (detectMobile()) {
+    setIsMobile(shouldDisableCursor)
+
+    // If it's mobile or reduced motion is requested, skip custom cursor
+    if (shouldDisableCursor) {
       return
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      targetRef.current = { x: e.clientX, y: e.clientY }
+      targetRef.current.x = e.clientX
+      targetRef.current.y = e.clientY
     }
 
     const handleMouseEnter = (e: MouseEvent) => {
@@ -52,6 +57,10 @@ export default function MouseCursor() {
     }
 
     const animate = () => {
+      if (!isRunningRef.current) {
+        return
+      }
+
       const cursor = cursorRef.current
       const outer = outerRef.current
       const trail = trailRef.current
@@ -72,12 +81,40 @@ export default function MouseCursor() {
         }
       }
 
-      animationRef.current = requestAnimationFrame(animate)
+      if (isRunningRef.current) {
+        animationRef.current = requestAnimationFrame(animate)
+      }
+    }
+
+    const startAnimation = () => {
+      if (!isRunningRef.current) {
+        isRunningRef.current = true
+        animationRef.current = requestAnimationFrame(animate)
+      }
+    }
+
+    const stopAnimation = () => {
+      if (isRunningRef.current) {
+        isRunningRef.current = false
+        if (animationRef.current !== undefined) {
+          cancelAnimationFrame(animationRef.current)
+          animationRef.current = undefined
+        }
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAnimation()
+      } else {
+        startAnimation()
+      }
     }
 
     document.addEventListener("mousemove", handleMouseMove, { passive: true })
     document.addEventListener("mouseover", handleMouseEnter, { passive: true })
     document.addEventListener("mouseout", handleMouseLeave, { passive: true })
+    document.addEventListener("visibilitychange", handleVisibilityChange)
 
     const style = document.createElement("style")
     style.textContent = `
@@ -93,16 +130,15 @@ export default function MouseCursor() {
     `
     document.head.appendChild(style)
 
-    animate()
+    startAnimation()
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseover", handleMouseEnter)
       document.removeEventListener("mouseout", handleMouseLeave)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
       document.head.removeChild(style)
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
+      stopAnimation()
     }
   }, [])
 

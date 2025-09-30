@@ -1,19 +1,21 @@
 "use client"
 
 import { Canvas } from "@react-three/fiber"
-import { useRef, useMemo, Suspense, useEffect, useState } from "react"
+import { useRef, useMemo, Suspense, useEffect, useState, useCallback } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
 
+declare global {
+  interface Window {
+    updateHexColors?: () => void
+    randomizeLights?: () => void
+  }
+}
+
 // Global interaction state
-let globalMouse = { x: 0, y: 0 }
-let isInHeroSection = true
+const globalMouse = { x: 0, y: 0 }
 let isMobileDevice = false
-let scrollVelocity = 0
-let lastScrollY = 0
-let clickWave = { active: false, intensity: 0, decay: 0.95 }
-let touchPressure = 0
-let scrollDirection = 0
+const clickWave = { active: false, intensity: 0, decay: 0.95 }
 
 // Feature toggles
 const ENABLE_COLOR_CHANGE_ON_CLICK = true // Set to false to disable color changing
@@ -41,6 +43,7 @@ const COLOR_PALETTES = [
   [0x4299e1, 0x63b3ed, 0x90cdf4], // Subtle Blue accents
   [0x667eea, 0x764ba2, 0x9f7aea], // Purple-gray accents
   [0x38b2ac, 0x4fd1c7, 0x81e6d9], // Teal accents for contrast
+  [0x0066ff, 0x33ccff, 0xffffff]
 ]
 
 // Generate hexagonal grid like the original
@@ -51,8 +54,6 @@ function generateHexGrid(n: number, radius: number) {
 
   const hexWidth = Math.cos(Math.PI / 6) * radius * 2
   const hexHeight = 1.5 * radius
-  const gridWidth = n * hexWidth / 0.8
-  const gridHeight = n * hexHeight / 0.8
 
   for (let row = 0; row < n; row++) {
     for (let col = 0; col < n; col++) {
@@ -102,8 +103,11 @@ function createHexTubeGeometry(radius: number, height: number) {
 function HexagonalInstancedMesh() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const materialRef = useRef<THREE.MeshPhysicalMaterial>(null!)
-  const [targetColors, setTargetColors] = useState<Float32Array | null>(null)
-  const [colorTransitionProgress, setColorTransitionProgress] = useState(0)
+  const colorAttributeRef = useRef<THREE.InstancedBufferAttribute | null>(null)
+  const currentColorsRef = useRef<Float32Array>(new Float32Array(0))
+  const startColorsRef = useRef<Float32Array>(new Float32Array(0))
+  const targetColorsRef = useRef<Float32Array | null>(null)
+  const colorTransitionProgressRef = useRef(1)
 
   const { positions, rotations, phases } = useMemo(() =>
     generateHexGrid(GRID_CONFIG.n, GRID_CONFIG.radius), []
@@ -111,13 +115,29 @@ function HexagonalInstancedMesh() {
 
   const count = positions.length
   const dummy = useMemo(() => new THREE.Object3D(), [])
-  const mouse2D = useMemo(() => new THREE.Vector2(), [])
   const tilt = useMemo(() => new THREE.Vector3(), [])
   const targetTilt = useMemo(() => new THREE.Vector3(), [])
 
-  // Color interpolation helper
-  const [currentColors, setCurrentColors] = useState(() => {
-    const colors = new Float32Array(count * 3)
+  // Lazily allocate color buffers sized to the current instance count
+  if (currentColorsRef.current.length !== count * 3) {
+    currentColorsRef.current = new Float32Array(count * 3)
+    startColorsRef.current = new Float32Array(count * 3)
+  }
+
+  // Initialize instances
+  useEffect(() => {
+    const mesh = meshRef.current
+    if (!mesh) return
+
+    for (let i = 0; i < count; i++) {
+      dummy.position.copy(positions[i])
+      dummy.rotation.z = rotations[i]
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
+    }
+
+    // Seed initial colors and attach as instance colors
+    const colors = currentColorsRef.current
     const palette = GRID_CONFIG.colors
     for (let i = 0; i < count; i++) {
       const color = new THREE.Color(palette[Math.floor(Math.random() * palette.length)])
@@ -125,26 +145,23 @@ function HexagonalInstancedMesh() {
       colors[i * 3 + 1] = color.g
       colors[i * 3 + 2] = color.b
     }
-    return colors
-  })
+    startColorsRef.current.set(colors)
 
-  // Initialize instances
-  useEffect(() => {
-    if (!meshRef.current) return
+    const colorAttribute = new THREE.InstancedBufferAttribute(colors, 3)
+    colorAttribute.setUsage(THREE.DynamicDrawUsage)
+    mesh.geometry.setAttribute("color", colorAttribute)
+    colorAttribute.needsUpdate = true
+    colorAttributeRef.current = colorAttribute
 
-    for (let i = 0; i < count; i++) {
-      dummy.position.copy(positions[i])
-      dummy.rotation.z = rotations[i]
-      dummy.updateMatrix()
-      meshRef.current.setMatrixAt(i, dummy.matrix)
+    mesh.instanceMatrix.needsUpdate = true
+
+    return () => {
+      if (colorAttributeRef.current === colorAttribute) {
+        mesh.geometry.deleteAttribute("color")
+        colorAttributeRef.current = null
+      }
     }
-
-    // Set initial colors
-    const colorAttribute = new THREE.InstancedBufferAttribute(currentColors, 3)
-    meshRef.current.geometry.setAttribute('color', colorAttribute)
-
-    meshRef.current.instanceMatrix.needsUpdate = true
-  }, [positions, rotations, count, dummy, currentColors])
+  }, [positions, rotations, count, dummy])
 
   useFrame((state) => {
     if (!meshRef.current) return
@@ -152,7 +169,6 @@ function HexagonalInstancedMesh() {
     const time = state.clock.elapsedTime
 
     // Update mouse position for tilt effect
-    mouse2D.set(globalMouse.x, globalMouse.y)
     targetTilt.set(-globalMouse.y * 0.15, globalMouse.x * 0.15, 0)
     tilt.lerp(targetTilt, 0.1)
 
@@ -184,29 +200,25 @@ function HexagonalInstancedMesh() {
     // Apply global tilt
     meshRef.current.rotation.set(tilt.x, tilt.y, 0)
 
-    // Smooth color transitions
-    if (targetColors && colorTransitionProgress < 1) {
-      const newProgress = Math.min(colorTransitionProgress + 0.02, 1) // Smooth transition speed
-      setColorTransitionProgress(newProgress)
+    // Smooth color transitions without triggering React state updates
+    const target = targetColorsRef.current
+    if (target) {
+      const start = startColorsRef.current
+      const current = currentColorsRef.current
+      const nextProgress = Math.min(colorTransitionProgressRef.current + 0.02, 1)
+      colorTransitionProgressRef.current = nextProgress
 
-      const interpolatedColors = new Float32Array(count * 3)
-      for (let i = 0; i < count * 3; i++) {
-        const current = currentColors[i]
-        const target = targetColors[i]
-        interpolatedColors[i] = current + (target - current) * newProgress
+      for (let i = 0; i < current.length; i++) {
+        current[i] = start[i] + (target[i] - start[i]) * nextProgress
       }
 
-      setCurrentColors(interpolatedColors)
-
-      const colorAttribute = meshRef.current.geometry.getAttribute('color') as THREE.InstancedBufferAttribute
+      const colorAttribute = colorAttributeRef.current
       if (colorAttribute) {
-        colorAttribute.array = interpolatedColors
         colorAttribute.needsUpdate = true
       }
 
-      // Clear target colors when transition is complete
-      if (newProgress >= 1) {
-        setTargetColors(null)
+      if (nextProgress >= 1) {
+        targetColorsRef.current = null
       }
     }
 
@@ -214,25 +226,34 @@ function HexagonalInstancedMesh() {
   })
 
   // Color randomization function with smooth transitions
-  const randomizeColors = () => {
-    const palette = COLOR_PALETTES[Math.floor(Math.random() * COLOR_PALETTES.length)]
-    const newColors = new Float32Array(count * 3)
-
-    for (let i = 0; i < count; i++) {
-      const color = new THREE.Color(palette[Math.floor(Math.random() * palette.length)])
-      newColors[i * 3] = color.r
-      newColors[i * 3 + 1] = color.g
-      newColors[i * 3 + 2] = color.b
+  const randomizeColors = useCallback(() => {
+    const current = currentColorsRef.current
+    if (!targetColorsRef.current || targetColorsRef.current.length !== current.length) {
+      targetColorsRef.current = new Float32Array(current.length)
     }
 
-    setTargetColors(newColors)
-    setColorTransitionProgress(0) // Start transition
-  }
+    const target = targetColorsRef.current
+    const palette = COLOR_PALETTES[Math.floor(Math.random() * COLOR_PALETTES.length)]
+    for (let i = 0; i < count; i++) {
+      const color = new THREE.Color(palette[Math.floor(Math.random() * palette.length)])
+      target[i * 3] = color.r
+      target[i * 3 + 1] = color.g
+      target[i * 3 + 2] = color.b
+    }
+
+    startColorsRef.current.set(current)
+    colorTransitionProgressRef.current = 0
+  }, [count])
 
   // Expose randomization globally
   useEffect(() => {
-    (window as any).updateHexColors = randomizeColors
-  }, [])
+    window.updateHexColors = randomizeColors
+    return () => {
+      if (window.updateHexColors === randomizeColors) {
+        delete window.updateHexColors
+      }
+    }
+  }, [randomizeColors])
 
   const geometry = useMemo(() => createHexTubeGeometry(GRID_CONFIG.radius, GRID_CONFIG.radius * 5), [])
 
@@ -286,7 +307,7 @@ function DynamicLights() {
   const light1Ref = useRef<THREE.PointLight>(null!)
   const light2Ref = useRef<THREE.PointLight>(null!)
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!light1Ref.current || !light2Ref.current) return
 
     // Position lights at mouse location across full screen
@@ -313,7 +334,7 @@ function DynamicLights() {
   })
 
   // Light randomization function
-  const randomizeLights = () => {
+  const randomizeLights = useCallback(() => {
     if (light1Ref.current && light2Ref.current) {
       const randomColor1 = Math.random() * 0xffffff
       const randomColor2 = Math.random() * 0xffffff
@@ -324,12 +345,17 @@ function DynamicLights() {
       light2Ref.current.color.setHex(randomColor2)
       light2Ref.current.intensity = 250 + Math.random() * 250
     }
-  }
+  }, [])
 
   // Expose light randomization globally
   useEffect(() => {
-    (window as any).randomizeLights = randomizeLights
-  }, [])
+    window.randomizeLights = randomizeLights
+    return () => {
+      if (window.randomizeLights === randomizeLights) {
+        delete window.randomizeLights
+      }
+    }
+  }, [randomizeLights])
 
   return (
     <>
@@ -389,27 +415,6 @@ export default function Smooth3DBackground() {
       globalMouse.y = -(e.clientY / window.innerHeight) * 2 + 1
     }
 
-    // Touch tracking
-    const updateTouchPosition = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const touch = e.touches[0]
-        globalMouse.x = (touch.clientX / window.innerWidth) * 2 - 1
-        globalMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1
-      }
-    }
-
-    // Scroll tracking
-    const updateScrollVelocity = () => {
-      const currentScrollY = window.scrollY
-      const rawVelocity = currentScrollY - lastScrollY
-      scrollVelocity = rawVelocity * 0.01
-      scrollDirection = rawVelocity > 0 ? 1 : rawVelocity < 0 ? -1 : 0
-      lastScrollY = currentScrollY
-
-      scrollVelocity *= 0.95
-      scrollDirection *= 0.9
-    }
-
     // Click effects
     const handleClick = (e: MouseEvent) => {
       clickWave.active = true
@@ -420,19 +425,14 @@ export default function Smooth3DBackground() {
 
       // Trigger color and light randomization (if enabled)
       if (ENABLE_COLOR_CHANGE_ON_CLICK) {
-        if ((window as any).updateHexColors) {
-          (window as any).updateHexColors()
-        }
-        if ((window as any).randomizeLights) {
-          (window as any).randomizeLights()
-        }
+        window.updateHexColors?.()
+        window.randomizeLights?.()
       }
     }
 
     // Touch effects
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        touchPressure = Math.min(e.touches.length / 5, 1)
         clickWave.active = true
         clickWave.intensity = 0.8
 
@@ -441,35 +441,16 @@ export default function Smooth3DBackground() {
         globalMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1
 
         // Trigger color and light randomization on touch
-        if ((window as any).updateHexColors) {
-          (window as any).updateHexColors()
-        }
-        if ((window as any).randomizeLights) {
-          (window as any).randomizeLights()
-        }
+        window.updateHexColors?.()
+        window.randomizeLights?.()
       }
-    }
-
-    const handleTouchEnd = () => {
-      touchPressure = 0
     }
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        touchPressure = Math.min(e.touches.length / 5, 1)
-
         const touch = e.touches[0]
         globalMouse.x = (touch.clientX / window.innerWidth) * 2 - 1
         globalMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1
-      }
-    }
-
-    // Section detection
-    const checkCurrentSection = () => {
-      const heroSection = document.querySelector('section.min-h-screen')
-      if (heroSection) {
-        const rect = heroSection.getBoundingClientRect()
-        isInHeroSection = rect.bottom > window.innerHeight * 0.8
       }
     }
 
@@ -477,30 +458,19 @@ export default function Smooth3DBackground() {
     if (isMobileDevice) {
       window.addEventListener('touchmove', handleTouchMove, { passive: true })
       window.addEventListener('touchstart', handleTouchStart, { passive: true })
-      window.addEventListener('touchend', handleTouchEnd, { passive: true })
     } else {
       window.addEventListener('mousemove', updateMousePosition)
       window.addEventListener('click', handleClick)
     }
 
-    window.addEventListener('scroll', checkCurrentSection, { passive: true })
-    window.addEventListener('scroll', updateScrollVelocity, { passive: true })
-
-    // Initial setup
-    checkCurrentSection()
-    lastScrollY = window.scrollY
-
     return () => {
       if (isMobileDevice) {
         window.removeEventListener('touchmove', handleTouchMove)
         window.removeEventListener('touchstart', handleTouchStart)
-        window.removeEventListener('touchend', handleTouchEnd)
       } else {
         window.removeEventListener('mousemove', updateMousePosition)
         window.removeEventListener('click', handleClick)
       }
-      window.removeEventListener('scroll', checkCurrentSection)
-      window.removeEventListener('scroll', updateScrollVelocity)
     }
   }, [])
 

@@ -14,10 +14,7 @@ import {
   formContent,
   footerContent,
   siteMetadata,
-  type SocialLink,
-  type ContactInfo,
   type Project,
-  type Skill,
 } from "./index";
 
 // =============================================================================

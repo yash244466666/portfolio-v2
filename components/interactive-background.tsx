@@ -1,11 +1,24 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
+
+type Particle = {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  size: number
+  opacity: number
+  color: string
+  originalX: number
+  originalY: number
+}
 
 export default function InteractiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const mousePositionRef = useRef({ x: 0, y: 0 })
   const animationFrameRef = useRef<number>(0)
+  const isRunningRef = useRef(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -22,17 +35,15 @@ export default function InteractiveBackground() {
     resizeCanvas()
     window.addEventListener("resize", resizeCanvas)
 
-    const particles: Array<{
-      x: number
-      y: number
-      vx: number
-      vy: number
-      size: number
-      opacity: number
-      color: string
-      originalX: number
-      originalY: number
-    }> = []
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    if (mediaQuery.matches) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      return () => {
+        window.removeEventListener("resize", resizeCanvas)
+      }
+    }
+
+    const particles: Particle[] = []
 
     const colors = ["#8b5cf6", "#06b6d4"]
     for (let i = 0; i < 25; i++) {
@@ -51,22 +62,22 @@ export default function InteractiveBackground() {
       })
     }
 
-    let mouseTimeout: NodeJS.Timeout
     const handleMouseMove = (e: MouseEvent) => {
-      clearTimeout(mouseTimeout)
-      mouseTimeout = setTimeout(() => {
-        setMousePosition({ x: e.clientX, y: e.clientY })
-      }, 16) // ~60fps throttling
+      mousePositionRef.current.x = e.clientX
+      mousePositionRef.current.y = e.clientY
     }
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true })
 
-    const animate = () => {
+    const tick = () => {
+      if (!isRunningRef.current) return
+
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      particles.forEach((particle, index) => {
-        const dx = mousePosition.x - particle.x
-        const dy = mousePosition.y - particle.y
+      for (let index = 0; index < particles.length; index++) {
+        const particle = particles[index]
+        const dx = mousePositionRef.current.x - particle.x
+        const dy = mousePositionRef.current.y - particle.y
         const distance = Math.sqrt(dx * dx + dy * dy)
 
         if (distance < 100) {
@@ -98,13 +109,14 @@ export default function InteractiveBackground() {
           .padStart(2, "0")}`
         ctx.fill()
 
-        particles.slice(index + 1).forEach((otherParticle) => {
-          const dx = particle.x - otherParticle.x
-          const dy = particle.y - otherParticle.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
+        for (let otherIndex = index + 1; otherIndex < particles.length; otherIndex++) {
+          const otherParticle = particles[otherIndex]
+          const linkDx = particle.x - otherParticle.x
+          const linkDy = particle.y - otherParticle.y
+          const linkDistance = Math.sqrt(linkDx * linkDx + linkDy * linkDy)
 
-          if (distance < 80) {
-            const opacity = (1 - distance / 80) * 0.2
+          if (linkDistance < 80) {
+            const opacity = (1 - linkDistance / 80) * 0.2
             ctx.beginPath()
             ctx.moveTo(particle.x, particle.y)
             ctx.lineTo(otherParticle.x, otherParticle.y)
@@ -114,23 +126,48 @@ export default function InteractiveBackground() {
             ctx.lineWidth = 0.5
             ctx.stroke()
           }
-        })
-      })
+        }
+      }
 
-      animationFrameRef.current = requestAnimationFrame(animate)
+      animationFrameRef.current = requestAnimationFrame(tick)
     }
 
-    animate()
+    const startAnimation = () => {
+      if (!isRunningRef.current) {
+        isRunningRef.current = true
+        animationFrameRef.current = requestAnimationFrame(tick)
+      }
+    }
+
+    const stopAnimation = () => {
+      if (isRunningRef.current) {
+        isRunningRef.current = false
+        if (animationFrameRef.current !== 0) {
+          cancelAnimationFrame(animationFrameRef.current)
+          animationFrameRef.current = 0
+        }
+      }
+    }
+
+    startAnimation()
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAnimation()
+      } else {
+        startAnimation()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("resize", resizeCanvas)
       window.removeEventListener("mousemove", handleMouseMove)
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
-      clearTimeout(mouseTimeout)
+      stopAnimation()
     }
-  }, [mousePosition.x, mousePosition.y])
+  }, [])
 
   return (
     <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" style={{ background: "transparent" }} />
