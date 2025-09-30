@@ -44,6 +44,7 @@ function FloatingShapes() {
 
 export default function ProjectsSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [shouldRenderCanvas, setShouldRenderCanvas] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
   // Get content from centralized content module
@@ -52,31 +53,49 @@ export default function ProjectsSection() {
   const buttonTexts = getButtonTexts()
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const isSmallScreen = window.matchMedia("(max-width: 768px)").matches
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    setShouldRenderCanvas(!isSmallScreen && !prefersReducedMotion)
+
+    const element = sectionRef.current
+
+    if (!("IntersectionObserver" in window) || isSmallScreen || prefersReducedMotion || !element) {
+      setIsVisible(true)
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true)
+          observer.unobserve(entry.target)
         }
       },
-      { threshold: 0.2 },
+      { threshold: 0.2, rootMargin: "0px 0px -10%" },
     )
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
+    observer.observe(element)
 
     return () => observer.disconnect()
   }, [])
 
   return (
     <section id="projects" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-          <ambientLight intensity={0.3} />
-          <pointLight position={[10, 10, 10]} />
-          <FloatingShapes />
-        </Canvas>
-      </div>
+      {shouldRenderCanvas ? (
+        <div className="absolute inset-0 -z-10">
+          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+            <ambientLight intensity={0.3} />
+            <pointLight position={[10, 10, 10]} />
+            <FloatingShapes />
+          </Canvas>
+        </div>
+      ) : (
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-gray-900 via-gray-950 to-black opacity-80" />
+      )}
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div
