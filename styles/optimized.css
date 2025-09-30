@@ -1,0 +1,134 @@
+/* Performance-optimized animations - reduced for older computers */
+
+/* Base animations - only essential ones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Utility classes for optimized animations */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Optimized interactive elements - minimal performance impact */
+.interactive-element {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+}
+
+.interactive-element:hover {
+  transform: translateY(-1px);
+}
+
+/* Optimized button hover - GPU accelerated */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+}
+
+/* Essential navigation styles only */
+nav a {
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* Mobile optimizations - reduce all animations */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  .interactive-element:hover {
+    transform: none; /* Disable hover effects on mobile */
+  }
+}
+
+/* Low-end device optimizations */
+@media (max-width: 640px), (max-height: 640px) {
+  .animate-fade-in-up,
+  .animate-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .btn-primary:hover,
+  .interactive-element:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Hardware acceleration hints */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+/* Optimize text rendering */
+body {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove expensive filters and effects for low-end devices */
+@media (max-width: 768px) or (prefers-reduced-motion: reduce) {
+  * {
+    filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+}
