@@ -22,4 +22,4 @@ export const COLOR_PALETTES = [
   [0x0066ff, 0x33ccff, 0xffffff],
 ];
 
-export const ENABLE_COLOR_CHANGE_ON_CLICK = false;
+export const ENABLE_COLOR_CHANGE_ON_CLICK = true;

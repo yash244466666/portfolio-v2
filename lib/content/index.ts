@@ -259,7 +259,12 @@ export const projects: Project[] = [
 // =============================================================================
 // NAVIGATION & UI TEXT
 // =============================================================================
-export const navigationItems = [
+export type NavigationItem = {
+  label: string;
+  target: string;
+};
+
+export const navigationItems: NavigationItem[] = [
   { label: "About", target: "about" },
   { label: "Projects", target: "projects" },
   { label: "Contact", target: "contact" },
