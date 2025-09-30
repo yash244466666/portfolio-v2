@@ -43,7 +43,7 @@ export default function Home() {
       <Smooth3DBackground />
       {!loadingComplete && <LoadingScreen onComplete={() => setLoadingComplete(true)} />}
       {loadingComplete && (
-        <>
+        <div className="relative z-10">
           <Navigation />
           <HeroSection loadingComplete={loadingComplete} />
           <AboutSection />
@@ -51,7 +51,7 @@ export default function Home() {
           <ContactSection />
           <Footer />
           <BackToTop />
-        </>
+        </div>
       )}
     </main>
   )
