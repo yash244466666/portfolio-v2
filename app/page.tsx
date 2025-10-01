@@ -12,7 +12,7 @@ import Footer from "@/components/footer"
 import MouseCursor from "@/components/mouse-cursor"
 import BackToTop from "@/components/back-to-top"
 
-const Smooth3DBackground = dynamic(() => import("@/components/smooth-3d-background"), {
+const Smooth3DBackground = dynamic(() => import("@/components/background"), {
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 pointer-events-none z-0 bg-gray-950">
@@ -43,7 +43,7 @@ export default function Home() {
       <Smooth3DBackground />
       {!loadingComplete && <LoadingScreen onComplete={() => setLoadingComplete(true)} />}
       {loadingComplete && (
-        <>
+        <div className="relative z-10">
           <Navigation />
           <HeroSection loadingComplete={loadingComplete} />
           <AboutSection />
@@ -51,7 +51,7 @@ export default function Home() {
           <ContactSection />
           <Footer />
           <BackToTop />
-        </>
+        </div>
       )}
     </main>
   )

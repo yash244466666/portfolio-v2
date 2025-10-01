@@ -1,33 +1,39 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { useCallback, useState } from "react"
 import { getPersonalInfo, getButtonTexts } from "@/lib/content/utils"
 import { navigationItems } from "@/lib/content"
+import { useScrollThreshold } from "@/hooks/use-scroll-threshold"
+import { DesktopNavLinks } from "@/components/navigation/desktop-nav-links"
+import { NavigationActions } from "@/components/navigation/navigation-actions"
+import { NavigationToggle } from "@/components/navigation/navigation-toggle"
+import { MobileNav } from "@/components/navigation/mobile-nav"
 
 export default function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false)
+  const isScrolled = useScrollThreshold(50)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const personalInfo = getPersonalInfo()
   const buttonTexts = getButtonTexts()
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = useCallback((sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
     }
-  }
+  }, [])
+
+  const handleNavigate = useCallback(
+    (target: string) => {
+      scrollToSection(target)
+      setIsMobileMenuOpen(false)
+    },
+    [scrollToSection],
+  )
+
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen((prev) => !prev)
+  }, [])
 
   return (
     <nav
@@ -38,63 +44,24 @@ export default function Navigation() {
         <div className="flex items-center justify-between">
           <div className="font-bold text-xl text-foreground">{personalInfo.name}</div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navigationItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => scrollToSection(item.target)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} />
 
           <div className="flex items-center space-x-4">
-            <Button
-              onClick={() => scrollToSection("contact")}
-              className="hidden sm:block bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {buttonTexts.getInTouch}
-            </Button>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-foreground p-2"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <NavigationActions
+              contactLabel={buttonTexts.getInTouch}
+              onContactClick={() => handleNavigate("contact")}
+            />
+            <NavigationToggle isOpen={isMobileMenuOpen} onToggle={toggleMobileMenu} />
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 space-y-4">
-            {navigationItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => {
-                  scrollToSection(item.target)
-                  setIsMobileMenuOpen(false)
-                }}
-                className="block w-full text-left py-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {item.label}
-              </button>
-            ))}
-            <Button
-              onClick={() => {
-                scrollToSection("contact")
-                setIsMobileMenuOpen(false)
-              }}
-              className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {buttonTexts.getInTouch}
-            </Button>
-          </div>
-        )}
+        <MobileNav
+          items={navigationItems}
+          isOpen={isMobileMenuOpen}
+          onNavigate={handleNavigate}
+          contactLabel={buttonTexts.getInTouch}
+          onContactClick={() => handleNavigate("contact")}
+        />
       </div>
     </nav>
   )
