@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas } from "@react-three/fiber"
-import { FloatingShapes } from "./floating-shapes"
+// import { FloatingShapes } from "./floating-shapes"
 
 interface ProjectsBackgroundProps {
     shouldRenderCanvas: boolean
@@ -17,7 +17,7 @@ export function ProjectsBackground({ shouldRenderCanvas }: ProjectsBackgroundPro
             <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
                 <ambientLight intensity={0.3} />
                 <pointLight position={[10, 10, 10]} />
-                <FloatingShapes />
+                {/* <FloatingShapes /> */}
             </Canvas>
         </div>
     )

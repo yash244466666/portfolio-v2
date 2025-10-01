@@ -1,4 +1,8 @@
-export function BackgroundFallback() {
+"use client"
+
+import { instrumentComponent } from "@/hooks/use-instrumentation"
+
+function BackgroundFallbackComponent() {
     return (
         <div className="fixed inset-0 pointer-events-none z-[1]">
             <div
@@ -10,3 +14,5 @@ export function BackgroundFallback() {
         </div>
     )
 }
+
+export const BackgroundFallback = instrumentComponent(BackgroundFallbackComponent, "BackgroundFallback")

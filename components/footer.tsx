@@ -1,10 +1,27 @@
+"use client"
+
 import { Github, Linkedin, Mail, Twitter } from "lucide-react"
 import { getPersonalInfo, getSocialLinks, getFooterContent } from "@/lib/content/utils"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function Footer() {
   const personalInfo = getPersonalInfo()
   const socialLinks = getSocialLinks()
   const footerContent = getFooterContent()
+
+  useComponentInstrumentation("Footer", {
+    metricsSnapshot: () => ({
+      socialLinkCount: socialLinks.length,
+    }),
+    throttleMs: 3000,
+  })
+
+  logComponentEvent("Footer", {
+    event: "render",
+    detail: { hasSocialLinks: socialLinks.length > 0 },
+    throttleMs: 3000,
+  })
   return (
     <footer className="py-12 px-6 border-t border-border">
       <div className="max-w-6xl mx-auto">

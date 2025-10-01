@@ -8,6 +8,8 @@ import { DesktopNavLinks } from "@/components/navigation/desktop-nav-links"
 import { NavigationActions } from "@/components/navigation/navigation-actions"
 import { NavigationToggle } from "@/components/navigation/navigation-toggle"
 import { MobileNav } from "@/components/navigation/mobile-nav"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function Navigation() {
   const isScrolled = useScrollThreshold(50)
@@ -16,10 +18,21 @@ export default function Navigation() {
   const personalInfo = getPersonalInfo()
   const buttonTexts = getButtonTexts()
 
+  useComponentInstrumentation("Navigation", {
+    stateSnapshot: () => ({ isScrolled, isMobileMenuOpen }),
+    trackValues: () => ({ isScrolled, isMobileMenuOpen }),
+    throttleMs: 1200,
+  })
+
   const scrollToSection = useCallback((sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
+      logComponentEvent("Navigation", {
+        event: "scroll-to",
+        detail: { sectionId },
+        throttleMs: 1500,
+      })
     }
   }, [])
 
@@ -27,12 +40,25 @@ export default function Navigation() {
     (target: string) => {
       scrollToSection(target)
       setIsMobileMenuOpen(false)
+      logComponentEvent("Navigation", {
+        event: "navigate",
+        detail: { target },
+        throttleMs: 1200,
+      })
     },
     [scrollToSection],
   )
 
   const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen((prev) => !prev)
+    setIsMobileMenuOpen((prev) => {
+      const next = !prev
+      logComponentEvent("Navigation", {
+        event: "toggle-mobile",
+        detail: { isOpen: next },
+        throttleMs: 1200,
+      })
+      return next
+    })
   }, [])
 
   return (

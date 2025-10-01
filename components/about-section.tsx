@@ -8,6 +8,8 @@ import { AboutSectionHeader } from "@/components/about-section/about-section-hea
 import { AboutBackground } from "@/components/about-section/about-background"
 import { SkillsGrid } from "@/components/about-section/skills-grid"
 import { SkillIcon } from "@/components/about-section/skill-icon"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function AboutSection() {
   const shouldRenderCanvas = useShouldRenderCanvas()
@@ -39,6 +41,22 @@ export default function AboutSection() {
       })),
     [skillsData],
   )
+
+  useComponentInstrumentation("AboutSection", {
+    metricsSnapshot: () => ({
+      shouldRenderCanvas,
+      isVisible,
+      skillsCount: skillsData.length,
+    }),
+    trackValues: () => ({ isVisible, shouldRenderCanvas }),
+    throttleMs: 1500,
+  })
+
+  logComponentEvent("AboutSection", {
+    event: "render",
+    detail: { shouldRenderCanvas },
+    throttleMs: 3000,
+  })
 
   return (
     <section id="about" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30 relative overflow-hidden">

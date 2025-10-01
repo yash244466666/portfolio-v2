@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useRef, useCallback } from "react"
 import { useFrame } from "@react-three/fiber"
+import type { RootState } from "@react-three/fiber"
 import * as THREE from "three"
 import { GRID_CONFIG, COLOR_PALETTES } from "./constants"
 import { globalMouse } from "./interaction-state"
+import { useComponentInstrumentation, useFrameInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 function generateHexGrid(n: number, radius: number) {
     const positions: THREE.Vector3[] = []
@@ -72,6 +75,18 @@ function HexagonalInstancedMesh() {
     const tilt = useMemo(() => new THREE.Vector3(), [])
     const targetTilt = useMemo(() => new THREE.Vector3(), [])
 
+    useComponentInstrumentation("HexagonalInstancedMesh", {
+        metricsSnapshot: () => ({
+            hexCount: count,
+            transitionActive: Boolean(targetColorsRef.current),
+        }),
+        trackValues: () => ({
+            transitionProgress: Number(colorTransitionProgressRef.current.toFixed(3)),
+            transitionActive: Boolean(targetColorsRef.current),
+        }),
+        throttleMs: 4800,
+    })
+
     if (currentColorsRef.current.length !== count * 3) {
         currentColorsRef.current = new Float32Array(count * 3)
         startColorsRef.current = new Float32Array(count * 3)
@@ -114,60 +129,76 @@ function HexagonalInstancedMesh() {
         }
     }, [positions, rotations, count, dummy])
 
-    useFrame((state) => {
-        if (!meshRef.current) return
+    const handleFrame = useFrameInstrumentation<[RootState]>(
+        "HexagonalInstancedMesh",
+        (state) => {
+            if (!meshRef.current) return
 
-        const time = state.clock.elapsedTime
+            const time = state.clock.elapsedTime
 
-        targetTilt.set(-globalMouse.y * 0.15, globalMouse.x * 0.15, 0)
-        tilt.lerp(targetTilt, 0.1)
+            targetTilt.set(-globalMouse.y * 0.15, globalMouse.x * 0.15, 0)
+            tilt.lerp(targetTilt, 0.1)
 
-        for (let i = 0; i < count; i++) {
-            dummy.position.copy(positions[i])
+            for (let i = 0; i < count; i++) {
+                dummy.position.copy(positions[i])
 
-            const mouseWorldX = globalMouse.x * 100
-            const mouseWorldY = globalMouse.y * 100
-            const dx = positions[i].x - mouseWorldX
-            const dy = positions[i].y - mouseWorldY
-            const mouseDistance = Math.sqrt(dx * dx + dy * dy) / 20
+                const mouseWorldX = globalMouse.x * 100
+                const mouseWorldY = globalMouse.y * 100
+                const dx = positions[i].x - mouseWorldX
+                const dy = positions[i].y - mouseWorldY
+                const mouseDistance = Math.sqrt(dx * dx + dy * dy) / 20
 
-            const mouseInfluence = Math.max(0, 1 - Math.min(mouseDistance, 1))
-            const smoothInfluence = mouseInfluence * mouseInfluence * (3 - 2 * mouseInfluence)
+                const mouseInfluence = Math.max(0, 1 - Math.min(mouseDistance, 1))
+                const smoothInfluence = mouseInfluence * mouseInfluence * (3 - 2 * mouseInfluence)
 
-            const depthWave = Math.sin(phases[i] + time * GRID_CONFIG.timeCoef) * 0.5
-            const depthOffset = smoothInfluence * GRID_CONFIG.depthScale * 3
-            dummy.position.z = depthWave * GRID_CONFIG.radius * 0.5 + depthOffset
+                const depthWave = Math.sin(phases[i] + time * GRID_CONFIG.timeCoef) * 0.5
+                const depthOffset = smoothInfluence * GRID_CONFIG.depthScale * 3
+                dummy.position.z = depthWave * GRID_CONFIG.radius * 0.5 + depthOffset
 
-            dummy.rotation.z = rotations[i]
-            dummy.updateMatrix()
-            meshRef.current.setMatrixAt(i, dummy.matrix)
-        }
-
-        meshRef.current.rotation.set(tilt.x, tilt.y, 0)
-
-        const target = targetColorsRef.current
-        if (target) {
-            const start = startColorsRef.current
-            const current = currentColorsRef.current
-            const nextProgress = Math.min(colorTransitionProgressRef.current + 0.02, 1)
-            colorTransitionProgressRef.current = nextProgress
-
-            for (let i = 0; i < current.length; i++) {
-                current[i] = start[i] + (target[i] - start[i]) * nextProgress
+                dummy.rotation.z = rotations[i]
+                dummy.updateMatrix()
+                meshRef.current.setMatrixAt(i, dummy.matrix)
             }
 
-            const colorAttribute = colorAttributeRef.current
-            if (colorAttribute) {
-                colorAttribute.needsUpdate = true
+            meshRef.current.rotation.set(tilt.x, tilt.y, 0)
+
+            const target = targetColorsRef.current
+            if (target) {
+                const start = startColorsRef.current
+                const current = currentColorsRef.current
+                const nextProgress = Math.min(colorTransitionProgressRef.current + 0.02, 1)
+                colorTransitionProgressRef.current = nextProgress
+
+                for (let i = 0; i < current.length; i++) {
+                    current[i] = start[i] + (target[i] - start[i]) * nextProgress
+                }
+
+                const colorAttribute = colorAttributeRef.current
+                if (colorAttribute) {
+                    colorAttribute.needsUpdate = true
+                }
+
+                if (nextProgress >= 1) {
+                    targetColorsRef.current = null
+                    logComponentEvent("HexagonalInstancedMesh", {
+                        event: "color-transition-complete",
+                        detail: { totalInstances: count },
+                        throttleMs: 6000,
+                    })
+                }
             }
 
-            if (nextProgress >= 1) {
-                targetColorsRef.current = null
-            }
-        }
+            meshRef.current.instanceMatrix.needsUpdate = true
+        },
+        {
+            metricName: "frame:update",
+            trackInterval: true,
+            sampleSize: 180,
+            throttleMs: 4800,
+        },
+    )
 
-        meshRef.current.instanceMatrix.needsUpdate = true
-    })
+    useFrame(handleFrame)
 
     const randomizeColors = useCallback(() => {
         const current = currentColorsRef.current
@@ -176,7 +207,15 @@ function HexagonalInstancedMesh() {
         }
 
         const target = targetColorsRef.current
-        const palette = COLOR_PALETTES[Math.floor(Math.random() * COLOR_PALETTES.length)]
+        const paletteIndex = Math.floor(Math.random() * COLOR_PALETTES.length)
+        const palette = COLOR_PALETTES[paletteIndex]
+
+        logComponentEvent("HexagonalInstancedMesh", {
+            event: "randomize-colors",
+            detail: { paletteIndex, paletteSize: palette.length },
+            throttleMs: 2500,
+        })
+
         for (let i = 0; i < count; i++) {
             const color = new THREE.Color(palette[Math.floor(Math.random() * palette.length)])
             target[i * 3] = color.r
@@ -217,18 +256,52 @@ function HexagonalInstancedMesh() {
 export function HexagonalGrid() {
     const groupRef = useRef<THREE.Group>(null!)
 
-    useFrame((state) => {
-        if (!groupRef.current) return
-
-        const { width, height } = state.size
-        const aspect = width / height
-
-        if (aspect > 1) {
-            groupRef.current.scale.setScalar(width / 1000)
-        } else {
-            groupRef.current.scale.setScalar(height / 1000)
-        }
+    useComponentInstrumentation("HexagonalGrid", {
+        metricsSnapshot: () => {
+            if (!groupRef.current) {
+                return { scale: null }
+            }
+            const { x, y, z } = groupRef.current.scale
+            return {
+                scale: {
+                    x: Number(x.toFixed(3)),
+                    y: Number(y.toFixed(3)),
+                    z: Number(z.toFixed(3)),
+                },
+            }
+        },
+        trackValues: () => ({ hasGroup: Boolean(groupRef.current) }),
+        throttleMs: 4800,
     })
+
+    const handleScaleFrame = useFrameInstrumentation<[RootState]>(
+        "HexagonalGrid",
+        (state) => {
+            if (!groupRef.current) return
+
+            const { width, height } = state.size
+            const aspect = width / height
+            const nextScale = aspect > 1 ? width / 1000 : height / 1000
+            const currentScale = groupRef.current.scale.x
+
+            if (Math.abs(currentScale - nextScale) > 0.001) {
+                groupRef.current.scale.setScalar(nextScale)
+                logComponentEvent("HexagonalGrid", {
+                    event: "scale-change",
+                    detail: { aspect: Number(aspect.toFixed(3)), scale: Number(nextScale.toFixed(3)) },
+                    throttleMs: 4800,
+                })
+            }
+        },
+        {
+            metricName: "scale-update",
+            trackInterval: true,
+            sampleSize: 180,
+            throttleMs: 4800,
+        },
+    )
+
+    useFrame(handleScaleFrame)
 
     return (
         <group ref={groupRef}>

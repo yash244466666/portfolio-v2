@@ -2,9 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { ChevronUp } from "lucide-react"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function BackToTop() {
   const [isVisible, setIsVisible] = useState(false)
+
+  useComponentInstrumentation("BackToTop", {
+    stateSnapshot: () => ({ isVisible }),
+    trackValues: () => ({ isVisible }),
+    throttleMs: 1200,
+  })
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -23,6 +31,11 @@ export default function BackToTop() {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
+    })
+    logComponentEvent("BackToTop", {
+      event: "scroll-to-top",
+      detail: { triggeredAt: window.pageYOffset },
+      throttleMs: 2000,
     })
   }
 

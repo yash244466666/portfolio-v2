@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas } from "@react-three/fiber"
-import { FloatingCubes } from "./floating-cubes"
+// import { FloatingCubes } from "./floating-cubes"
 
 interface AboutBackgroundProps {
     shouldRenderCanvas: boolean
@@ -17,7 +17,7 @@ export function AboutBackground({ shouldRenderCanvas }: AboutBackgroundProps) {
             <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
                 <ambientLight intensity={0.4} />
                 <pointLight position={[10, 10, 10]} />
-                <FloatingCubes />
+                {/* <FloatingCubes /> */}
             </Canvas>
         </div>
     )

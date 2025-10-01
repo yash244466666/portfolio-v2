@@ -9,6 +9,8 @@ import { HeroDescription } from "@/components/hero-section/hero-description"
 import { HeroActions } from "@/components/hero-section/hero-actions"
 import { HeroSocialLinks } from "@/components/hero-section/hero-social-links"
 import { ScrollIndicator } from "@/components/hero-section/scroll-indicator"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function HeroSection({ loadingComplete }: { loadingComplete: boolean }) {
   const [isVisible, setIsVisible] = useState(false)
@@ -22,6 +24,13 @@ export default function HeroSection({ loadingComplete }: { loadingComplete: bool
     deletingSpeed: 50,
     pauseDuration: 2000,
     startDelay: 800,
+  })
+
+  useComponentInstrumentation("HeroSection", {
+    propsSnapshot: () => ({ loadingComplete }),
+    stateSnapshot: () => ({ isVisible, currentTitle: title }),
+    trackValues: () => ({ isVisible, title }),
+    throttleMs: 1500,
   })
 
   useEffect(() => {
@@ -40,6 +49,11 @@ export default function HeroSection({ loadingComplete }: { loadingComplete: bool
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
+      logComponentEvent("HeroSection", {
+        event: "scroll-to",
+        detail: { sectionId },
+        throttleMs: 1500,
+      })
     }
   }, [])
 

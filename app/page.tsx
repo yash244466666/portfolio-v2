@@ -1,5 +1,6 @@
 "use client"
 
+import "@/lib/react-telemetry"
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import LoadingScreen from "@/components/loading-screen"
@@ -9,8 +10,9 @@ import AboutSection from "@/components/about-section"
 import ProjectsSection from "@/components/projects-section"
 import ContactSection from "@/components/contact-section"
 import Footer from "@/components/footer"
-import MouseCursor from "@/components/mouse-cursor"
+// import MouseCursor from "@/components/mouse-cursor"
 import BackToTop from "@/components/back-to-top"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 
 const Smooth3DBackground = dynamic(() => import("@/components/background"), {
   ssr: false,
@@ -24,6 +26,18 @@ const Smooth3DBackground = dynamic(() => import("@/components/background"), {
 export default function Home() {
   const [loadingComplete, setLoadingComplete] = useState(false)
   const [mounted, setMounted] = useState(false)
+
+  useComponentInstrumentation("Home", {
+    stateSnapshot: () => ({
+      loadingComplete,
+      mounted,
+    }),
+    trackValues: () => ({
+      loadingComplete,
+      mounted,
+    }),
+    throttleMs: 1500,
+  })
 
   useEffect(() => {
     setMounted(true)
@@ -39,7 +53,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-950 relative">
-      <MouseCursor />
+      {/* <MouseCursor /> */}
       <Smooth3DBackground />
       {!loadingComplete && <LoadingScreen onComplete={() => setLoadingComplete(true)} />}
       {loadingComplete && (

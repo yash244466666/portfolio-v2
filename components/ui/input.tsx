@@ -1,8 +1,20 @@
+"use client"
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  useComponentInstrumentation("Input", {
+    propsSnapshot: () => ({
+      className,
+      type,
+      hasValue: props.value !== undefined || props.defaultValue !== undefined,
+    }),
+    throttleMs: 2500,
+  })
+
   return (
     <input
       type={type}

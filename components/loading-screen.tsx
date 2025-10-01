@@ -1,10 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   const [isLoading, setIsLoading] = useState(true)
   const [progress, setProgress] = useState(0)
+
+  useComponentInstrumentation("LoadingScreen", {
+    propsSnapshot: () => ({ hasOnComplete: Boolean(onComplete) }),
+    stateSnapshot: () => ({ isLoading, progress }),
+    trackValues: () => ({ isLoading, progress }),
+    throttleMs: 1000,
+  })
 
   useEffect(() => {
     const progressInterval = setInterval(() => {
@@ -13,12 +22,23 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           clearInterval(progressInterval)
           return 100
         }
-        return prev + 2
+        const next = Math.min(prev + 2, 100)
+        logComponentEvent("LoadingScreen", {
+          event: "progress-update",
+          detail: { value: next },
+          throttleMs: 800,
+        })
+        return next
       })
     }, 40)
 
     const timer = setTimeout(() => {
       setIsLoading(false)
+      logComponentEvent("LoadingScreen", {
+        event: "complete",
+        detail: { progress: 100 },
+        throttleMs: 1500,
+      })
       setTimeout(onComplete, 300) // Delay to allow fade out
     }, 2500)
 

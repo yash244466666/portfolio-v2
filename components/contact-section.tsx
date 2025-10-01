@@ -8,6 +8,8 @@ import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import { ContactSectionHeader } from "@/components/contact-section/contact-section-header"
 import { ContactFormCard } from "@/components/contact-section/contact-form-card"
 import { ContactInfoList } from "@/components/contact-section/contact-info-list"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -38,16 +40,36 @@ export default function ContactSection() {
   const formContent = getFormContent()
   const buttonTexts = getButtonTexts()
 
+  useComponentInstrumentation("ContactSection", {
+    stateSnapshot: () => ({
+      formData,
+      isVisible,
+    }),
+    trackValues: () => ({
+      isVisible,
+      messageLength: formData.message.length,
+    }),
+    throttleMs: 1500,
+  })
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission here
-    console.log("Form submitted:", formData)
+    logComponentEvent("ContactSection", {
+      event: "form-submit",
+      detail: { ...formData },
+      throttleMs: 1500,
+    })
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    })
+    logComponentEvent("ContactSection", {
+      event: "form-change",
+      detail: { field: e.target.name, length: e.target.value.length },
+      throttleMs: 800,
     })
   }
 
