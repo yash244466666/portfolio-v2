@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export interface SectionVisibilityOptions extends IntersectionObserverInit {
+type IntersectionObserverOptions = {
+  root?: Element | Document | null;
+  rootMargin?: string;
+  threshold?: number | number[];
+};
+
+export interface SectionVisibilityOptions extends IntersectionObserverOptions {
   /**
    * Whether the observer should disconnect after the element becomes visible once.
    * Defaults to true.
