@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from "react"
 import { getSectionContent, getSkills } from "@/lib/content/utils"
 import { useSectionVisibility } from "@/hooks/use-section-visibility"
-import { useShouldRenderCanvas } from "@/hooks/use-should-render-canvas"
 import { AboutSectionHeader } from "@/components/about-section/about-section-header"
 import { AboutBackground } from "@/components/about-section/about-background"
 import { SkillsGrid } from "@/components/about-section/skills-grid"
@@ -12,8 +11,6 @@ import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function AboutSection() {
-  const shouldRenderCanvas = useShouldRenderCanvas()
-
   const shouldSkipVisibility = useCallback(() => {
     if (typeof window === "undefined") {
       return false
@@ -44,23 +41,21 @@ export default function AboutSection() {
 
   useComponentInstrumentation("AboutSection", {
     metricsSnapshot: () => ({
-      shouldRenderCanvas,
       isVisible,
       skillsCount: skillsData.length,
     }),
-    trackValues: () => ({ isVisible, shouldRenderCanvas }),
+    trackValues: () => ({ isVisible }),
     throttleMs: 1500,
   })
 
   logComponentEvent("AboutSection", {
     event: "render",
-    detail: { shouldRenderCanvas },
     throttleMs: 3000,
   })
 
   return (
     <section id="about" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30 relative overflow-hidden">
-      <AboutBackground shouldRenderCanvas={shouldRenderCanvas} />
+      <AboutBackground />
 
       <div className="max-w-6xl mx-auto relative z-10">
         <AboutSectionHeader

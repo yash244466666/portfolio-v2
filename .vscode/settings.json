@@ -1,1 +1,5 @@
-{}
+{
+  "chat.agent.enabled": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+  "chat.agent.maxTurns": 30
+}

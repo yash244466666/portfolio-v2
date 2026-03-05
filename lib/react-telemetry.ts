@@ -19,9 +19,6 @@ type CreateElementChildrenArgs = unknown[];
 
 const manualNameOverrides = new Set<string>([
   "Home",
-  "Smooth3DBackground",
-  "HexagonalInstancedMesh",
-  "HexagonalGrid",
   "BackToTop",
   "Footer",
   "AboutSection",
@@ -31,8 +28,6 @@ const manualNameOverrides = new Set<string>([
   "ProjectsSection",
   "LoadingScreen",
   "MouseCursor",
-  "DynamicLights",
-  "BackgroundFallback",
   "Input",
   "UIButton",
   "Card",

@@ -58,7 +58,7 @@ export default function HeroSection({ loadingComplete }: { loadingComplete: bool
   }, [])
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 relative overflow-hidden bg-gray-950">
+    <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 relative overflow-hidden">
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <HeroHeading greeting={personalInfo.greeting} name={personalInfo.name} isVisible={isVisible} />
         <HeroTypewriterTitle title={title} loadingComplete={loadingComplete} isVisible={isVisible} />
