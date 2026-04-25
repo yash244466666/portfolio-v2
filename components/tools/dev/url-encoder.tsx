@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -61,30 +62,30 @@ export default function UrlEncoder() {
       </div>
 
       {encoded && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-3 relative">
+        <ToolResult className="    relative">
           <p className="text-xs text-muted-foreground mb-1">Encoded</p>
           <p className="font-mono text-sm text-foreground break-all">{encoded}</p>
           <div className="absolute top-2 right-2"><CopyButton text={encoded} /></div>
-        </div>
+        </ToolResult>
       )}
 
       {decoded && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-3 relative">
+        <ToolResult className="    relative">
           <p className="text-xs text-muted-foreground mb-1">Decoded</p>
           <p className="font-mono text-sm text-foreground break-all">{decoded}</p>
           <div className="absolute top-2 right-2"><CopyButton text={decoded} /></div>
-        </div>
+        </ToolResult>
       )}
 
       {parsed && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <h3 className="text-sm font-medium text-foreground mb-3">URL Parts</h3>
           <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
             {Object.entries(parsed).map(([key, val]) => (
               <><span className="text-muted-foreground">{key}:</span><span className="font-mono text-foreground break-all">{val}</span></>
             ))}
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

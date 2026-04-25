@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cronFieldNames, cronFieldRanges, dayOfWeekNames, monthNames, parseCron, describeCron } from "@/lib/tools/cron-utils"
@@ -79,7 +80,7 @@ export default function CronBuilder() {
         ))}
       </div>
 
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <h3 className="text-sm font-medium text-foreground mb-2">Quick Reference</h3>
         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
           <span><code className="text-foreground">*</code> — Any value</span>
@@ -93,7 +94,7 @@ export default function CronBuilder() {
           <p className="text-muted-foreground mb-1 mt-2">Months:</p>
           <p className="text-foreground">{monthNames.filter(Boolean).map((m, i) => `${i + 1}=${m}`).join(", ")}</p>
         </div>
-      </div>
+      </ToolResult>
 
       <div>
         <h3 className="text-sm font-medium text-foreground mb-3">Common Presets</h3>

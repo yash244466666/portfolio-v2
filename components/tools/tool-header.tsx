@@ -11,7 +11,7 @@ import {
   ArrowUpDown, ListOrdered, Scissors, ScanEye, StickyNote, Bookmark, Mic, Film,
   FileCheck, ShieldAlert, Eraser, ShieldHalf, ArrowLeftRight, Bot, Percent, Cake,
   Receipt, Sigma, EyeOff, Calculator, Watch, Hourglass, Share2, ChevronRight, Home, Check,
-  Camera, Loader2
+  Camera, Loader2, RotateCcw
 } from "lucide-react"
 import { useState } from "react"
 import type { ToolDefinition } from "@/lib/content/tools/types"
@@ -33,9 +33,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 interface ToolHeaderProps {
   tool: ToolDefinition
   onBack: () => void
+  onReset?: () => void
 }
 
-export default function ToolHeader({ tool, onBack }: ToolHeaderProps) {
+export default function ToolHeader({ tool, onBack, onReset }: ToolHeaderProps) {
   const [isCapturing, setIsCapturing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const IconComponent = iconMap[tool.icon] || Braces
@@ -132,13 +133,25 @@ export default function ToolHeader({ tool, onBack }: ToolHeaderProps) {
           </div>
         </div>
 
-        {/* Share Button */}
-        <button
-          onClick={captureScreenshot}
-          disabled={isCapturing}
-          className="shrink-0 flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-          aria-label="Take screenshot"
-        >
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          {onReset && (
+            <button
+              onClick={onReset}
+              className="shrink-0 flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
+              aria-label="Reset tool state"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          )}
+
+          <button
+            onClick={captureScreenshot}
+            disabled={isCapturing}
+            className="shrink-0 flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            aria-label="Take screenshot"
+          >
           {isCapturing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -154,8 +167,9 @@ export default function ToolHeader({ tool, onBack }: ToolHeaderProps) {
               <Camera className="h-4 w-4 text-muted-foreground" />
               <span>Capture</span>
             </>
-          )}
-        </button>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )

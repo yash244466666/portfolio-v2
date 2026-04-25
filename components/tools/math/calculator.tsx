@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 
@@ -182,14 +183,14 @@ export default function Calculator() {
       <TabSwitcher tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Display */}
-      <div className="bg-muted/30 border border-border/50 rounded-xl p-4">
+      <ToolResult >
         <p className="text-sm text-muted-foreground text-right h-6 truncate">
           {expression || "\u00A0"}
         </p>
         <p className="text-3xl font-mono text-foreground text-right truncate">
           {display}
         </p>
-      </div>
+      </ToolResult>
 
       {/* Scientific buttons */}
       {activeTab === "scientific" && (
@@ -252,7 +253,7 @@ export default function Calculator() {
 
       {/* History */}
       {history.length > 0 && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">History</span>
             <button
@@ -264,9 +265,9 @@ export default function Calculator() {
           </div>
           <div className="space-y-1 max-h-40 overflow-y-auto">
             {history.map((entry) => (
-              <div
+              <ToolResult
                 key={entry.id}
-                className="flex items-center justify-between text-sm py-1 cursor-pointer hover:bg-muted/30 rounded px-1"
+                className="flex items-center justify-between text-sm py-1 cursor-pointer hover: rounded px-1"
                 onClick={() => {
                   setDisplay(entry.result)
                   setNewNumber(true)
@@ -276,10 +277,10 @@ export default function Calculator() {
                   {entry.expression}
                 </span>
                 <span className="font-mono text-foreground shrink-0">= {entry.result}</span>
-              </div>
+              </ToolResult>
             ))}
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

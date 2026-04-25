@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import { Play, Pause, RotateCcw, Flag } from "lucide-react"
 
@@ -75,11 +76,11 @@ export default function Stopwatch() {
   return (
     <div className="space-y-6">
       {/* Display */}
-      <div className="bg-muted/30 border border-border/50 rounded-xl p-8 text-center">
+      <ToolResult className="   p-8 text-center">
         <p className="text-5xl font-mono text-foreground tracking-wider">
           {formatTime(elapsed)}
         </p>
-      </div>
+      </ToolResult>
 
       {/* Controls */}
       <div className="flex items-center justify-center gap-3">
@@ -112,7 +113,7 @@ export default function Stopwatch() {
 
       {/* Laps */}
       {laps.length > 0 && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg overflow-hidden">
+        <ToolResult className="   overflow-hidden">
           <div className="grid grid-cols-3 gap-4 px-4 py-2 border-b border-border/50 text-xs text-muted-foreground uppercase tracking-wider">
             <span>Lap</span>
             <span className="text-right">Lap Time</span>
@@ -142,7 +143,7 @@ export default function Stopwatch() {
               )
             })}
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

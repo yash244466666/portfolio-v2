@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -73,9 +74,9 @@ export default function CspGenerator() {
       {/* Directives */}
       <div className="space-y-2">
         {directives.map((directive) => (
-          <div
+          <ToolResult
             key={directive.id}
-            className="bg-muted/30 border border-border/50 rounded-lg p-3"
+            
           >
             <div className="flex items-center gap-3 mb-1">
               <input
@@ -113,12 +114,12 @@ export default function CspGenerator() {
                 </div>
               </div>
             )}
-          </div>
+          </ToolResult>
         ))}
       </div>
 
       {/* Generated header */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-foreground">
             Content-Security-Policy
@@ -128,7 +129,7 @@ export default function CspGenerator() {
         <p className="font-mono text-sm text-muted-foreground break-all">
           {cspHeader || "Enable directives above to generate CSP"}
         </p>
-      </div>
+      </ToolResult>
     </div>
   )
 }

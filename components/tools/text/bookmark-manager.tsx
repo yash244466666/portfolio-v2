@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -117,7 +118,7 @@ export default function BookmarkManager() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-3">
+      <ToolResult className="    space-y-3">
         <h3 className="text-sm font-medium text-foreground">Add Bookmark</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
@@ -142,7 +143,7 @@ export default function BookmarkManager() {
         <Button onClick={handleAdd} className="w-full" disabled={!title.trim() || !url.trim()}>
           Add Bookmark
         </Button>
-      </div>
+      </ToolResult>
 
       <div className="flex flex-wrap gap-2 items-center">
         <Input
@@ -166,9 +167,9 @@ export default function BookmarkManager() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((bookmark) => (
-            <div
+            <ToolResult
               key={bookmark.id}
-              className="group bg-muted/30 border border-border/50 rounded-lg p-4 hover:border-primary/30 transition-colors"
+              className="group     hover:border-primary/30 transition-colors"
             >
               <div className="flex items-start justify-between gap-2">
                 <h4 className="text-sm font-medium text-foreground line-clamp-1">{bookmark.title}</h4>
@@ -199,7 +200,7 @@ export default function BookmarkManager() {
                   ))}
                 </div>
               )}
-            </div>
+            </ToolResult>
           ))}
         </div>
       )}

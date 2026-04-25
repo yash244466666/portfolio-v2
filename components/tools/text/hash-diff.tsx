@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -65,7 +66,7 @@ export default function HashDiff() {
       )}
 
       {results.map((r) => (
-        <div key={r.algo} className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-2">
+        <ToolResult key={r.algo} className="    space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">{r.algo}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full ${r.match ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
@@ -76,7 +77,7 @@ export default function HashDiff() {
             <span className="text-muted-foreground">Text 1:</span><span className="text-foreground break-all">{r.hash1}</span>
             <span className="text-muted-foreground">Text 2:</span><span className="text-foreground break-all">{r.hash2}</span>
           </div>
-        </div>
+        </ToolResult>
       ))}
     </div>
   )

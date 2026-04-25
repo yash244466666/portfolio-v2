@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 
 export default function AgeCalculator() {
@@ -75,7 +76,7 @@ export default function AgeCalculator() {
       {result && (
         <>
           {/* Main age display */}
-          <div className="bg-muted/30 border border-border/50 rounded-xl p-6 text-center">
+          <ToolResult className="   p-6 text-center">
             <p className="text-sm text-muted-foreground mb-2">Your Age</p>
             <p className="text-3xl font-mono text-foreground">
               {result.years}{" "}
@@ -85,28 +86,28 @@ export default function AgeCalculator() {
               {result.days}{" "}
               <span className="text-lg text-muted-foreground">days</span>
             </p>
-          </div>
+          </ToolResult>
 
           {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-center">
+            <ToolResult className="    text-center">
               <p className="text-2xl font-mono text-foreground">
                 {result.totalDays.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Days</p>
-            </div>
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-center">
+            </ToolResult>
+            <ToolResult className="    text-center">
               <p className="text-2xl font-mono text-foreground">
                 {result.totalHours.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Hours</p>
-            </div>
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-center">
+            </ToolResult>
+            <ToolResult className="    text-center">
               <p className="text-2xl font-mono text-foreground">
                 {result.totalMinutes.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Minutes</p>
-            </div>
+            </ToolResult>
           </div>
 
           {/* Birthday countdown */}

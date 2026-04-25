@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import * as Diff from "diff"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -52,7 +53,7 @@ export default function TextDiff() {
       )}
 
       {diffs.length > 0 && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4 overflow-x-auto">
+        <ToolResult className="    overflow-x-auto">
           <pre className="text-sm font-mono whitespace-pre-wrap">
             {diffs.map((part, i) => (
               <span
@@ -69,7 +70,7 @@ export default function TextDiff() {
               </span>
             ))}
           </pre>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

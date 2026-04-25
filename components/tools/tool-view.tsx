@@ -1,6 +1,6 @@
 "use client"
 
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useState } from "react"
 import { getToolById } from "@/lib/content/tools/utils"
 import ToolHeader from "@/components/tools/tool-header"
 
@@ -212,6 +212,7 @@ interface ToolViewProps {
 
 export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
   const tool = getToolById(toolId)
+  const [resetKey, setResetKey] = useState(0)
 
   if (!tool) {
     return (
@@ -230,11 +231,11 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
       <div id="tool-capture-area" className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px] flex flex-col">
-        <ToolHeader tool={tool} onBack={onBack} />
+        <ToolHeader tool={tool} onBack={onBack} onReset={() => setResetKey(k => k + 1)} />
         <div className="mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
           <div className="h-full bg-background/40 border border-border/30 rounded-2xl p-6 sm:p-8 shadow-inner">
             {ToolComponent ? (
-              <Suspense fallback={<ToolFallback />}><ToolComponent /></Suspense>
+              <Suspense fallback={<ToolFallback />}><ToolComponent key={resetKey} /></Suspense>
             ) : (
               <div className="flex items-center justify-center h-full min-h-[200px]">
                 <p className="text-muted-foreground text-center">This tool is not yet available.</p>

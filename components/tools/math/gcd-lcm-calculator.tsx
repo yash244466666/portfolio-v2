@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 
 function gcd(a: number, b: number): number {
@@ -85,23 +86,23 @@ export default function GcdLcmCalculator() {
         <>
           {/* Results */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-center">
+            <ToolResult className="    text-center">
               <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
                 GCD
               </p>
               <p className="text-3xl font-mono text-foreground">{gcdResult}</p>
-            </div>
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-center">
+            </ToolResult>
+            <ToolResult className="    text-center">
               <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
                 LCM
               </p>
               <p className="text-3xl font-mono text-foreground">{lcmResult}</p>
-            </div>
+            </ToolResult>
           </div>
 
           {/* Step-by-step for GCD */}
           {steps.length > 0 && (
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+            <ToolResult >
               <span className="text-sm font-medium text-foreground block mb-3">
                 GCD Steps (Euclidean Algorithm)
               </span>
@@ -117,11 +118,11 @@ export default function GcdLcmCalculator() {
                   Showing steps for first two numbers. Full GCD: gcd({numbers.join(", ")}) = {gcdResult}
                 </p>
               )}
-            </div>
+            </ToolResult>
           )}
 
           {/* Number details */}
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <span className="text-sm font-medium text-foreground block mb-2">
               Numbers
             </span>
@@ -135,7 +136,7 @@ export default function GcdLcmCalculator() {
                 </span>
               ))}
             </div>
-          </div>
+          </ToolResult>
         </>
       )}
     </div>

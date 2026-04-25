@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -140,9 +141,9 @@ export default function RobotsTxtGenerator() {
     <div className="space-y-6">
       {/* User-agent groups */}
       {groups.map((group) => (
-        <div
+        <ToolResult
           key={group.id}
-          className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-4"
+          className="    space-y-4"
         >
           <div className="flex items-center justify-between">
             <Input
@@ -228,7 +229,7 @@ export default function RobotsTxtGenerator() {
               </div>
             ))}
           </div>
-        </div>
+        </ToolResult>
       ))}
 
       <Button onClick={addGroup} variant="outline" className="w-full gap-2">
@@ -250,7 +251,7 @@ export default function RobotsTxtGenerator() {
       </div>
 
       {/* Generated output */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-foreground">robots.txt</span>
           <CopyButton text={robotsTxt} />
@@ -258,7 +259,7 @@ export default function RobotsTxtGenerator() {
         <pre className="font-mono text-sm text-muted-foreground whitespace-pre-wrap">
           {robotsTxt || "Add rules above to generate robots.txt"}
         </pre>
-      </div>
+      </ToolResult>
     </div>
   )
 }

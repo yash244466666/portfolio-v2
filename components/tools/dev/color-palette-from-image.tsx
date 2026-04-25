@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { hexToRgb, rgbToHex } from "@/lib/tools/color-utils"
 import Dropzone from "@/components/tools/shared/dropzone"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -104,9 +105,9 @@ export default function ColorPaletteFromImage() {
             <CopyButton text={palette.join(", ")} />
             <span className="text-xs text-muted-foreground ml-2">Copy all as CSS variables</span>
           </div>
-          <div className="mt-2 bg-muted/30 border border-border/50 rounded-lg p-3">
+          <ToolResult className="mt-2    ">
             <pre className="font-mono text-xs text-foreground">{palette.map((c, i) => `  --color-${i + 1}: ${c};`).join("\n")}</pre>
-          </div>
+          </ToolResult>
         </div>
       )}
     </div>

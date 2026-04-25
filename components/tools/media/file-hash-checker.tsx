@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import Dropzone from "@/components/tools/shared/dropzone"
 import CopyButton from "@/components/tools/shared/copy-button"
 import { Loader2 } from "lucide-react"
@@ -62,7 +63,7 @@ export default function FileHashChecker() {
         />
       ) : (
         <>
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">File Name</span>
               <span className="text-foreground font-medium">{file.name}</span>
@@ -75,7 +76,7 @@ export default function FileHashChecker() {
               <span className="text-muted-foreground">Type</span>
               <span className="text-foreground">{file.type || "Unknown"}</span>
             </div>
-          </div>
+          </ToolResult>
 
           {loading && (
             <div className="flex items-center justify-center py-8 gap-3">
@@ -87,9 +88,9 @@ export default function FileHashChecker() {
           {!loading && Object.keys(hashes).length > 0 && (
             <div className="space-y-3">
               {algorithms.map((algo) => (
-                <div
+                <ToolResult
                   key={algo.id}
-                  className="bg-muted/30 border border-border/50 rounded-lg p-3"
+                  
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-foreground">{algo.label}</span>
@@ -98,7 +99,7 @@ export default function FileHashChecker() {
                   <p className="font-mono text-xs text-muted-foreground break-all">
                     {hashes[algo.id]}
                   </p>
-                </div>
+                </ToolResult>
               ))}
             </div>
           )}

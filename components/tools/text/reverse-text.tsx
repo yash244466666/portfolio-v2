@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -55,9 +56,9 @@ export default function ReverseText() {
             <label className="text-sm font-medium text-foreground">Output</label>
             {output && <CopyButton text={output} />}
           </div>
-          <div className="w-full min-h-[150px] sm:min-h-[200px] p-4 rounded-lg border border-border bg-muted/30 text-foreground font-mono text-sm whitespace-pre-wrap break-all overflow-auto">
+          <ToolResult className="w-full min-h-[150px] sm:min-h-[200px]     text-foreground font-mono text-sm whitespace-pre-wrap break-all overflow-auto">
             {output}
-          </div>
+          </ToolResult>
         </div>
       )}
     </div>

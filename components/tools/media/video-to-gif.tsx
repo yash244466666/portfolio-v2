@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import Dropzone from "@/components/tools/shared/dropzone"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -311,7 +312,7 @@ export default function VideoToGif() {
 
       {videoFile && status === "idle" && (
         <div className="space-y-4">
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">File</span>
               <span className="text-foreground">{videoFile.name}</span>
@@ -320,7 +321,7 @@ export default function VideoToGif() {
               <span className="text-muted-foreground">Size</span>
               <span className="text-foreground">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</span>
             </div>
-          </div>
+          </ToolResult>
 
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -356,7 +357,7 @@ export default function VideoToGif() {
       )}
 
       {(status === "extracting" || status === "encoding") && (
-        <div className="bg-muted/30 border border-border/50 rounded-xl p-6 text-center">
+        <ToolResult className="   p-6 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
           <p className="text-sm text-foreground mb-2">
             {status === "extracting" ? "Extracting frames..." : "Encoding GIF..."}
@@ -368,7 +369,7 @@ export default function VideoToGif() {
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2">{progress}%</p>
-        </div>
+        </ToolResult>
       )}
 
       {status === "error" && (
@@ -382,21 +383,21 @@ export default function VideoToGif() {
 
       {status === "done" && gifUrl && (
         <div className="space-y-4">
-          <div className="bg-muted/30 border border-border/50 rounded-xl p-4 text-center">
+          <ToolResult className="    text-center">
             <img
               src={gifUrl}
               alt="Generated GIF"
               className="max-w-full mx-auto rounded-lg"
               style={{ maxHeight: 300 }}
             />
-          </div>
+          </ToolResult>
 
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">GIF Size</span>
               <span className="text-foreground">{(gifSize / 1024).toFixed(1)} KB</span>
             </div>
-          </div>
+          </ToolResult>
 
           <div className="flex gap-3">
             <Button onClick={downloadGif} className="flex-1 gap-2">

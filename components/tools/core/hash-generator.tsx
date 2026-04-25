@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -180,13 +181,13 @@ export default function HashGenerator() {
       {Object.keys(hashes).length > 0 && (
         <div className="space-y-3">
           {algorithms.map((algo) => (
-            <div key={algo} className="bg-muted/30 border border-border/50 rounded-lg p-3">
+            <ToolResult key={algo} >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-foreground">{algo}</span>
                 <CopyButton text={hashes[algo]} />
               </div>
               <p className="font-mono text-sm text-muted-foreground break-all">{hashes[algo]}</p>
-            </div>
+            </ToolResult>
           ))}
         </div>
       )}

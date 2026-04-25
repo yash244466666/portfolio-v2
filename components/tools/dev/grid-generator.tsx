@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -166,11 +167,11 @@ export default function GridGenerator() {
         ))}
       </div>
 
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+      <ToolResult className="    relative">
         <p className="text-xs text-muted-foreground mb-1">CSS</p>
         <pre className="text-sm font-mono text-foreground whitespace-pre-wrap">{cssCode}</pre>
         <div className="absolute top-3 right-3"><CopyButton text={cssCode} /></div>
-      </div>
+      </ToolResult>
     </div>
   )
 }

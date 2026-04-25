@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Input } from "@/components/ui/input"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 
 const bases = [
   { id: "decimal", label: "Decimal", radix: 10 },
@@ -14,6 +15,7 @@ const bases = [
 
 export default function NumberBaseConverter() {
   const [decimalValue, setDecimalValue] = useState<string>("255")
+  const [customRadix, setCustomRadix] = useState<string>("")
 
   const isValidDecimal = (v: string) => /^-?\d+$/.test(v)
 
@@ -51,25 +53,27 @@ export default function NumberBaseConverter() {
         </div>
       ))}
 
-      <div className="mt-4">
-        <label className="text-sm font-medium text-foreground block mb-1.5">Custom Radix</label>
-        <div className="flex gap-3">
+      <div className="mt-8 pt-6 border-t border-border/50">
+        <label className="text-sm font-medium text-foreground block mb-2">Custom Radix Output</label>
+        <div className="grid grid-cols-1 sm:grid-cols-[150px_1fr] gap-4">
           <Input
             type="number"
             min={2}
             max={36}
-            placeholder="2-36"
-            className="w-24 bg-background/50 font-mono"
-            onChange={(e) => {
-              const r = parseInt(e.target.value)
-              if (r >= 2 && r <= 36) {
-                const num = parseInt(decimalValue, 10)
-                if (!isNaN(num)) {
-                  (e.target as HTMLInputElement).dataset.output = num.toString(r).toUpperCase()
-                }
-              }
-            }}
+            value={customRadix}
+            placeholder="Base (2-36)"
+            className="bg-background/50 font-mono"
+            onChange={(e) => setCustomRadix(e.target.value)}
           />
+          <ToolResult label={`Base ${customRadix || "?"}`}>
+            {(() => {
+              const r = parseInt(customRadix)
+              if (isNaN(r) || r < 2 || r > 36) return "Enter a valid radix (2-36)"
+              const num = parseInt(decimalValue, 10)
+              if (isNaN(num)) return ""
+              return num.toString(r).toUpperCase()
+            })()}
+          </ToolResult>
         </div>
       </div>
     </div>

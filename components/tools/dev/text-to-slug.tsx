@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 const STOP_WORDS = new Set([
@@ -126,13 +127,13 @@ export default function TextToSlug() {
 
       {result.slug && (
         <>
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+          <ToolResult className="    relative">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs text-muted-foreground">Result</p>
               <CopyButton text={result.slug} />
             </div>
             <p className="text-lg font-mono text-foreground break-all">{result.slug}</p>
-          </div>
+          </ToolResult>
 
           <div>
             <h3 className="text-sm font-medium text-foreground mb-2">Conversion Steps</h3>

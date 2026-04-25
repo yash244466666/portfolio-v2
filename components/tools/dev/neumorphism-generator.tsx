@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -189,13 +190,13 @@ export default function NeumorphismGenerator() {
         </div>
       </div>
 
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+      <ToolResult className="    relative">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs text-muted-foreground">CSS</p>
           <CopyButton text={cssCode} />
         </div>
         <pre className="text-sm font-mono text-foreground whitespace-pre-wrap">{cssCode}</pre>
-      </div>
+      </ToolResult>
     </div>
   )
 }

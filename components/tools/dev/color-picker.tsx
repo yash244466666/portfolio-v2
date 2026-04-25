@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, hslToHex, getContrastRatio, meetsWcagAA, meetsWcagAAA, getComplementary, getAnalogous, getTriadic, getSplitComplementary } from "@/lib/tools/color-utils"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -88,7 +89,7 @@ export default function ColorPicker() {
               <Input value={contrastHex} onChange={(e) => setContrastHex(e.target.value)} className="w-32 font-mono bg-background/50" />
               <div className="w-8 h-8 rounded-md border" style={{ backgroundColor: contrastHex }} />
             </div>
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-3">
+            <ToolResult >
               <p className="text-2xl font-bold text-foreground">{contrastRatio.toFixed(2)}:1</p>
               <div className="flex gap-3 mt-1 text-sm">
                 <span className={meetsWcagAA(contrastRatio) ? "text-emerald-400" : "text-red-400"}>
@@ -98,7 +99,7 @@ export default function ColorPicker() {
                   AAA {meetsWcagAAA(contrastRatio) ? "✓" : "✗"}
                 </span>
               </div>
-            </div>
+            </ToolResult>
           </div>
 
           <div>

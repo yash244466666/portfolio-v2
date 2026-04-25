@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -90,11 +91,11 @@ export default function HmacGenerator() {
       </div>
 
       {output && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+        <ToolResult className="    relative">
           <p className="text-xs text-muted-foreground mb-1">HMAC-{algorithm.replace("SHA-", "")}</p>
           <p className="text-sm font-mono text-foreground break-all">{output}</p>
           <div className="absolute top-3 right-3"><CopyButton text={output} /></div>
-        </div>
+        </ToolResult>
       )}
 
       {error && (

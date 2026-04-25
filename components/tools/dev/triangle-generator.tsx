@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 const directions = [
@@ -145,11 +146,11 @@ export default function TriangleGenerator() {
         </div>
       </div>
 
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+      <ToolResult className="    relative">
         <p className="text-xs text-muted-foreground mb-1">CSS</p>
         <pre className="text-sm font-mono text-foreground whitespace-pre-wrap">{cssCode}</pre>
         <div className="absolute top-3 right-3"><CopyButton text={cssCode} /></div>
-      </div>
+      </ToolResult>
     </div>
   )
 }

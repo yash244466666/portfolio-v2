@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 const units = [
@@ -111,11 +112,11 @@ export default function BorderRadiusGenerator() {
         ))}
       </div>
 
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+      <ToolResult className="    relative">
         <p className="text-xs text-muted-foreground mb-1">CSS</p>
         <code className="text-sm font-mono text-foreground break-all">{borderRadius}</code>
         <div className="absolute top-3 right-3"><CopyButton text={borderRadius} /></div>
-      </div>
+      </ToolResult>
     </div>
   )
 }

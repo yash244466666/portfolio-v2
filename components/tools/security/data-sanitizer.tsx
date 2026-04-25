@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 interface SanitizerOption {
@@ -86,7 +87,7 @@ export default function DataSanitizer() {
   return (
     <div className="space-y-6">
       {/* Toggle options */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <span className="text-sm font-medium text-foreground block mb-3">
           What to strip
         </span>
@@ -106,7 +107,7 @@ export default function DataSanitizer() {
             </label>
           ))}
         </div>
-      </div>
+      </ToolResult>
 
       {/* Input */}
       <div>
@@ -126,17 +127,17 @@ export default function DataSanitizer() {
             <label className="text-sm font-medium text-foreground">Sanitized Output</label>
             <CopyButton text={result.text} />
           </div>
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4 min-h-[80px]">
+          <ToolResult className="    min-h-[80px]">
             <p className="font-mono text-sm text-foreground whitespace-pre-wrap break-all">
               {result.text || <span className="text-muted-foreground italic">No output</span>}
             </p>
-          </div>
+          </ToolResult>
         </div>
       )}
 
       {/* Counts */}
       {input && totalRemoved > 0 && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <span className="text-sm font-medium text-foreground block mb-3">
             Items Removed
           </span>
@@ -159,7 +160,7 @@ export default function DataSanitizer() {
               </div>
             </div>
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

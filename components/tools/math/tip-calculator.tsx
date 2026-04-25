@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -110,7 +111,7 @@ export default function TipCalculator() {
 
       {/* Results */}
       {result && (
-        <div className="bg-muted/30 border border-border/50 rounded-xl p-5 space-y-3">
+        <ToolResult className="    space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Tip Amount</span>
             <span className="text-lg font-mono text-foreground">${result.tip}</span>
@@ -133,7 +134,7 @@ export default function TipCalculator() {
               </div>
             </>
           )}
-        </div>
+        </ToolResult>
       )}
     </div>
   )

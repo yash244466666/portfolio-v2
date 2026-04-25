@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import Dropzone from "@/components/tools/shared/dropzone"
 
@@ -115,7 +116,7 @@ export default function ImageCompressor() {
           </Button>
 
           {compressedUrl && (
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-3">
+            <ToolResult className="    space-y-3">
               <div className="flex gap-4 text-sm">
                 <span className="text-muted-foreground">Original: {formatSize(originalSize)}</span>
                 <span className="text-muted-foreground">Compressed: {formatSize(compressedSize)}</span>
@@ -129,7 +130,7 @@ export default function ImageCompressor() {
               <Button onClick={download} variant="outline" className="w-full">
                 Download Compressed Image
               </Button>
-            </div>
+            </ToolResult>
           )}
         </div>
       )}
