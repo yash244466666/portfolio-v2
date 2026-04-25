@@ -5,9 +5,11 @@ import { PDFDocument } from "pdf-lib"
 import { Button } from "@/components/ui/button"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 import Dropzone from "@/components/tools/shared/dropzone"
+import JSZip from "jszip"
 
 const tabs = [
   { id: "image-to-pdf", label: "Image to PDF" },
+  { id: "pdf-to-image", label: "PDF to Image" },
   { id: "merge-pdfs", label: "Merge PDFs" },
   { id: "pdf-to-text", label: "PDF to Text" },
 ]
@@ -17,6 +19,8 @@ export default function PdfConverter() {
   const [images, setImages] = useState<File[]>([])
   const [pdfs, setPdfs] = useState<File[]>([])
   const [pdfForText, setPdfForText] = useState<File | null>(null)
+  const [pdfForImage, setPdfForImage] = useState<File | null>(null)
+  const [imagesFromPdf, setImagesFromPdf] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [extractedText, setExtractedText] = useState("")
   const [error, setError] = useState("")
@@ -102,8 +106,12 @@ export default function PdfConverter() {
     setExtractedText("")
 
     try {
-      const pdfjsLib = await import("pdfjs-dist")
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs"
+      // @ts-ignore
+      const pdfjsModule = await import("pdfjs-dist/legacy/build/pdf.min.mjs")
+      const pdfjsLib = pdfjsModule.default || pdfjsModule
+      if (pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+      }
 
       const arrayBuffer = await pdfForText.arrayBuffer()
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
@@ -126,6 +134,61 @@ export default function PdfConverter() {
     }
   }, [pdfForText])
 
+  const handlePdfToImage = useCallback(async () => {
+    if (!pdfForImage) return
+    setLoading(true)
+    setError("")
+    setImagesFromPdf([])
+
+    try {
+      // @ts-ignore
+      const pdfjsModule = await import("pdfjs-dist/legacy/build/pdf.min.mjs")
+      const pdfjsLib = pdfjsModule.default || pdfjsModule
+      if (pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+      }
+
+      const arrayBuffer = await pdfForImage.arrayBuffer()
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      const newImages = []
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const viewport = page.getViewport({ scale: 2.0 }) // High res
+        const canvas = document.createElement("canvas")
+        const context = canvas.getContext("2d")
+        if (!context) continue
+        canvas.height = viewport.height
+        canvas.width = viewport.width
+
+        await page.render({ canvasContext: context, viewport, canvas } as any).promise
+        newImages.push(canvas.toDataURL("image/png"))
+      }
+
+      setImagesFromPdf(newImages)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to convert PDF to images")
+    } finally {
+      setLoading(false)
+    }
+  }, [pdfForImage])
+
+  const handleDownloadAllAsZip = useCallback(async () => {
+    if (imagesFromPdf.length === 0) return
+    const zip = new JSZip()
+    
+    imagesFromPdf.forEach((src, i) => {
+      const base64Data = src.split(",")[1]
+      zip.file(`page-${i + 1}.png`, base64Data, { base64: true })
+    })
+    
+    const content = await zip.generateAsync({ type: "blob" })
+    const a = document.createElement("a")
+    a.href = URL.createObjectURL(content)
+    a.download = `${pdfForImage?.name.replace(/\.[^.]+$/, "") || "pdf"}-images.zip`
+    a.click()
+  }, [imagesFromPdf, pdfForImage])
+
   return (
     <div className="space-y-6">
       <TabSwitcher tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
@@ -140,23 +203,66 @@ export default function PdfConverter() {
         <div className="space-y-4">
           <Dropzone
             onFiles={setImages}
+            selectedFiles={images}
             accept="image/png,image/jpeg"
             multiple
             label="Drop images here or click to browse (PNG, JPG)"
           />
           {images.length > 0 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">{images.length} image(s) selected</p>
+            <div className="flex justify-end">
               <Button onClick={handleImageToPdf} disabled={loading}>
                 {loading ? "Converting..." : "Convert to PDF"}
               </Button>
             </div>
           )}
-          <ul className="text-sm text-muted-foreground space-y-1">
-            {images.map((f, i) => (
-              <li key={i} className="truncate">{f.name} ({(f.size / 1024).toFixed(1)} KB)</li>
-            ))}
-          </ul>
+        </div>
+      )}
+
+      {activeTab === "pdf-to-image" && (
+        <div className="space-y-4">
+          <Dropzone
+            onFiles={(files) => { setPdfForImage(files[0] || null); setImagesFromPdf([]); }}
+            selectedFiles={pdfForImage ? [pdfForImage] : null}
+            accept=".pdf"
+            label="Drop a PDF file here or click to browse"
+          />
+          {pdfForImage && (
+            <div className="flex justify-end gap-3">
+              {imagesFromPdf.length > 0 && (
+                <Button onClick={handleDownloadAllAsZip} variant="secondary">
+                  Download All as ZIP
+                </Button>
+              )}
+              <Button onClick={handlePdfToImage} disabled={loading}>
+                {loading ? "Converting..." : "Convert to Images"}
+              </Button>
+            </div>
+          )}
+          {imagesFromPdf.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 mt-6">
+              {imagesFromPdf.map((src, i) => (
+                <div key={i} className="relative group rounded-lg overflow-hidden border border-border">
+                  <img src={src} alt={`Page ${i + 1}`} className="w-full h-auto" />
+                  <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => {
+                        const a = document.createElement("a")
+                        a.href = src
+                        a.download = `page-${i + 1}.png`
+                        a.click()
+                      }}
+                    >
+                      Download PNG
+                    </Button>
+                  </div>
+                  <div className="absolute top-2 left-2 bg-background/80 text-foreground text-xs px-2 py-1 rounded backdrop-blur-md">
+                    Page {i + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -164,36 +270,31 @@ export default function PdfConverter() {
         <div className="space-y-4">
           <Dropzone
             onFiles={setPdfs}
+            selectedFiles={pdfs}
             accept=".pdf"
             multiple
             label="Drop PDF files here or click to browse"
           />
           {pdfs.length > 0 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">{pdfs.length} PDF(s) selected</p>
+            <div className="flex justify-end">
               <Button onClick={handleMergePdfs} disabled={loading || pdfs.length < 2}>
                 {loading ? "Merging..." : "Merge PDFs"}
               </Button>
             </div>
           )}
-          <ul className="text-sm text-muted-foreground space-y-1">
-            {pdfs.map((f, i) => (
-              <li key={i} className="truncate">{f.name} ({(f.size / 1024).toFixed(1)} KB)</li>
-            ))}
-          </ul>
         </div>
       )}
 
       {activeTab === "pdf-to-text" && (
         <div className="space-y-4">
           <Dropzone
-            onFiles={(files) => setPdfForText(files[0] || null)}
+            onFiles={(files) => { setPdfForText(files[0] || null); setExtractedText(""); }}
+            selectedFiles={pdfForText ? [pdfForText] : null}
             accept=".pdf"
             label="Drop a PDF file here or click to browse"
           />
           {pdfForText && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">{pdfForText.name}</p>
+            <div className="flex justify-end">
               <Button onClick={handlePdfToText} disabled={loading}>
                 {loading ? "Extracting..." : "Extract Text"}
               </Button>

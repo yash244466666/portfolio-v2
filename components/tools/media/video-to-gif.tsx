@@ -302,9 +302,10 @@ export default function VideoToGif() {
     <div className="space-y-6">
       <canvas ref={canvasRef} className="hidden" />
 
-      {!videoFile && (
+      {(status === "idle" || !videoFile) && (
         <Dropzone
           onFiles={handleFiles}
+          selectedFiles={videoFile ? [videoFile] : null}
           accept="video/*"
           label="Drop a short video file here or click to browse"
           maxSizeMB={50}
@@ -313,17 +314,6 @@ export default function VideoToGif() {
 
       {videoFile && status === "idle" && (
         <div className="space-y-4">
-          <ToolResult >
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">File</span>
-              <span className="text-foreground">{videoFile.name}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-muted-foreground">Size</span>
-              <span className="text-foreground">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</span>
-            </div>
-          </ToolResult>
-
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-foreground">FPS</label>

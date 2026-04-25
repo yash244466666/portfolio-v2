@@ -31,11 +31,17 @@ function extractColors(imageData: ImageData, count: number): string[] {
 export default function ColorPaletteFromImage() {
   const [palette, setPalette] = useState<string[]>([])
   const [imagePreview, setImagePreview] = useState("")
+  const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleFile = useCallback((files: File[]) => {
     const file = files[0]
-    if (!file) return
+    setFile(file || null)
+    if (!file) {
+      setImagePreview("")
+      setPalette([])
+      return
+    }
     setLoading(true)
 
     const img = new Image()
@@ -61,6 +67,7 @@ export default function ColorPaletteFromImage() {
     <div className="space-y-6">
       <Dropzone
         onFiles={handleFile}
+        selectedFiles={file ? [file] : null}
         accept="image/*"
         label="Drop an image here to extract its colors"
       />

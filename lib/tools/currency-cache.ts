@@ -35,7 +35,7 @@ export async function fetchRates(baseCurrency: string = "USD"): Promise<Record<s
   }
 
   const response = await fetch(
-    `https://api.frankfurter.app/latest?from=${baseCurrency}`
+    `https://api.frankfurter.dev/v1/latest?base=${baseCurrency}`
   )
   if (!response.ok) {
     throw new Error("Failed to fetch exchange rates")

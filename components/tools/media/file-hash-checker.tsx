@@ -34,7 +34,11 @@ export default function FileHashChecker() {
 
   const handleFiles = useCallback(async (files: File[]) => {
     const selectedFile = files[0]
-    if (!selectedFile) return
+    if (!selectedFile) {
+      setFile(null)
+      setHashes({})
+      return
+    }
     setFile(selectedFile)
     setHashes({})
     setLoading(true)
@@ -55,29 +59,14 @@ export default function FileHashChecker() {
 
   return (
     <div className="space-y-6">
-      {!file ? (
-        <Dropzone
-          onFiles={handleFiles}
-          label="Drop a file here to compute its hash"
-          maxSizeMB={500}
-        />
-      ) : (
+      <Dropzone
+        onFiles={handleFiles}
+        selectedFiles={file ? [file] : null}
+        label="Drop a file here to compute its hash"
+        maxSizeMB={500}
+      />
+      {file && (
         <>
-          <ToolResult >
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">File Name</span>
-              <span className="text-foreground font-medium">{file.name}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-muted-foreground">Size</span>
-              <span className="text-foreground">{formatFileSize(file.size)}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-muted-foreground">Type</span>
-              <span className="text-foreground">{file.type || "Unknown"}</span>
-            </div>
-          </ToolResult>
-
           {loading && (
             <div className="flex items-center justify-center py-8 gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -104,12 +93,6 @@ export default function FileHashChecker() {
             </div>
           )}
 
-          <button
-            onClick={reset}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Check another file
-          </button>
         </>
       )}
     </div>

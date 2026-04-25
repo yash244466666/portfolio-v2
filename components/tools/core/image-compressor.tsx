@@ -72,13 +72,13 @@ export default function ImageCompressor() {
     <div className="space-y-6">
       <Dropzone
         onFiles={(files) => { setFile(files[0] || null); setCompressedUrl(""); }}
+        selectedFiles={file ? [file] : null}
         accept="image/png,image/jpeg,image/webp"
         label="Drop an image here or click to browse (PNG, JPG, WebP)"
       />
 
       {file && (
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">{file.name} ({formatSize(file.size)})</p>
 
           <div>
             <div className="flex items-center justify-between mb-2">
