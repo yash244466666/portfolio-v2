@@ -153,7 +153,7 @@ export default function FirefliesBackground() {
       cancelAnimationFrame(rafRef.current)
       window.removeEventListener("mousemove", onMouseMove)
     }
-  }, [fireflies])
+  }, [])
 
   return (
     <div ref={rootRef} className="absolute inset-0 overflow-hidden">

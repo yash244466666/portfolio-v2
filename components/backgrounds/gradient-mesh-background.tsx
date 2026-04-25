@@ -88,7 +88,7 @@ export default function GradientMeshBackground() {
             left: blob.x,
             top: blob.y,
             transform: "translate(-50%, -50%)",
-            animation: `fadeIn 2s ${i * 0.3}s forwards`,
+            animation: `fadeInMesh 2s ${i * 0.3}s forwards`,
           }}
         />
       ))}

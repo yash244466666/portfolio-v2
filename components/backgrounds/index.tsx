@@ -133,7 +133,7 @@ export function BackgroundSwitcher({
 
       {/* Options panel */}
       {open && (
-        <div className="absolute bottom-14 left-0 bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-2 shadow-2xl min-w-[160px] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-200 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+        <div className="absolute bottom-14 left-0 bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-2 shadow-2xl min-w-[160px] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-200" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.1) transparent" }}>
           <p className="text-[10px] uppercase tracking-widest text-white/40 px-2 pt-1 pb-2 font-medium">
             Background
           </p>

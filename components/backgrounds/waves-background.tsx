@@ -156,8 +156,9 @@ export default function WavesBackground() {
         
       w = container.offsetWidth
       h = container.offsetHeight
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
     
       }, 150);
     }

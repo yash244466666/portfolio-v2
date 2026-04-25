@@ -112,7 +112,7 @@ const toolComponents: Record<string, React.ComponentType> = {
   "hash-generator": HashGenerator,
   "image-compressor": ImageCompressor,
   // Dev
-  "json-formatter": JsonEditor,
+  "json-editor": JsonEditor,
   "base64-tool": Base64Tool,
   "qr-generator": QrGenerator,
   "password-generator": PasswordGenerator,

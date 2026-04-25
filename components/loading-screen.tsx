@@ -6,6 +6,7 @@ import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   const [isLoading, setIsLoading] = useState(true)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const [progress, setProgress] = useState(0)
 
   useComponentInstrumentation("LoadingScreen", {
@@ -33,13 +34,16 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     }, 40)
 
     const timer = setTimeout(() => {
-      setIsLoading(false)
+      setIsFadingOut(true)
       logComponentEvent("LoadingScreen", {
         event: "complete",
         detail: { progress: 100 },
         throttleMs: 1500,
       })
-      setTimeout(onComplete, 300) // Delay to allow fade out
+      setTimeout(() => {
+        setIsLoading(false)
+        onComplete()
+      }, 500)
     }, 2500)
 
     return () => {
@@ -51,7 +55,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
   if (!isLoading) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-950 transition-opacity duration-500 ${isFadingOut ? "opacity-0" : "opacity-100"}`}>
       <div className="text-center">
         <div className="relative mb-8">
           <div className="w-20 h-20 border-4 border-gray-800 rounded-full animate-spin border-t-purple-500 mx-auto"></div>

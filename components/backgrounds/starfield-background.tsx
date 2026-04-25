@@ -49,8 +49,10 @@ export default function StarfieldBackground() {
 
     let w = root.offsetWidth
     let h = root.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     // Generate stars
     const stars: Star[] = []
@@ -182,8 +184,9 @@ export default function StarfieldBackground() {
         
       w = root.offsetWidth
       h = root.offsetHeight
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
     
       }, 150);
     }

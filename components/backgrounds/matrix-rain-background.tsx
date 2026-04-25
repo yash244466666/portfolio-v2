@@ -135,8 +135,9 @@ export default function MatrixRainBackground() {
         
       w = container.offsetWidth
       h = container.offsetHeight
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
       ctx.fillStyle = "#000"
       ctx.fillRect(0, 0, w, h)
       initColumns()

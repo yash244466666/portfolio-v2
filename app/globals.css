@@ -228,7 +228,7 @@ html {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--chart-2)));
+  background: linear-gradient(90deg, var(--primary), var(--chart-2));
   transition: width 0.3s ease;
 }
 
@@ -237,7 +237,7 @@ html {
 }
 
 .nav-link:hover {
-  color: hsl(var(--primary));
+  color: var(--primary);
   transform: translateY(-1px);
 }
 
@@ -264,13 +264,6 @@ input[type="range"]::-moz-range-thumb {
 @media (max-width: 640px) {
   html {
     font-size: 14px;
-  }
-  
-  /* Reduce motion on mobile for better performance */
-  @media (prefers-reduced-motion: no-preference) {
-    .particle {
-      animation-duration: 8s;
-    }
   }
   
   /* Optimize touch targets */

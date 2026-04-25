@@ -172,8 +172,9 @@ export default function DotGridBackground() {
         
       w = container.offsetWidth
       h = container.offsetHeight
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
       dotsRef.current = buildGrid(w, h)
     
       }, 150);

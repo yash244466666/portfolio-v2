@@ -203,8 +203,9 @@ export default function ParticlesBackground() {
         
       w = container.offsetWidth
       h = container.offsetHeight
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
       particlesRef.current = initParticles(w, h)
       // startTime = performance.now() // Prevent visible fade-in restart
     

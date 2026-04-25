@@ -53,7 +53,7 @@ export function TreePanel({ jsonString, expandedPaths, onToggle, onChange }: Tre
         <div className="h-full overflow-auto p-4">
           <TreeNode
             value={parsed}
-            path=""
+            path={[]}
             root={parsed}
             expandedPaths={expandedPaths}
             onToggle={onToggle}

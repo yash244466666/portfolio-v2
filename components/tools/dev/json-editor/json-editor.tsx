@@ -6,7 +6,7 @@ import { CodePanel } from "./code-panel"
 import { TreePanel } from "./tree-panel"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 import CopyButton from "@/components/tools/shared/copy-button"
-import { getAllPaths, SAMPLE_JSON } from "./json-tree-utils"
+import { getAllPaths, SAMPLE_JSON, pathKey } from "./json-tree-utils"
 
 const VIEW_TABS = [
   { id: "code", label: "Code" },

@@ -113,20 +113,27 @@ export default function ToolsGrid({
       ) : (
         <div>
           {searchQuery ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTools.map((tool, index) => (
-                <ToolCard
-                  key={tool.id}
-                  tool={tool}
-                  onSelect={onSelectTool}
-                  animationDelay={index * 100}
-                />
-              ))}
-              {filteredTools.length === 0 && (
-                <p className="col-span-full text-center text-muted-foreground py-12">
-                  No tools found matching &quot;{searchQuery}&quot;
+            <div>
+              {activeCategory && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  Searching in {categories.find((c) => c.id === activeCategory)?.label} — <button onClick={() => setActiveCategory(null)} className="text-primary hover:underline">search all tools</button>
                 </p>
               )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTools.map((tool, index) => (
+                  <ToolCard
+                    key={tool.id}
+                    tool={tool}
+                    onSelect={onSelectTool}
+                    animationDelay={index * 100}
+                  />
+                ))}
+                {filteredTools.length === 0 && (
+                  <p className="col-span-full text-center text-muted-foreground py-12">
+                    No tools found matching &quot;{searchQuery}&quot;{activeCategory ? ` in ${categories.find((c) => c.id === activeCategory)?.label}` : ""}
+                  </p>
+                )}
+              </div>
             </div>
           ) : (
             categories.map((cat) => {

@@ -1,15 +1,17 @@
+export type ToolCategoryId = "core" | "dev" | "text" | "media" | "security" | "math"
+
 export interface ToolDefinition {
   id: string
   label: string
   description: string
   icon: string
-  category: "core" | "dev" | "text" | "media" | "security" | "math"
+  category: ToolCategoryId
   tags: string[]
   wide?: boolean
 }
 
 export interface ToolCategory {
-  id: "core" | "dev" | "text" | "media" | "security" | "math"
+  id: ToolCategoryId
   label: string
   description: string
 }

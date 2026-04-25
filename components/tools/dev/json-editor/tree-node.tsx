@@ -2,15 +2,15 @@
 
 import { useState, useCallback, useRef, useEffect } from "react"
 import { ChevronRight, Plus, Trash2, Copy, Pencil, Check, X } from "lucide-react"
-import { getJsonType, isExpandable, valueToDisplayString, uniqueKeyName, JsonType, setByPath, deleteByPath, addAtPath, duplicateByPath } from "./json-tree-utils"
+import { getJsonType, isExpandable, valueToDisplayString, uniqueKeyName, JsonType, setByPath, deleteByPath, addAtPath, duplicateByPath, pathKey, Path } from "./json-tree-utils"
 
 interface TreeNodeProps {
   keyName?: string
   value: unknown
-  path: string
+  path: Path
   root: unknown
   expandedPaths: Set<string>
-  onToggle: (path: string) => void
+  onToggle: (pathKey: string) => void
   onChange: (newRoot: unknown) => void
   isRoot?: boolean
 }
@@ -34,7 +34,8 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
   const type = getJsonType(value)
   const expandable = isExpandable(value)
   const colors = TYPE_COLORS[type]
-  const expanded = path === "" ? true : expandedPaths.has(path)
+  const pk = pathKey(path)
+  const expanded = path.length === 0 ? true : expandedPaths.has(pk)
 
   const startEdit = useCallback(() => {
     if (expandable) return
@@ -87,8 +88,8 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
     onChange(addAtPath(root, path, addKey.trim(), ""))
     setIsAdding(false)
     setAddKey("")
-    if (!expanded) onToggle(path)
-  }, [addKey, root, path, onChange, expanded, onToggle])
+    if (!expanded) onToggle(pk)
+  }, [addKey, root, path, onChange, expanded, onToggle, pk])
 
   useEffect(() => {
     if (isAdding && inputRef.current) inputRef.current.focus()
@@ -112,10 +113,10 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
   const children = expandable
     ? Array.isArray(value)
       ? value.map((item, idx) => {
-          const childPath = path === "" ? String(idx) : `${path}.${idx}`
+          const childPath = [...path, String(idx)]
           return (
             <TreeNode
-              key={childPath}
+              key={pathKey(childPath)}
               keyName={String(idx)}
               value={item}
               path={childPath}
@@ -127,10 +128,10 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
           )
         })
       : Object.entries(value as Record<string, unknown>).map(([k, v]) => {
-          const childPath = path === "" ? k : `${path}.${k}`
+          const childPath = [...path, k]
           return (
             <TreeNode
-              key={childPath}
+              key={pathKey(childPath)}
               keyName={k}
               value={v}
               path={childPath}
@@ -155,7 +156,7 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
         {/* Expand toggle or spacer */}
         {expandable ? (
           <button
-            onClick={() => onToggle(path)}
+            onClick={() => onToggle(pk)}
             className="shrink-0 w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-150 ${expanded ? "rotate-90" : ""}`} />

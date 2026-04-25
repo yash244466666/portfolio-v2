@@ -10,16 +10,29 @@ export function isExpandable(value: unknown): boolean {
   return (value !== null && typeof value === "object")
 }
 
-/** Get value at a dot-separated path. Array indices are numeric segments. */
-export function getByPath(obj: unknown, path: string): unknown {
-  if (path === "" || path === "$") return obj
-  const parts = path.split(".")
+/** Path segments: each segment is a string key or numeric index. */
+export type Path = string[]
+
+const PATH_SEP = "/"
+
+/** Encode a Path array to a string for use in Set/map keys. */
+export function pathKey(path: Path): string {
+  return path.join(PATH_SEP)
+}
+
+/** Decode a string key back to a Path array. */
+export function parsePathKey(key: string): Path {
+  return key === "" ? [] : key.split(PATH_SEP)
+}
+
+/** Get value at a path. */
+export function getByPath(obj: unknown, path: Path): unknown {
+  if (path.length === 0) return obj
   let current: unknown = obj
-  for (const part of parts) {
+  for (const part of path) {
     if (current === null || current === undefined) return undefined
     if (Array.isArray(current)) {
-      const idx = parseInt(part, 10)
-      current = current[idx]
+      current = current[parseInt(part, 10)]
     } else if (typeof current === "object") {
       current = (current as Record<string, unknown>)[part]
     } else {
@@ -30,16 +43,14 @@ export function getByPath(obj: unknown, path: string): unknown {
 }
 
 /** Set value at a path, returning a new object (immutable). */
-export function setByPath(obj: unknown, path: string, value: unknown): unknown {
-  if (path === "" || path === "$") return value
-  const parts = path.split(".")
-  return _setRecursive(obj, parts, value)
+export function setByPath(obj: unknown, path: Path, value: unknown): unknown {
+  if (path.length === 0) return value
+  return _setRecursive(obj, path, value)
 }
 
-function _setRecursive(current: unknown, parts: string[], value: unknown): unknown {
-  const [head, ...rest] = parts
+function _setRecursive(current: unknown, path: Path, value: unknown): unknown {
+  const [head, ...rest] = path
   if (rest.length === 0) {
-    // Leaf: set the value
     if (Array.isArray(current)) {
       const idx = parseInt(head, 10)
       const copy = [...current]
@@ -48,7 +59,6 @@ function _setRecursive(current: unknown, parts: string[], value: unknown): unkno
     }
     return { ...(current as Record<string, unknown>), [head]: value }
   }
-  // Branch: recurse
   if (Array.isArray(current)) {
     const idx = parseInt(head, 10)
     const copy = [...current]
@@ -60,13 +70,13 @@ function _setRecursive(current: unknown, parts: string[], value: unknown): unkno
 }
 
 /** Delete value at a path, returning a new object (immutable). */
-export function deleteByPath(obj: unknown, path: string): unknown {
-  const parts = path.split(".")
-  return _deleteRecursive(obj, parts)
+export function deleteByPath(obj: unknown, path: Path): unknown {
+  if (path.length === 0) return obj
+  return _deleteRecursive(obj, path)
 }
 
-function _deleteRecursive(current: unknown, parts: string[]): unknown {
-  const [head, ...rest] = parts
+function _deleteRecursive(current: unknown, path: Path): unknown {
+  const [head, ...rest] = path
   if (rest.length === 0) {
     if (Array.isArray(current)) {
       const idx = parseInt(head, 10)
@@ -87,28 +97,27 @@ function _deleteRecursive(current: unknown, parts: string[]): unknown {
 }
 
 /** Add a new field/item at a parent path. */
-export function addAtPath(obj: unknown, parentPath: string, key: string, value: unknown): unknown {
-  const parent = parentPath === "" || parentPath === "$" ? obj : getByPath(obj, parentPath)
+export function addAtPath(obj: unknown, parentPath: Path, key: string, value: unknown): unknown {
+  const parent = parentPath.length === 0 ? obj : getByPath(obj, parentPath)
   if (Array.isArray(parent)) {
     const newParent = [...parent, value]
-    if (parentPath === "" || parentPath === "$") return newParent
+    if (parentPath.length === 0) return newParent
     return setByPath(obj, parentPath, newParent)
   }
   if (parent !== null && typeof parent === "object") {
     const newParent = { ...(parent as Record<string, unknown>), [key]: value }
-    if (parentPath === "" || parentPath === "$") return newParent
+    if (parentPath.length === 0) return newParent
     return setByPath(obj, parentPath, newParent)
   }
   return obj
 }
 
 /** Duplicate the value at a path. */
-export function duplicateByPath(obj: unknown, path: string): unknown {
-  const parts = path.split(".")
-  if (parts.length === 0) return obj
-  const parentParts = parts.slice(0, -1)
-  const lastPart = parts[parts.length - 1]
-  const parent = parentParts.length === 0 ? obj : getByPath(obj, parentParts.join("."))
+export function duplicateByPath(obj: unknown, path: Path): unknown {
+  if (path.length === 0) return obj
+  const parentPath = path.slice(0, -1)
+  const lastPart = path[path.length - 1]
+  const parent = parentPath.length === 0 ? obj : getByPath(obj, parentPath)
   const value = getByPath(obj, path)
   const cloned = typeof value === "object" && value !== null ? JSON.parse(JSON.stringify(value)) : value
 
@@ -116,31 +125,31 @@ export function duplicateByPath(obj: unknown, path: string): unknown {
     const idx = parseInt(lastPart, 10)
     const newParent = [...parent]
     newParent.splice(idx + 1, 0, cloned)
-    return parentParts.length === 0 ? newParent : setByPath(obj, parentParts.join("."), newParent)
+    return parentPath.length === 0 ? newParent : setByPath(obj, parentPath, newParent)
   }
   if (parent !== null && typeof parent === "object") {
     const newKey = lastPart + " (copy)"
     const newParent = { ...(parent as Record<string, unknown>), [newKey]: cloned }
-    return parentParts.length === 0 ? newParent : setByPath(obj, parentParts.join("."), newParent)
+    return parentPath.length === 0 ? newParent : setByPath(obj, parentPath, newParent)
   }
   return obj
 }
 
-/** Compute all expandable paths for "Expand All". */
-export function getAllPaths(obj: unknown, prefix = ""): string[] {
+/** Compute all expandable paths for "Expand All". Returns string keys for Set storage. */
+export function getAllPaths(obj: unknown, prefix: Path = []): string[] {
   const paths: string[] = []
   if (!isExpandable(obj)) return paths
 
+  if (prefix.length > 0) paths.push(pathKey(prefix))
+
   if (Array.isArray(obj)) {
-    if (prefix) paths.push(prefix)
     obj.forEach((item, idx) => {
-      const childPath = prefix ? `${prefix}.${idx}` : `${idx}`
+      const childPath = [...prefix, String(idx)]
       paths.push(...getAllPaths(item, childPath))
     })
   } else if (obj !== null && typeof obj === "object") {
-    if (prefix) paths.push(prefix)
     for (const [key, val] of Object.entries(obj as Record<string, unknown>)) {
-      const childPath = prefix ? `${prefix}.${key}` : key
+      const childPath = [...prefix, key]
       paths.push(...getAllPaths(val, childPath))
     }
   }
