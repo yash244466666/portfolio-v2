@@ -59,6 +59,10 @@ export default function ContactSection() {
       detail: { ...formData },
       throttleMs: 1500,
     })
+
+    const subject = encodeURIComponent(`New message from ${formData.name}`)
+    const body = encodeURIComponent(`${formData.message}\n\nSender: ${formData.name}\nEmail: ${formData.email}`)
+    window.location.href = `mailto:info@yashcodes.com?subject=${subject}&body=${body}`
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

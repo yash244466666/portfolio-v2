@@ -17,13 +17,17 @@ export default function ToolsPage() {
       setActiveToolId(hash)
     }
 
-    const handlePopState = () => {
+    const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
       setActiveToolId(hash || null)
     }
 
-    window.addEventListener("popstate", handlePopState)
-    return () => window.removeEventListener("popstate", handlePopState)
+    window.addEventListener("hashchange", handleHashChange)
+    window.addEventListener("popstate", handleHashChange)
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange)
+      window.removeEventListener("popstate", handleHashChange)
+    }
   }, [])
 
   const selectTool = useCallback((id: string) => {
@@ -34,7 +38,6 @@ export default function ToolsPage() {
 
   const goBack = useCallback(() => {
     setActiveToolId(null)
-    window.location.hash = ""
     history.pushState(null, "", window.location.pathname)
   }, [])
 
