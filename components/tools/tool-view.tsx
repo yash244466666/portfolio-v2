@@ -58,6 +58,7 @@ const AnimationCssGenerator = lazy(() => import("@/components/tools/dev/animatio
 const GlassmorphismGenerator = lazy(() => import("@/components/tools/dev/glassmorphism-generator"))
 const NeumorphismGenerator = lazy(() => import("@/components/tools/dev/neumorphism-generator"))
 const ChartGenerator = lazy(() => import("@/components/tools/dev/chart-generator"))
+const YoutubeDownloader = lazy(() => import("@/components/tools/dev/youtube-downloader"))
 
 // Text
 const WordCounter = lazy(() => import("@/components/tools/text/word-counter"))
@@ -156,6 +157,7 @@ const toolComponents: Record<string, React.ComponentType> = {
   "glassmorphism-generator": GlassmorphismGenerator,
   "neumorphism-generator": NeumorphismGenerator,
   "chart-generator": ChartGenerator,
+  "youtube-downloader": YoutubeDownloader,
   // Text
   "word-counter": WordCounter,
   "character-counter": CharacterCounter,

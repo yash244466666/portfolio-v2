@@ -65,6 +65,7 @@ export const tools: ToolDefinition[] = [
   { id: "glassmorphism-generator", label: "Glassmorphism Generator", description: "Create frosted glass UI effects with backdrop-filter and copy CSS.", icon: "Snowflake", category: "dev", tags: ["css", "glassmorphism", "frost", "generate"] },
   { id: "neumorphism-generator", label: "Neumorphism Generator", description: "Create soft UI neumorphic elements with shadow controls.", icon: "Cloud", category: "dev", tags: ["css", "neumorphism", "soft", "ui"] },
   { id: "chart-generator", label: "Chart Generator", description: "Create simple bar, pie, and line charts and export as PNG.", icon: "BarChart3", category: "dev", tags: ["chart", "bar", "pie", "graph"] },
+  { id: "youtube-downloader", label: "YouTube Downloader", description: "Download YouTube videos via Cobalt — free, ad-free, no sign-up.", icon: "Youtube", category: "dev", tags: ["youtube", "download", "video", "cobalt"] },
 
   // === Text Utilities ===
   { id: "word-counter", label: "Word Counter", description: "Count words, characters, sentences, paragraphs, and estimate reading time.", icon: "AlignLeft", category: "text", tags: ["word", "count", "character", "reading"] },

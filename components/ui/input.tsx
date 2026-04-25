@@ -36,12 +36,17 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (inputRef.current) {
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
       nativeInputValueSetter?.call(inputRef.current, '')
       const event = new Event('input', { bubbles: true })
       inputRef.current.dispatchEvent(event)
+      const changeEvent = new Event('change', { bubbles: true })
+      inputRef.current.dispatchEvent(changeEvent)
+      if (props.onChange) {
+        props.onChange({ target: inputRef.current, currentTarget: inputRef.current } as React.ChangeEvent<HTMLInputElement>)
+      }
       if (props.value === undefined) {
         setHasValue(false)
       }
@@ -77,10 +82,10 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         <button
           type="button"
           onClick={handleClear}
-          className="shrink-0 ml-2 text-muted-foreground/60 hover:text-foreground transition-colors p-1.5 rounded-full hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-primary/40 bg-background/50 backdrop-blur-sm"
+          className="shrink-0 ml-1.5 flex items-center justify-center w-7 h-7 text-muted-foreground/60 hover:text-foreground transition-colors rounded-full hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-primary/40"
           aria-label="Clear input"
         >
-          <X className="h-4 w-4 stroke-[2.5px]" />
+          <X className="h-3.5 w-3.5 stroke-[2.5px]" />
         </button>
       )}
     </div>

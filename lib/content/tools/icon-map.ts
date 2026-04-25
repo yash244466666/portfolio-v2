@@ -8,7 +8,7 @@ import {
   Play, Snowflake, Cloud, BarChart3, Replace, Undo2, ArrowUpDown, ListOrdered,
   Scissors, ScanEye, StickyNote, Bookmark, Mic, Film, FileCheck, ShieldAlert, Eraser,
   ShieldHalf, ArrowLeftRight, Bot, Percent, Cake, Receipt, Sigma, EyeOff, Calculator,
-  Watch, Hourglass,
+  Watch, Hourglass, Youtube,
 } from "lucide-react"
 
 export const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -21,5 +21,5 @@ export const iconMap: Record<string, React.ComponentType<{ className?: string }>
   Play, Snowflake, Cloud, BarChart3, Replace, Undo2, ArrowUpDown, ListOrdered,
   Scissors, ScanEye, StickyNote, Bookmark, Mic, Film, FileCheck, ShieldAlert, Eraser,
   ShieldHalf, ArrowLeftRight, Bot, Percent, Cake, Receipt, Sigma, EyeOff, Calculator,
-  Watch, Hourglass,
+  Watch, Hourglass, Youtube,
 }

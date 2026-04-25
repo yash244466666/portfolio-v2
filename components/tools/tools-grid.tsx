@@ -5,7 +5,7 @@ import { getToolCategories, getToolsByCategory } from "@/lib/content/tools/utils
 import type { ToolDefinition } from "@/lib/content/tools/types"
 import ToolCard from "@/components/tools/tool-card"
 import { Input } from "@/components/ui/input"
-import { Search, X } from "lucide-react"
+import { Search } from "lucide-react"
 
 interface ToolsGridProps {
   tools: ToolDefinition[]
@@ -46,24 +46,14 @@ export default function ToolsGrid({
 
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
           <Input
             type="text"
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-10 bg-background/50 backdrop-blur-sm border-border"
+            className="pl-10 bg-background/50 backdrop-blur-sm border-border"
           />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => onSearchChange("")}
-              className="!absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
-              aria-label="Clear search"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
         </div>
         <div className="flex gap-2 flex-wrap justify-center">
           <button
