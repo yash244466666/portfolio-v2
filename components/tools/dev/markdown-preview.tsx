@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { marked } from "marked"
+import DOMPurify from "dompurify"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 export default function MarkdownPreview() {
@@ -9,7 +10,8 @@ export default function MarkdownPreview() {
 
   const html = useMemo(() => {
     try {
-      return marked(markdown) as string
+      const parsed = marked(markdown) as string
+      return typeof window !== "undefined" ? DOMPurify.sanitize(parsed) : parsed
     } catch {
       return "<p>Invalid markdown</p>"
     }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import * as math from "mathjs"
 import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
@@ -18,28 +19,17 @@ interface HistoryEntry {
 
 function safeEvaluate(expr: string): string {
   try {
-    // Replace math functions with Math equivalents
+    if (!expr || expr.trim() === "") return "0"
+    
+    // Replace custom string operators for math.js compatibility if needed, 
+    // but math.js natively handles sin, cos, tan, log, log10, sqrt, abs, pi, e, ^
+    // We just need to make sure `ln` maps to `log` and `log` maps to `log10`
+    // because standard calculator UI defines 'ln' as natural log and 'log' as base 10.
     let sanitized = expr
-      .replace(/sin\(/g, "Math.sin(")
-      .replace(/cos\(/g, "Math.cos(")
-      .replace(/tan\(/g, "Math.tan(")
-      .replace(/log\(/g, "Math.log10(")
-      .replace(/ln\(/g, "Math.log(")
-      .replace(/sqrt\(/g, "Math.sqrt(")
-      .replace(/abs\(/g, "Math.abs(")
-      .replace(/\^/g, "**")
-      .replace(/pi/g, "Math.PI")
-      .replace(/e(?![a-zA-Z])/g, "Math.E")
+      .replace(/ln\(/g, "log(")
+      .replace(/log\(/g, "log10(")
 
-    // Safety check: only allow numbers, operators, parentheses, Math methods, and whitespace
-    const safe = sanitized.replace(/Math\.(sin|cos|tan|log10|log|sqrt|abs|PI|E|pow)/g, "")
-    if (/[^0-9+\-*/.()%\s]/.test(safe)) {
-      return "Error"
-    }
-
-    // Use Function constructor instead of eval for slightly better safety
-    const fn = new Function(`"use strict"; return (${sanitized})`)
-    const result = fn()
+    const result = math.evaluate(sanitized)
 
     if (typeof result !== "number" || !isFinite(result)) return "Error"
 

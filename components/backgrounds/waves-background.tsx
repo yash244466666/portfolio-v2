@@ -29,6 +29,7 @@ export default function WavesBackground() {
   const scrollRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container || !rootRef.current) return
@@ -38,8 +39,10 @@ export default function WavesBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     // Animate floating particles (small dots along waves)
     scopeRef.current = createScope({ root: rootRef.current }).add(() => {
@@ -146,11 +149,17 @@ export default function WavesBackground() {
       scrollRef.current = window.scrollY
     }
 
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth
       h = container.offsetHeight
       canvas.width = w
       canvas.height = h
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

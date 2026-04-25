@@ -37,32 +37,17 @@ export default function GradientBorderGenerator() {
   }, [startColor, endColor, angle, borderWidth, borderRadius])
 
   const previewStyle: React.CSSProperties = {
-    position: "relative",
     background: "var(--background, #0a0a0a)",
-    borderRadius: `${borderRadius}px`,
-    padding: "2rem",
-  }
-
-  const beforeStyle: React.CSSProperties = {
-    content: '""',
-    position: "absolute" as const,
-    inset: 0,
-    borderRadius: `${borderRadius}px`,
-    padding: `${borderWidth}px`,
-    background: `linear-gradient(${angle}deg, ${startColor}, ${endColor})`,
-    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-    WebkitMaskComposite: "xor",
-    maskComposite: "exclude" as const,
-    pointerEvents: "none" as const,
   }
 
   return (
     <div className="space-y-6">
+      <style dangerouslySetInnerHTML={{ __html: cssCode.replace(/\.gradient-border/g, "#gradient-preview-box") }} />
       <div
-        className="rounded-xl border border-border/50 overflow-hidden"
+        id="gradient-preview-box"
+        className="overflow-hidden shadow-lg flex items-center justify-center min-h-[160px]"
         style={previewStyle}
       >
-        <div style={beforeStyle} />
         <div className="relative z-10 text-center">
           <p className="text-foreground text-lg font-medium">Gradient Border Preview</p>
           <p className="text-muted-foreground text-sm mt-1">Customize the gradient, width, and radius</p>

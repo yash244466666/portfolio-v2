@@ -25,18 +25,20 @@ export default function ColorPicker() {
     setH(hsl.h); setS(hsl.s); setL(hsl.l)
   }, [])
 
-  const updateFromRgb = useCallback(() => {
-    const hexVal = rgbToHex(r, g, b)
+  const updateFromRgb = useCallback((nr: number, ng: number, nb: number) => {
+    setR(nr); setG(ng); setB(nb)
+    const hexVal = rgbToHex(nr, ng, nb)
     setHex(hexVal)
-    const hsl = rgbToHsl(r, g, b)
+    const hsl = rgbToHsl(nr, ng, nb)
     setH(hsl.h); setS(hsl.s); setL(hsl.l)
-  }, [r, g, b])
+  }, [])
 
-  const updateFromHsl = useCallback(() => {
-    const { r: nr, g: ng, b: nb } = hslToRgb(h, s, l)
+  const updateFromHsl = useCallback((nh: number, ns: number, nl: number) => {
+    setH(nh); setS(ns); setL(nl)
+    const { r: nr, g: ng, b: nb } = hslToRgb(nh, ns, nl)
     setR(nr); setG(ng); setB(nb)
     setHex(rgbToHex(nr, ng, nb))
-  }, [h, s, l])
+  }, [])
 
   const palette = {
     complementary: hslToHex(getComplementary(h), s, l),
@@ -65,17 +67,17 @@ export default function ColorPicker() {
             <div>
               <label className="text-sm text-muted-foreground block mb-1">RGB</label>
               <div className="flex gap-2 items-center">
-                <Input type="number" value={r} onChange={(e) => { setR(Number(e.target.value)); updateFromRgb(); }} className="font-mono bg-background/50" />
-                <Input type="number" value={g} onChange={(e) => { setG(Number(e.target.value)); updateFromRgb(); }} className="font-mono bg-background/50" />
-                <Input type="number" value={b} onChange={(e) => { setB(Number(e.target.value)); updateFromRgb(); }} className="font-mono bg-background/50" />
+                <Input type="number" value={r} onChange={(e) => updateFromRgb(Number(e.target.value), g, b)} className="font-mono bg-background/50" />
+                <Input type="number" value={g} onChange={(e) => updateFromRgb(r, Number(e.target.value), b)} className="font-mono bg-background/50" />
+                <Input type="number" value={b} onChange={(e) => updateFromRgb(r, g, Number(e.target.value))} className="font-mono bg-background/50" />
               </div>
             </div>
             <div>
               <label className="text-sm text-muted-foreground block mb-1">HSL</label>
               <div className="flex gap-2 items-center">
-                <Input type="number" value={h} onChange={(e) => { setH(Number(e.target.value)); updateFromHsl(); }} className="font-mono bg-background/50" />
-                <Input type="number" value={s} onChange={(e) => { setS(Number(e.target.value)); updateFromHsl(); }} className="font-mono bg-background/50" />
-                <Input type="number" value={l} onChange={(e) => { setL(Number(e.target.value)); updateFromHsl(); }} className="font-mono bg-background/50" />
+                <Input type="number" value={h} onChange={(e) => updateFromHsl(Number(e.target.value), s, l)} className="font-mono bg-background/50" />
+                <Input type="number" value={s} onChange={(e) => updateFromHsl(h, Number(e.target.value), l)} className="font-mono bg-background/50" />
+                <Input type="number" value={l} onChange={(e) => updateFromHsl(h, s, Number(e.target.value))} className="font-mono bg-background/50" />
               </div>
             </div>
           </div>

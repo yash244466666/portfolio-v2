@@ -21,7 +21,7 @@ interface Node {
   pulseSpeed: number
 }
 
-const NODE_COUNT = 70
+const NODE_COUNT = 40
 const CONNECTION_DIST = 200
 const MOUSE_RADIUS = 280
 const PULSE_WAVE_SPEED = 300
@@ -58,6 +58,7 @@ export default function NeuralNetworkBackground() {
   }, [])
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -67,8 +68,10 @@ export default function NeuralNetworkBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
     nodesRef.current = initNodes(w, h)
 
     const startTime = performance.now()
@@ -247,11 +250,17 @@ export default function NeuralNetworkBackground() {
       }
     }
 
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth
       h = container.offsetHeight
       canvas.width = w
       canvas.height = h
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

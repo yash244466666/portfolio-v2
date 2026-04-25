@@ -223,6 +223,7 @@ export default function VideoToGif() {
     setStatus("extracting")
     setProgress(0)
 
+    let hasError = false
     await new Promise<void>((resolve, reject) => {
       video.onloadedmetadata = () => {
         const aspectRatio = video.videoWidth / video.videoHeight
@@ -234,10 +235,10 @@ export default function VideoToGif() {
     }).catch(() => {
       setStatus("error")
       URL.revokeObjectURL(url)
-      return
+      hasError = true
     })
 
-    if (status === "error") return
+    if (hasError) return
 
     const encoder = new GifEncoder(canvas.width, canvas.height)
     const totalFrames = Math.min(100, Math.floor(video.duration * fps))

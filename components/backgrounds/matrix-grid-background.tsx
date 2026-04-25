@@ -26,6 +26,7 @@ export default function MatrixGridBackground() {
   const pulseRef = useRef<{ time: number; active: boolean }>({ time: 0, active: false })
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -35,8 +36,10 @@ export default function MatrixGridBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const startTime = performance.now()
 
@@ -145,11 +148,17 @@ export default function MatrixGridBackground() {
       pulseRef.current = { time: (performance.now() - startTime) / 1000, active: true }
     }
 
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth
       h = container.offsetHeight
       canvas.width = w
       canvas.height = h
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

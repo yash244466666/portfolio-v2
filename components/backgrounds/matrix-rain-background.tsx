@@ -26,6 +26,7 @@ export default function MatrixRainBackground() {
   const rafRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -34,8 +35,10 @@ export default function MatrixRainBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const columns: Column[] = []
     const colCount = Math.ceil(w / FONT_SIZE)
@@ -125,7 +128,11 @@ export default function MatrixRainBackground() {
 
     rafRef.current = requestAnimationFrame(draw)
 
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth
       h = container.offsetHeight
       canvas.width = w
@@ -133,6 +140,8 @@ export default function MatrixRainBackground() {
       ctx.fillStyle = "#000"
       ctx.fillRect(0, 0, w, h)
       initColumns()
+    
+      }, 150);
     }
 
     window.addEventListener("resize", onResize)

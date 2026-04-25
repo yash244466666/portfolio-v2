@@ -47,7 +47,7 @@ export default function PdfConverter() {
       }
 
       const pdfBytes = await pdfDoc.save()
-      const blob = new Blob([pdfBytes], { type: "application/pdf" })
+      const blob = new Blob([pdfBytes as any], { type: "application/pdf" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
@@ -81,7 +81,7 @@ export default function PdfConverter() {
       }
 
       const pdfBytes = await mergedPdf.save()
-      const blob = new Blob([pdfBytes], { type: "application/pdf" })
+      const blob = new Blob([pdfBytes as any], { type: "application/pdf" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
@@ -113,7 +113,7 @@ export default function PdfConverter() {
         const page = await pdf.getPage(i)
         const textContent = await page.getTextContent()
         const pageText = textContent.items
-          .map((item: { str?: string }) => ("str" in item ? item.str : ""))
+          .map((item: any) => (item && "str" in item ? item.str : ""))
           .join(" ")
         fullText += pageText + "\n\n"
       }

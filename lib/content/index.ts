@@ -50,7 +50,6 @@ export const personalInfo: PersonalInfo = {
     "Backend Expert",
     "React Developer",
     "Ruby on Rails Developer",
-    "testing testing testing testing testing ",
   ],
 
   tagline:
@@ -87,11 +86,6 @@ export const socialLinks: SocialLink[] = [
   {
     name: "Email",
     url: "mailto:info@yashcodes.com",
-    icon: "Mail",
-  },
-  {
-    name: "testing",
-    url: "mailto:info@testing.com",
     icon: "Mail",
   },
 ];
@@ -159,27 +153,6 @@ export const skills: Skill[] = [
       "TDD approach with RSpec, bug reduction by 30%, and performance optimization by 25%.",
     icon: "Zap",
   },
-  {
-    title:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
-    description:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
-    icon: "Zap",
-  },
-  {
-    title:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
-    description:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
-    icon: "Zap",
-  },
-  {
-    title:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
-    description:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
-    icon: "Zap",
-  },
 ];
 
 // =============================================================================
@@ -237,20 +210,6 @@ export const projects: Project[] = [
       "Built robust applications for government department achieving 99% satisfaction rate through comprehensive testing and modern techniques.",
     image: "/government-system-dashboard.png",
     tech: ["Full Stack", "Government Systems", "Quality Assurance"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-  },
-  {
-    title:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing ",
-    description:
-      "Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing Testing .",
-    image: "/government-system-dashboard.png",
-    tech: [
-      "Testing Testing Testing",
-      "Testing Testing",
-      "Testing Testing Testing Testing",
-    ],
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
   },
@@ -324,9 +283,9 @@ export const formContent: FormContent = {
 // FOOTER CONTENT
 // =============================================================================
 export const footerContent: FooterContent = {
-  copyrightYear: "2024",
+  copyrightYear: new Date().getFullYear().toString(),
   copyrightText:
-    "© 2024 Yash. All rights reserved. Built with modern web technologies.",
+    `© ${new Date().getFullYear()} Yash. All rights reserved. Built with modern web technologies.`,
 };
 
 // =============================================================================

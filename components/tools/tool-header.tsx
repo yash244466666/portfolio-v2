@@ -1,34 +1,12 @@
 "use client"
 
 import {
-  FileText, DollarSign, Ruler, Braces, Binary, QrCode, KeyRound, Palette, Type,
-  Hash, CaseSensitive, GitCompare, ListFilter, AlignLeft, ArrowLeft,
-  Clock, Shield, Image, FileCode, Regex, Link, Code, Key, PenTool, Blend, Pipette,
-  Text, Smile, Fingerprint, Timer, CalendarClock, Table, FileJson, FileCode2,
-  Database, Calendar, Contact, Lock, Radio, ShieldCheck, Square, RectangleHorizontal,
-  Columns3, Grid3X3, Triangle, Globe, FileSearch, Search, Eye, Tag, Link2, Languages,
-  Table2, UserRound, Frame, Play, Snowflake, Cloud, BarChart3, Replace, Undo2,
-  ArrowUpDown, ListOrdered, Scissors, ScanEye, StickyNote, Bookmark, Mic, Film,
-  FileCheck, ShieldAlert, Eraser, ShieldHalf, ArrowLeftRight, Bot, Percent, Cake,
-  Receipt, Sigma, EyeOff, Calculator, Watch, Hourglass, Share2, ChevronRight, Home, Check,
-  Camera, Loader2, RotateCcw
+  ChevronRight, Home, Check, Camera, Loader2, RotateCcw, Braces
 } from "lucide-react"
 import { useState } from "react"
 import type { ToolDefinition } from "@/lib/content/tools/types"
 import { getToolCategories } from "@/lib/content/tools/utils"
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  FileText, DollarSign, Ruler, Braces, Binary, QrCode, KeyRound, Palette, Type,
-  Hash, CaseSensitive, GitCompare, ListFilter, AlignLeft, Clock, Shield, Image,
-  FileCode, Regex, Link, Code, Key, PenTool, Blend, Pipette, Text, Smile, Fingerprint,
-  Timer, CalendarClock, Table, FileJson, FileCode2, Database, Calendar, Contact, Lock,
-  Radio, ShieldCheck, Square, RectangleHorizontal, Columns3, Grid3X3, Triangle,
-  Globe, FileSearch, Search, Eye, Tag, Link2, Languages, Table2, UserRound, Frame,
-  Play, Snowflake, Cloud, BarChart3, Replace, Undo2, ArrowUpDown, ListOrdered,
-  Scissors, ScanEye, StickyNote, Bookmark, Mic, Film, FileCheck, ShieldAlert, Eraser,
-  ShieldHalf, ArrowLeftRight, Bot, Percent, Cake, Receipt, Sigma, EyeOff, Calculator,
-  Watch, Hourglass,
-}
+import { iconMap } from "@/lib/content/tools/icon-map"
 
 interface ToolHeaderProps {
   tool: ToolDefinition

@@ -14,6 +14,7 @@ export default function NeonRingsBackground() {
   const rafRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -22,8 +23,10 @@ export default function NeonRingsBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const startTime = performance.now()
     const mouse = { x: w / 2, y: h / 2 }
@@ -112,7 +115,13 @@ export default function NeonRingsBackground() {
     rafRef.current = requestAnimationFrame(draw)
 
     const onMouseMove = (e: MouseEvent) => { mouse.x = e.clientX; mouse.y = e.clientY }
-    const onResize = () => { w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h }
+    let resizeTimeout: NodeJS.Timeout;
+    const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+         w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h 
+      }, 150);
+    }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })
     window.addEventListener("resize", onResize)

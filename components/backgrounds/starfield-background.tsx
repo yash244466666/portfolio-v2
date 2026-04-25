@@ -39,6 +39,7 @@ export default function StarfieldBackground() {
   })
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const root = rootRef.current
     if (!canvas || !root) return
@@ -174,11 +175,17 @@ export default function StarfieldBackground() {
       mouseRef.current.y = e.clientY / window.innerHeight
     }
 
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = root.offsetWidth
       h = root.offsetHeight
       canvas.width = w
       canvas.height = h
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

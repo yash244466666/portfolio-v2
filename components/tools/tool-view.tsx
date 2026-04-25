@@ -61,6 +61,7 @@ const ChartGenerator = lazy(() => import("@/components/tools/dev/chart-generator
 
 // Text
 const WordCounter = lazy(() => import("@/components/tools/text/word-counter"))
+const CharacterCounter = lazy(() => import("@/components/tools/text/character-counter"))
 const CaseConverter = lazy(() => import("@/components/tools/text/case-converter"))
 const TextDiff = lazy(() => import("@/components/tools/text/text-diff"))
 const RemoveDuplicates = lazy(() => import("@/components/tools/text/remove-duplicates"))
@@ -157,7 +158,7 @@ const toolComponents: Record<string, React.ComponentType> = {
   "chart-generator": ChartGenerator,
   // Text
   "word-counter": WordCounter,
-  "character-counter": WordCounter,
+  "character-counter": CharacterCounter,
   "case-converter": CaseConverter,
   "text-diff": TextDiff,
   "remove-duplicates": RemoveDuplicates,

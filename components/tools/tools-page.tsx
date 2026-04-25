@@ -23,22 +23,20 @@ export default function ToolsPage() {
     }
 
     window.addEventListener("hashchange", handleHashChange)
-    window.addEventListener("popstate", handleHashChange)
     return () => {
       window.removeEventListener("hashchange", handleHashChange)
-      window.removeEventListener("popstate", handleHashChange)
     }
   }, [])
 
   const selectTool = useCallback((id: string) => {
     setActiveToolId(id)
-    window.location.hash = id
+    window.history.replaceState(null, "", `#${id}`)
     window.scrollTo(0, 0)
   }, [])
 
   const goBack = useCallback(() => {
     setActiveToolId(null)
-    history.pushState(null, "", window.location.pathname)
+    window.history.replaceState(null, "", window.location.pathname)
   }, [])
 
   const filteredTools = searchQuery

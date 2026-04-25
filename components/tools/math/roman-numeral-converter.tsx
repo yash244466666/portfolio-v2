@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { ToolResult } from "@/components/tools/shared/tool-result"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 import { Input } from "@/components/ui/input"
@@ -103,7 +103,7 @@ export default function RomanNumeralConverter() {
   }, [result])
 
   // Auto-add to history when result changes
-  useMemo(() => {
+  useEffect(() => {
     if (result) {
       handleConvert()
     }

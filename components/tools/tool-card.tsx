@@ -3,31 +3,9 @@
 import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import type { ToolDefinition } from "@/lib/content/tools/types"
 import { Card } from "@/components/ui/card"
-import {
-  FileText, DollarSign, Ruler, Braces, Binary, QrCode, KeyRound, Palette, Type,
-  Hash, CaseSensitive, GitCompare, ListFilter, AlignLeft, ArrowRight,
-  Clock, Shield, Image, FileCode, Regex, Link, Code, Key, PenTool, Blend, Pipette,
-  Text, Smile, Fingerprint, Timer, CalendarClock, Table, FileJson, FileCode2,
-  Database, Calendar, Contact, Lock, Radio, ShieldCheck, Square, RectangleHorizontal,
-  Columns3, Grid3X3, Triangle, Globe, FileSearch, Search, Eye, Tag, Link2, Languages,
-  Table2, UserRound, Frame, Play, Snowflake, Cloud, BarChart3, Replace, Undo2,
-  ArrowUpDown, ListOrdered, Scissors, ScanEye, StickyNote, Bookmark, Mic, Film,
-  FileCheck, ShieldAlert, Eraser, ShieldHalf, ArrowLeftRight, Bot, Percent, Cake,
-  Receipt, Sigma, EyeOff, Calculator, Watch, Hourglass,
-} from "lucide-react"
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  FileText, DollarSign, Ruler, Braces, Binary, QrCode, KeyRound, Palette, Type,
-  Hash, CaseSensitive, GitCompare, ListFilter, AlignLeft, Clock, Shield, Image,
-  FileCode, Regex, Link, Code, Key, PenTool, Blend, Pipette, Text, Smile, Fingerprint,
-  Timer, CalendarClock, Table, FileJson, FileCode2, Database, Calendar, Contact, Lock,
-  Radio, ShieldCheck, Square, RectangleHorizontal, Columns3, Grid3X3, Triangle,
-  Globe, FileSearch, Search, Eye, Tag, Link2, Languages, Table2, UserRound, Frame,
-  Play, Snowflake, Cloud, BarChart3, Replace, Undo2, ArrowUpDown, ListOrdered,
-  Scissors, ScanEye, StickyNote, Bookmark, Mic, Film, FileCheck, ShieldAlert, Eraser,
-  ShieldHalf, ArrowLeftRight, Bot, Percent, Cake, Receipt, Sigma, EyeOff, Calculator,
-  Watch, Hourglass,
-}
+import { ArrowRight, Braces } from "lucide-react"
+import { iconMap } from "@/lib/content/tools/icon-map"
+import { getToolCategories } from "@/lib/content/tools/utils"
 
 interface ToolCardProps {
   tool: ToolDefinition
@@ -48,23 +26,31 @@ export default function ToolCard({ tool, onSelect, animationDelay = 0 }: ToolCar
     math: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
   }
 
-  const categoryLabels: Record<string, string> = {
-    core: "Core", dev: "Dev", text: "Text", media: "Media", security: "Security", math: "Math",
-  }
+  const categories = getToolCategories()
+  const categoryLabel = categories.find((c) => c.id === tool.category)?.label || "Dev"
 
   return (
     <Card
-      ref={sectionRef}
-      className={`group cursor-pointer p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 backdrop-blur-sm bg-background/80 border-border/50 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+      ref={sectionRef as React.Ref<HTMLDivElement>}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open ${tool.label} tool`}
+      className={`group cursor-pointer p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 backdrop-blur-sm bg-background/80 border-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
       style={{ animationDelay: `${animationDelay}ms` }}
       onClick={() => onSelect(tool.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onSelect(tool.id)
+        }
+      }}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
           <IconComponent className="h-5 w-5" />
         </div>
         <span className={`text-xs px-2 py-0.5 rounded-full border ${categoryColors[tool.category] || categoryColors.dev}`}>
-          {categoryLabels[tool.category] || "Dev"}
+          {categoryLabel}
         </span>
       </div>
       <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
