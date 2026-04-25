@@ -14,7 +14,7 @@ const HashGenerator = lazy(() => import("@/components/tools/core/hash-generator"
 const ImageCompressor = lazy(() => import("@/components/tools/core/image-compressor"))
 
 // Dev
-const JsonFormatter = lazy(() => import("@/components/tools/dev/json-formatter"))
+const JsonEditor = lazy(() => import("@/components/tools/dev/json-editor/json-editor"))
 const Base64Tool = lazy(() => import("@/components/tools/dev/base64-tool"))
 const QrGenerator = lazy(() => import("@/components/tools/dev/qr-generator"))
 const PasswordGenerator = lazy(() => import("@/components/tools/dev/password-generator"))
@@ -112,7 +112,7 @@ const toolComponents: Record<string, React.ComponentType> = {
   "hash-generator": HashGenerator,
   "image-compressor": ImageCompressor,
   // Dev
-  "json-formatter": JsonFormatter,
+  "json-formatter": JsonEditor,
   "base64-tool": Base64Tool,
   "qr-generator": QrGenerator,
   "password-generator": PasswordGenerator,
@@ -228,9 +228,10 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
   }
 
   const ToolComponent = toolComponents[toolId]
+  const maxWidth = tool.wide ? "max-w-7xl" : "max-w-4xl"
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6">
+    <div className={`${maxWidth} mx-auto px-4 sm:px-6`}>
       <div id="tool-capture-area" className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px] flex flex-col">
         <ToolHeader tool={tool} onBack={onBack} onReset={() => setResetKey(k => k + 1)} />
         <div className="mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>

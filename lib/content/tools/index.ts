@@ -20,7 +20,7 @@ export const tools: ToolDefinition[] = [
   { id: "image-compressor", label: "Image Compressor", description: "Compress PNG and JPG images in-browser with adjustable quality and size.", icon: "Image", category: "core", tags: ["image", "compress", "optimize", "resize"] },
 
   // === Dev Utilities ===
-  { id: "json-formatter", label: "JSON Formatter", description: "Format, minify, and validate JSON with clear error messages.", icon: "Braces", category: "dev", tags: ["json", "format", "validate", "minify"] },
+  { id: "json-formatter", label: "JSON Editor", description: "Edit, format, and explore JSON with a professional dual-panel editor featuring code view and interactive tree.", icon: "Braces", category: "dev", tags: ["json", "format", "validate", "minify", "editor", "tree"], wide: true },
   { id: "base64-tool", label: "Base64 Encode/Decode", description: "Encode and decode text and files to and from Base64 format.", icon: "Binary", category: "dev", tags: ["base64", "encode", "decode"] },
   { id: "qr-generator", label: "QR Code Generator", description: "Generate QR codes from text or URLs and download as PNG images.", icon: "QrCode", category: "dev", tags: ["qr", "code", "generate"] },
   { id: "password-generator", label: "Password Generator", description: "Generate secure random passwords with configurable length and character types.", icon: "KeyRound", category: "dev", tags: ["password", "generate", "security"] },

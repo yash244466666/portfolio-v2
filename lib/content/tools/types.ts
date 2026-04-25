@@ -5,6 +5,7 @@ export interface ToolDefinition {
   icon: string
   category: "core" | "dev" | "text" | "media" | "security" | "math"
   tags: string[]
+  wide?: boolean
 }
 
 export interface ToolCategory {
