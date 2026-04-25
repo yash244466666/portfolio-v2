@@ -52,7 +52,7 @@ export default function Dropzone({
   )
 
   return (
-    <div
+    <label
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -67,11 +67,11 @@ export default function Dropzone({
         accept={accept}
         multiple={multiple}
         onChange={handleChange}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="hidden"
       />
-      <Upload className={`h-8 w-8 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
-      <p className="text-sm text-muted-foreground text-center">{label}</p>
-      <p className="text-xs text-muted-foreground/60">Max {maxSizeMB}MB per file</p>
-    </div>
+      <Upload className={`h-8 w-8 ${isDragging ? "text-primary" : "text-muted-foreground"} pointer-events-none`} />
+      <p className="text-sm text-muted-foreground text-center pointer-events-none">{label}</p>
+      <p className="text-xs text-muted-foreground/60 pointer-events-none">Max {maxSizeMB}MB per file</p>
+    </label>
   )
 }
