@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "browser-use-ollama": {
+      "command": "mcp-server-browser-use",
+      "args": [],
+      "env": {
+        "BROWSER_USE_CONFIG_DIR": "/home/yash/.config/mcp-server-browser-use",
+        "MCP_MODEL_PROVIDER": "ollama",
+        "MCP_MODEL_NAME": "qwen3.5:397b",
+        "OLLAMA_ENDPOINT": "https://ollama.com",
+        "OLLAMA_API_KEY": "d4ec2df0855a4a7d875d848a8686ac64.tlbdXhXZuW4N85-e0CWk0s7V",
+        "MCP_USE_OWN_BROWSER": "true",
+        "MCP_KEEP_BROWSER_OPEN": "true",
+        "CHROME_USER_DATA": "/home/yash/.config/mcp-server-browser-use/browser-profile",
+        "CHROME_CDP": "http://localhost:9222",
+        "MCP_HEADLESS": "false"
+      }
+    }
+  }
+}

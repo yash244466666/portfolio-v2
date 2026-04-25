@@ -3,7 +3,6 @@
 import { useCallback } from "react"
 import { getSectionContent, getProjects, getButtonTexts } from "@/lib/content/utils"
 import { useSectionVisibility } from "@/hooks/use-section-visibility"
-import { useShouldRenderCanvas } from "@/hooks/use-should-render-canvas"
 import { ProjectsBackground } from "@/components/projects-section/projects-background"
 import { ProjectsSectionHeader } from "@/components/projects-section/projects-section-header"
 import { ProjectsGrid } from "@/components/projects-section/projects-grid"
@@ -11,8 +10,6 @@ import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
 
 export default function ProjectsSection() {
-  const shouldRenderCanvas = useShouldRenderCanvas()
-
   const shouldSkipVisibility = useCallback(() => {
     if (typeof window === "undefined") {
       return false
@@ -38,11 +35,10 @@ export default function ProjectsSection() {
 
   useComponentInstrumentation("ProjectsSection", {
     metricsSnapshot: () => ({
-      shouldRenderCanvas,
       isVisible,
       projectCount: projects.length,
     }),
-    trackValues: () => ({ isVisible, shouldRenderCanvas }),
+    trackValues: () => ({ isVisible }),
     throttleMs: 1500,
   })
 
@@ -54,7 +50,7 @@ export default function ProjectsSection() {
 
   return (
     <section id="projects" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden">
-      <ProjectsBackground shouldRenderCanvas={shouldRenderCanvas} />
+      <ProjectsBackground />
 
       <div className="max-w-6xl mx-auto relative z-10">
         <ProjectsSectionHeader

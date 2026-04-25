@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": []
+  },
+  "enabledMcpjsonServers": ["browser-use-ollama"]
+}

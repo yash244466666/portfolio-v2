@@ -14,7 +14,7 @@ import Footer from "@/components/footer"
 import BackToTop from "@/components/back-to-top"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 
-const Smooth3DBackground = dynamic(() => import("@/components/background"), {
+const AnimatedBackground = dynamic(() => import("@/components/backgrounds"), {
   ssr: false,
   loading: () => (
     <div className="fixed inset-0 pointer-events-none z-0 bg-gray-950">
@@ -54,7 +54,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-950 relative">
       {/* <MouseCursor /> */}
-      <Smooth3DBackground />
+      <AnimatedBackground />
       {!loadingComplete && <LoadingScreen onComplete={() => setLoadingComplete(true)} />}
       {loadingComplete && (
         <div className="relative z-10">
