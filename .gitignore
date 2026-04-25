@@ -9,6 +9,8 @@
 
 /tmp
 
+test-results
+
 # production
 /build
 
@@ -27,3 +29,5 @@ yarn-error.log*
 # typescript
 # *.tsbuildinfo
 # next-env.d.ts
+
+mcp_server_browser_use.log
