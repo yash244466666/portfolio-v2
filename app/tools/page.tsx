@@ -24,9 +24,9 @@ export default function Tools() {
   return (
     <main className="min-h-screen bg-gray-950 relative">
       <AnimatedBackground />
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col min-h-screen">
         <Navigation />
-        <div className="pt-24 pb-16">
+        <div className="pt-24 pb-16 flex-grow">
           <ToolsPage />
         </div>
         <Footer />

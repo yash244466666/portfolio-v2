@@ -215,10 +215,12 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
 
   if (!tool) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center py-20">
-        <h2 className="text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
-        <p className="text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
-        <button onClick={onBack} className="text-primary hover:underline">{backLabel}</button>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-8 sm:p-12 shadow-2xl min-h-[600px] flex flex-col items-center justify-center text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
+          <p className="text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
+          <button onClick={onBack} className="text-primary hover:underline">{backLabel}</button>
+        </div>
       </div>
     )
   }
@@ -227,13 +229,15 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
-      <ToolHeader label={tool.label} description={tool.description} icon={tool.icon} onBack={onBack} backLabel={backLabel} />
-      <div className="mt-8">
-        {ToolComponent ? (
-          <Suspense fallback={<ToolFallback />}><ToolComponent /></Suspense>
-        ) : (
-          <p className="text-muted-foreground text-center py-20">This tool is not yet available.</p>
-        )}
+      <div className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px]">
+        <ToolHeader label={tool.label} description={tool.description} icon={tool.icon} onBack={onBack} backLabel={backLabel} />
+        <div className="mt-8">
+          {ToolComponent ? (
+            <Suspense fallback={<ToolFallback />}><ToolComponent /></Suspense>
+          ) : (
+            <p className="text-muted-foreground text-center py-20">This tool is not yet available.</p>
+          )}
+        </div>
       </div>
     </div>
   )
