@@ -262,13 +262,14 @@ export const projects: Project[] = [
 export type NavigationItem = {
   label: string;
   target: string;
+  href?: string;
 };
 
 export const navigationItems: NavigationItem[] = [
   { label: "About", target: "about" },
   { label: "Projects", target: "projects" },
+  { label: "Tools", target: "", href: "/tools/" },
   { label: "Contact", target: "contact" },
-  { label: "Testing", target: "contact" },
 ];
 
 export const buttonTexts: ButtonTexts = {

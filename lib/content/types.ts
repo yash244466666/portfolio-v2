@@ -33,6 +33,7 @@ export interface Skill {
 export interface NavigationItem {
   label: string;
   target: string;
+  href?: string;
 }
 
 export interface PersonalInfo {
