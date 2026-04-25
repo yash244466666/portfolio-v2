@@ -35,6 +35,9 @@ importers:
       diff:
         specifier: ^9.0.0
         version: 9.0.0
+      html-to-image:
+        specifier: ^1.11.13
+        version: 1.11.13
       js-yaml:
         specifier: ^4.1.1
         version: 4.1.1
@@ -1607,6 +1610,9 @@ packages:
 
   hls.js@1.6.16:
     resolution: {integrity: sha512-VSIRpLfRwlAAdGL4wiTucx2ScRipo0ed1FBatWkyt832jC4CReKstga6yIhYVwGu9LOBjuX9wzmRMeQdBJtzEA==}
+
+  html-to-image@1.11.13:
+    resolution: {integrity: sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg==}
 
   http-proxy-agent@7.0.2:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
@@ -4257,6 +4263,8 @@ snapshots:
       function-bind: 1.1.2
 
   hls.js@1.6.16: {}
+
+  html-to-image@1.11.13: {}
 
   http-proxy-agent@7.0.2:
     dependencies:

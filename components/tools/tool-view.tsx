@@ -229,14 +229,18 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
-      <div className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px]">
-        <ToolHeader label={tool.label} description={tool.description} icon={tool.icon} onBack={onBack} backLabel={backLabel} />
-        <div className="mt-8">
-          {ToolComponent ? (
-            <Suspense fallback={<ToolFallback />}><ToolComponent /></Suspense>
-          ) : (
-            <p className="text-muted-foreground text-center py-20">This tool is not yet available.</p>
-          )}
+      <div id="tool-capture-area" className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px] flex flex-col">
+        <ToolHeader tool={tool} onBack={onBack} />
+        <div className="mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="h-full bg-background/40 border border-border/30 rounded-2xl p-6 sm:p-8 shadow-inner">
+            {ToolComponent ? (
+              <Suspense fallback={<ToolFallback />}><ToolComponent /></Suspense>
+            ) : (
+              <div className="flex items-center justify-center h-full min-h-[200px]">
+                <p className="text-muted-foreground text-center">This tool is not yet available.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
