@@ -5,13 +5,7 @@ import { ToolResult } from "@/components/tools/shared/tool-result"
 import Dropzone from "@/components/tools/shared/dropzone"
 import CopyButton from "@/components/tools/shared/copy-button"
 import { Loader2 } from "lucide-react"
-
-async function computeFileHash(file: File, algorithm: string): Promise<string> {
-  const buffer = await file.arrayBuffer()
-  const hashBuffer = await crypto.subtle.digest(algorithm, buffer)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}
+import { hashBuffer } from "@/components/tools/shared/crypto-utils"
 
 const algorithms = [
   { id: "SHA-256", label: "SHA-256" },
@@ -31,6 +25,7 @@ export default function FileHashChecker() {
   const [file, setFile] = useState<File | null>(null)
   const [hashes, setHashes] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleFiles = useCallback(async (files: File[]) => {
     const selectedFile = files[0]
@@ -41,14 +36,22 @@ export default function FileHashChecker() {
     }
     setFile(selectedFile)
     setHashes({})
+    setError("")
     setLoading(true)
 
-    const results: Record<string, string> = {}
-    for (const algo of algorithms) {
-      results[algo.id] = await computeFileHash(selectedFile, algo.id)
+    try {
+      const buffer = await selectedFile.arrayBuffer()
+      const results: Record<string, string> = {}
+      for (const algo of algorithms) {
+        results[algo.id] = await hashBuffer(algo.id, buffer)
+      }
+      setHashes(results)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hash computation failed")
+      setHashes({})
+    } finally {
+      setLoading(false)
     }
-    setHashes(results)
-    setLoading(false)
   }, [])
 
   const reset = useCallback(() => {
@@ -67,6 +70,12 @@ export default function FileHashChecker() {
       />
       {file && (
         <>
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
           {loading && (
             <div className="flex items-center justify-center py-8 gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />

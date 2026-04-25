@@ -5,6 +5,7 @@ import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
+import { hmacSign } from "@/components/tools/shared/crypto-utils"
 
 const algorithms = [
   { id: "SHA-256", label: "SHA-256" },
@@ -21,19 +22,7 @@ export default function HmacGenerator() {
 
   const generate = useCallback(async () => {
     try {
-      const encoder = new TextEncoder()
-      const keyData = encoder.encode(secret)
-      const key = await crypto.subtle.importKey(
-        "raw",
-        keyData,
-        { name: "HMAC", hash: algorithm },
-        false,
-        ["sign"]
-      )
-      const msgData = encoder.encode(message)
-      const signature = await crypto.subtle.sign("HMAC", key, msgData)
-      const hashArray = Array.from(new Uint8Array(signature))
-      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+      const hashHex = await hmacSign(algorithm, secret, message)
       setOutput(hashHex)
       setError("")
     } catch (e) {

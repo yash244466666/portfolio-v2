@@ -68,6 +68,7 @@ export default function ToolsGrid({
         <div className="flex gap-2 flex-wrap justify-center">
           <button
             onClick={() => setActiveCategory(null)}
+            aria-pressed={activeCategory === null}
             className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
               activeCategory === null
                 ? "bg-primary text-primary-foreground"
@@ -80,6 +81,7 @@ export default function ToolsGrid({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
+              aria-pressed={activeCategory === cat.id}
               className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                 activeCategory === cat.id
                   ? "bg-primary text-primary-foreground"

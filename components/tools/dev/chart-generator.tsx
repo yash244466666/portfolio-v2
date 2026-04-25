@@ -226,7 +226,8 @@ export default function ChartGenerator() {
       // Center circle for donut effect
       ctx.beginPath()
       ctx.arc(cx, cy, radius * 0.4, 0, Math.PI * 2)
-      ctx.fillStyle = "rgb(10, 10, 10)"
+      const bgStyle = getComputedStyle(canvas).backgroundColor
+      ctx.fillStyle = bgStyle || "rgb(10, 10, 10)"
       ctx.fill()
 
       // Legend
