@@ -250,30 +250,66 @@ export default function NeuralNetworkBackground() {
       }
     }
 
+    const onTouchStart = (e: TouchEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      const touch = e.touches[0]
+      mouseRef.current.x = touch.clientX - rect.left
+      mouseRef.current.y = touch.clientY - rect.top
+      pulseOriginRef.current = {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+        time: (performance.now() - startTime) / 1000,
+      }
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      const touch = e.touches[0]
+      mouseRef.current.x = touch.clientX - rect.left
+      mouseRef.current.y = touch.clientY - rect.top
+    }
+    const onTouchEnd = () => {
+      mouseRef.current.x = -9999
+      mouseRef.current.y = -9999
+    }
+
     let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        
+
       w = container.offsetWidth
       h = container.offsetHeight
       canvas.width = w * dpr
       canvas.height = h * dpr
       ctx.scale(dpr, dpr)
-    
+
       }, 150);
     }
 
-    window.addEventListener("mousemove", onMouseMove, { passive: true })
-    window.addEventListener("mouseleave", onMouseLeave)
-    window.addEventListener("click", onClick)
+    const isMobile = "ontouchstart" in window
+
+    if (isMobile) {
+      window.addEventListener("touchstart", onTouchStart, { passive: true })
+      window.addEventListener("touchmove", onTouchMove, { passive: true })
+      window.addEventListener("touchend", onTouchEnd, { passive: true })
+    } else {
+      window.addEventListener("mousemove", onMouseMove, { passive: true })
+      window.addEventListener("mouseleave", onMouseLeave)
+      window.addEventListener("click", onClick)
+    }
     window.addEventListener("resize", onResize)
 
     return () => {
       cancelAnimationFrame(rafRef.current)
-      window.removeEventListener("mousemove", onMouseMove)
-      window.removeEventListener("mouseleave", onMouseLeave)
-      window.removeEventListener("click", onClick)
+      if (isMobile) {
+        window.removeEventListener("touchstart", onTouchStart)
+        window.removeEventListener("touchmove", onTouchMove)
+        window.removeEventListener("touchend", onTouchEnd)
+      } else {
+        window.removeEventListener("mousemove", onMouseMove)
+        window.removeEventListener("mouseleave", onMouseLeave)
+        window.removeEventListener("click", onClick)
+      }
       window.removeEventListener("resize", onResize)
     }
   }, [initNodes])

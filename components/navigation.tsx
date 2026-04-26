@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { getPersonalInfo, getButtonTexts } from "@/lib/content/utils"
 import { navigationItems } from "@/lib/content"
 import { useScrollThreshold } from "@/hooks/use-scroll-threshold"
@@ -14,15 +15,44 @@ import { logComponentEvent } from "@/lib/instrumentation"
 export default function Navigation() {
   const isScrolled = useScrollThreshold(50)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState<string | null>(null)
 
   const personalInfo = getPersonalInfo()
   const buttonTexts = getButtonTexts()
+  const pathname = usePathname()
 
   useComponentInstrumentation("Navigation", {
-    stateSnapshot: () => ({ isScrolled, isMobileMenuOpen }),
-    trackValues: () => ({ isScrolled, isMobileMenuOpen }),
+    stateSnapshot: () => ({ isScrolled, isMobileMenuOpen, activeSection }),
+    trackValues: () => ({ isScrolled, isMobileMenuOpen, activeSection }),
     throttleMs: 1200,
   })
+
+  // Track which section is currently in the viewport
+  useEffect(() => {
+    if (pathname !== "/") return
+
+    const sectionTargets = navigationItems
+      .filter((item) => item.target && !item.href)
+      .map((item) => item.target)
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id)
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    )
+
+    for (const target of sectionTargets) {
+      const el = document.getElementById(target)
+      if (el) observer.observe(el)
+    }
+
+    return () => observer.disconnect()
+  }, [pathname])
 
   const scrollToSection = useCallback((sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -70,7 +100,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between">
           <div className="font-bold text-xl text-foreground">{personalInfo.name}</div>
 
-          <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} />
+          <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} activeSection={activeSection} />
 
           <div className="flex items-center space-x-4">
             <NavigationActions
@@ -87,6 +117,7 @@ export default function Navigation() {
           onNavigate={handleNavigate}
           contactLabel={buttonTexts.getInTouch}
           onContactClick={() => handleNavigate("contact")}
+          activeSection={activeSection}
         />
       </div>
     </nav>
