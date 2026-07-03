@@ -49,6 +49,7 @@ export default function BokehBackground() {
   const bokehs = useRef(generateBokeh()).current
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!rootRef.current) return
 
     scopeRef.current = createScope({ root: rootRef.current }).add(() => {

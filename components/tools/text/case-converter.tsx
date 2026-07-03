@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 const conversions: Record<string, { label: string; convert: (t: string) => string }> = {
@@ -63,13 +64,13 @@ export default function CaseConverter() {
       {input && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Object.entries(conversions).map(([key, { label }]) => (
-            <div key={key} className="group bg-muted/30 border border-border/50 rounded-lg p-3 relative">
+            <ToolResult key={key} className="group     relative">
               <p className="text-xs text-muted-foreground mb-1">{label}</p>
               <p className="text-sm text-foreground break-all line-clamp-3">{results[key]}</p>
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <CopyButton text={results[key]} />
               </div>
-            </div>
+            </ToolResult>
           ))}
         </div>
       )}

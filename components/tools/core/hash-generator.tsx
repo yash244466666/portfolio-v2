@@ -1,17 +1,10 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Input } from "@/components/ui/input"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
-
-async function computeHash(algorithm: string, text: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(text)
-  const hashBuffer = await crypto.subtle.digest(algorithm, data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}
+import { hashText } from "@/components/tools/shared/crypto-utils"
 
 function md5(input: string): string {
   // Simple MD5 implementation for client-side use
@@ -148,17 +141,25 @@ export default function HashGenerator() {
   const [input, setInput] = useState("")
   const [hashes, setHashes] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const generate = useCallback(async () => {
     if (!input) return
     setLoading(true)
-    const results: Record<string, string> = {}
-    results["MD5"] = md5(input)
-    for (const algo of ["SHA-1", "SHA-256", "SHA-512"]) {
-      results[algo] = await computeHash(algo, input)
+    setError("")
+    try {
+      const results: Record<string, string> = {}
+      results["MD5"] = md5(input)
+      for (const algo of ["SHA-1", "SHA-256", "SHA-512"]) {
+        results[algo] = await hashText(algo, input)
+      }
+      setHashes(results)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hash generation failed")
+      setHashes({})
+    } finally {
+      setLoading(false)
     }
-    setHashes(results)
-    setLoading(false)
   }, [input])
 
   return (
@@ -177,16 +178,22 @@ export default function HashGenerator() {
         {loading ? "Generating..." : "Generate Hashes"}
       </Button>
 
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
       {Object.keys(hashes).length > 0 && (
         <div className="space-y-3">
           {algorithms.map((algo) => (
-            <div key={algo} className="bg-muted/30 border border-border/50 rounded-lg p-3">
+            <ToolResult key={algo} >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-foreground">{algo}</span>
                 <CopyButton text={hashes[algo]} />
               </div>
               <p className="font-mono text-sm text-muted-foreground break-all">{hashes[algo]}</p>
-            </div>
+            </ToolResult>
           ))}
         </div>
       )}

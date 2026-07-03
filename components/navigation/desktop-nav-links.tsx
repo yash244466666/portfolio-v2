@@ -7,20 +7,26 @@ import type { NavigationItem } from "@/lib/content"
 interface DesktopNavLinksProps {
     items: NavigationItem[]
     onNavigate: (target: string) => void
+    activeSection?: string | null
 }
 
-export function DesktopNavLinks({ items, onNavigate }: DesktopNavLinksProps) {
+export function DesktopNavLinks({ items, onNavigate, activeSection }: DesktopNavLinksProps) {
     const pathname = usePathname()
 
     return (
         <div className="hidden md:flex items-center space-x-8">
             {items.map((item) => {
+                const isToolsPage = !!item.href
+                const isToolsActive = isToolsPage && (pathname === item.href || pathname === item.href?.replace(/\/$/, ""))
+                const isSectionActive = !isToolsPage && activeSection === item.target
+                const isActive = isToolsActive || isSectionActive
+
                 if (item.href) {
                     return (
                         <Link
                             key={item.label}
                             href={item.href}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
+                            className={`nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             {item.label}
                         </Link>
@@ -34,7 +40,7 @@ export function DesktopNavLinks({ items, onNavigate }: DesktopNavLinksProps) {
                         <Link
                             key={item.label}
                             href={href}
-                            className="text-muted-foreground hover:text-foreground transition-colors"
+                            className={`nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             {item.label}
                         </Link>
@@ -45,7 +51,7 @@ export function DesktopNavLinks({ items, onNavigate }: DesktopNavLinksProps) {
                     <button
                         key={item.label}
                         onClick={() => onNavigate(item.target)}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        className={`nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         {item.label}
                     </button>

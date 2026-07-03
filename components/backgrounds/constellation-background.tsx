@@ -17,7 +17,7 @@ interface Star {
   twinkleOffset: number
 }
 
-const STAR_COUNT = 200
+const STAR_COUNT = 100
 const CONNECTION_DISTANCE = 120
 const MOUSE_REVEAL_RADIUS = 250
 
@@ -27,6 +27,7 @@ export default function ConstellationBackground() {
   const rafRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -35,8 +36,10 @@ export default function ConstellationBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const mouse = { x: w / 2, y: h / 2 }
     const startTime = performance.now()
@@ -165,10 +168,16 @@ export default function ConstellationBackground() {
     rafRef.current = requestAnimationFrame(draw)
 
     const onMouseMove = (e: MouseEvent) => { mouse.x = e.clientX; mouse.y = e.clientY }
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth; h = container.offsetHeight
       canvas.width = w; canvas.height = h
       initStars(); buildConstellations()
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

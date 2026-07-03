@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -156,11 +157,11 @@ export default function FindReplace() {
               <label className="text-sm font-medium text-foreground">Result</label>
               {result.output && <CopyButton text={result.output} />}
             </div>
-            <div className="w-full min-h-[150px] sm:min-h-[200px] p-4 rounded-lg border border-border bg-muted/30 text-foreground font-mono text-sm whitespace-pre-wrap break-all overflow-auto">
+            <ToolResult className="w-full min-h-[150px] sm:min-h-[200px]     text-foreground font-mono text-sm whitespace-pre-wrap break-all overflow-auto">
               {Array.isArray(highlightedOutput) ? highlightedOutput.map((part, i) => (
                 <span key={i}>{part}</span>
               )) : result.output}
-            </div>
+            </ToolResult>
           </div>
         </>
       )}

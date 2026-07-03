@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 
 type Operation = "AND" | "OR" | "XOR" | "NOT" | "LSHIFT" | "RSHIFT"
@@ -150,7 +151,7 @@ export default function BitwiseCalculator() {
       </div>
 
       {/* Result */}
-      <div className="bg-muted/30 border border-border/50 rounded-xl p-5 space-y-3">
+      <ToolResult className="    space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Decimal</span>
           <span className="text-xl font-mono text-foreground">{result}</span>
@@ -176,10 +177,10 @@ export default function BitwiseCalculator() {
             ))}
           </div>
         </div>
-      </div>
+      </ToolResult>
 
       {/* Visual binary comparison */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <span className="text-sm font-medium text-foreground block mb-3">
           Visual Comparison
         </span>
@@ -237,7 +238,7 @@ export default function BitwiseCalculator() {
             </div>
           </div>
         </div>
-      </div>
+      </ToolResult>
     </div>
   )
 }

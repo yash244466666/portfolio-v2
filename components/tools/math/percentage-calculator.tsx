@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 
@@ -98,35 +99,35 @@ export default function PercentageCalculator() {
         </div>
       </div>
 
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-center">
+      <ToolResult className="    text-center">
         <span className="text-sm text-muted-foreground block mb-1">{getResultLabel()}</span>
         <span className="text-3xl font-mono text-foreground">
           {result !== null ? formatResult(result) : "--"}
         </span>
-      </div>
+      </ToolResult>
 
       {activeTab === "percent-of" && valueA && valueB && result !== null && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-3 text-center">
+        <ToolResult className="    text-center">
           <p className="text-sm text-muted-foreground">
             {valueA}% of {valueB} = <span className="text-foreground font-medium">{formatResult(result)}</span>
           </p>
-        </div>
+        </ToolResult>
       )}
       {activeTab === "what-percent" && valueA && valueB && result !== null && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-3 text-center">
+        <ToolResult className="    text-center">
           <p className="text-sm text-muted-foreground">
             {valueA} is <span className="text-foreground font-medium">{formatResult(result)}</span> of {valueB}
           </p>
-        </div>
+        </ToolResult>
       )}
       {activeTab === "percent-change" && valueA && valueB && result !== null && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-3 text-center">
+        <ToolResult className="    text-center">
           <p className="text-sm text-muted-foreground">
             {result >= 0 ? "Increase" : "Decrease"} of{" "}
             <span className="text-foreground font-medium">{formatResult(Math.abs(result))}</span>{" "}
             from {valueB} to {valueA}
           </p>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -69,27 +70,27 @@ export default function JwtDecoder() {
             </div>
           )}
 
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-foreground">Header</h3>
               <CopyButton text={JSON.stringify(decoded.header, null, 2)} />
             </div>
             <pre className="font-mono text-sm text-foreground overflow-x-auto">{JSON.stringify(decoded.header, null, 2)}</pre>
-          </div>
+          </ToolResult>
 
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-foreground">Payload</h3>
               <CopyButton text={JSON.stringify(decoded.payload, null, 2)} />
             </div>
             <pre className="font-mono text-sm text-foreground overflow-x-auto">{JSON.stringify(decoded.payload, null, 2)}</pre>
-          </div>
+          </ToolResult>
 
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <h3 className="text-sm font-medium text-foreground mb-2">Signature</h3>
             <p className="font-mono text-sm text-muted-foreground break-all">{decoded.signature}</p>
             <p className="text-xs text-muted-foreground mt-2">Note: This tool only decodes JWTs. It cannot verify the signature.</p>
-          </div>
+          </ToolResult>
         </div>
       )}
     </div>

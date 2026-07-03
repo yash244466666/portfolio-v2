@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { Select } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { supportedCurrencies, fetchRates } from "@/lib/tools/currency-cache"
@@ -76,7 +77,7 @@ export default function CurrencyConverter() {
 
         <div>
           <label className="text-sm font-medium text-foreground block mb-2">Result</label>
-          <div className="h-9 flex items-center px-3 rounded-md border border-border bg-muted/30 font-mono text-foreground">
+          <div >
             {loading ? "..." : result || "—"}
           </div>
         </div>
@@ -85,27 +86,27 @@ export default function CurrencyConverter() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium text-foreground block mb-2">From</label>
-          <select
+          <Select
             value={fromCurrency}
             onChange={(e) => setFromCurrency(e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-border bg-background/50 text-foreground text-sm"
+            
           >
             {supportedCurrencies.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
           <label className="text-sm font-medium text-foreground block mb-2">To</label>
-          <select
+          <Select
             value={toCurrency}
             onChange={(e) => setToCurrency(e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-border bg-background/50 text-foreground text-sm"
+            
           >
             {supportedCurrencies.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

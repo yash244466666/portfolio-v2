@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import { Mic, Square, Play, Download, RotateCcw } from "lucide-react"
 
@@ -10,6 +11,7 @@ export default function AudioRecorder() {
   const [recordingUrl, setRecordingUrl] = useState<string>("")
   const [duration, setDuration] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [waveformBars] = useState(() => Array.from({ length: 40 }, () => Math.random()))
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -25,6 +27,7 @@ export default function AudioRecorder() {
   }, [recordingUrl])
 
   const startRecording = useCallback(async () => {
+    setError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mediaRecorder = new MediaRecorder(stream)
@@ -51,7 +54,7 @@ export default function AudioRecorder() {
         setDuration((d) => d + 1)
       }, 1000)
     } catch {
-      alert("Microphone access denied. Please allow microphone permissions.")
+      setError("Microphone access denied. Please allow microphone permissions.")
     }
   }, [])
 
@@ -89,6 +92,7 @@ export default function AudioRecorder() {
     setRecordingUrl("")
     setDuration(0)
     setIsPlaying(false)
+    setError(null)
   }, [recordingUrl])
 
   const formatTime = (seconds: number) => {
@@ -100,7 +104,7 @@ export default function AudioRecorder() {
   return (
     <div className="space-y-6">
       {/* Waveform visualization */}
-      <div className="bg-muted/30 border border-border/50 rounded-xl p-6">
+      <ToolResult className="   p-6">
         <div className="flex items-end justify-center gap-[2px] h-24">
           {waveformBars.map((height, i) => (
             <div
@@ -130,7 +134,13 @@ export default function AudioRecorder() {
             <span className="ml-3 text-sm text-red-400 animate-pulse">Recording...</span>
           )}
         </div>
-      </div>
+      </ToolResult>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center mt-4 text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex items-center justify-center gap-3">
@@ -167,7 +177,7 @@ export default function AudioRecorder() {
       </div>
 
       {recordingUrl && !isRecording && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Duration</span>
             <span className="text-foreground font-mono">{formatTime(duration)}</span>
@@ -182,7 +192,7 @@ export default function AudioRecorder() {
               {recordingBlob ? (recordingBlob.size / 1024).toFixed(1) + " KB" : "--"}
             </span>
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

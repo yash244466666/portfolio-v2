@@ -48,6 +48,7 @@ export default function FirefliesBackground() {
   const fireflies = useRef(generateFireflies()).current
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!rootRef.current) return
 
     scopeRef.current = createScope({ root: rootRef.current }).add(() => {
@@ -152,7 +153,7 @@ export default function FirefliesBackground() {
       cancelAnimationFrame(rafRef.current)
       window.removeEventListener("mousemove", onMouseMove)
     }
-  }, [fireflies])
+  }, [])
 
   return (
     <div ref={rootRef} className="absolute inset-0 overflow-hidden">

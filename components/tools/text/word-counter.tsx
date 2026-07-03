@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -50,13 +51,13 @@ export default function WordCounter({ emphasizeChars }: WordCounterProps) {
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {statCards.map((stat) => (
-          <div
+          <ToolResult
             key={stat.label}
-            className="bg-muted/30 border border-border/50 rounded-lg p-3 text-center"
+            className="    text-center"
           >
             <p className="text-2xl font-bold text-foreground">{stat.value}</p>
             <p className="text-xs text-muted-foreground">{stat.label}</p>
-          </div>
+          </ToolResult>
         ))}
       </div>
 

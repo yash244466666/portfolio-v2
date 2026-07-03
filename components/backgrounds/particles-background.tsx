@@ -19,7 +19,7 @@ interface Particle {
   baseOpacity: number
 }
 
-const PARTICLE_COUNT = 150
+const PARTICLE_COUNT = 80
 const CONNECTION_DISTANCE = 160
 const MOUSE_RADIUS = 220
 const MOUSE_PUSH_STRENGTH = 0.8
@@ -56,6 +56,7 @@ export default function ParticlesBackground() {
   }, [])
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -65,8 +66,10 @@ export default function ParticlesBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     particlesRef.current = initParticles(w, h)
     let startTime = performance.now()
@@ -193,13 +196,20 @@ export default function ParticlesBackground() {
       mouseRef.current.y = -9999
     }
 
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth
       h = container.offsetHeight
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
       particlesRef.current = initParticles(w, h)
-      startTime = performance.now()
+      // startTime = performance.now() // Prevent visible fade-in restart
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

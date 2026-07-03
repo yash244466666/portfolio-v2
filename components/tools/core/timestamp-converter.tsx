@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -48,11 +49,11 @@ export default function TimestampConverter() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <p className="text-sm text-muted-foreground mb-1">Current Unix Timestamp</p>
         <p className="text-2xl font-mono font-bold text-foreground">{currentUnix}</p>
         <p className="text-sm text-muted-foreground mt-1">{currentUTC}</p>
-      </div>
+      </ToolResult>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -82,7 +83,7 @@ export default function TimestampConverter() {
       </Button>
 
       {timestamp && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-2">
+        <ToolResult className="    space-y-2">
           <h3 className="text-sm font-medium text-foreground">Parsed Details</h3>
           {(() => {
             const ms = timestamp.length === 10 ? Number(timestamp) * 1000 : Number(timestamp)
@@ -98,7 +99,7 @@ export default function TimestampConverter() {
               </div>
             )
           })()}
-        </div>
+        </ToolResult>
       )}
     </div>
   )

@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import * as math from "mathjs"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 
@@ -17,28 +19,17 @@ interface HistoryEntry {
 
 function safeEvaluate(expr: string): string {
   try {
-    // Replace math functions with Math equivalents
+    if (!expr || expr.trim() === "") return "0"
+    
+    // Replace custom string operators for math.js compatibility if needed, 
+    // but math.js natively handles sin, cos, tan, log, log10, sqrt, abs, pi, e, ^
+    // We just need to make sure `ln` maps to `log` and `log` maps to `log10`
+    // because standard calculator UI defines 'ln' as natural log and 'log' as base 10.
     let sanitized = expr
-      .replace(/sin\(/g, "Math.sin(")
-      .replace(/cos\(/g, "Math.cos(")
-      .replace(/tan\(/g, "Math.tan(")
-      .replace(/log\(/g, "Math.log10(")
-      .replace(/ln\(/g, "Math.log(")
-      .replace(/sqrt\(/g, "Math.sqrt(")
-      .replace(/abs\(/g, "Math.abs(")
-      .replace(/\^/g, "**")
-      .replace(/pi/g, "Math.PI")
-      .replace(/e(?![a-zA-Z])/g, "Math.E")
+      .replace(/ln\(/g, "log(")
+      .replace(/log\(/g, "log10(")
 
-    // Safety check: only allow numbers, operators, parentheses, Math methods, and whitespace
-    const safe = sanitized.replace(/Math\.(sin|cos|tan|log10|log|sqrt|abs|PI|E|pow)/g, "")
-    if (/[^0-9+\-*/.()%\s]/.test(safe)) {
-      return "Error"
-    }
-
-    // Use Function constructor instead of eval for slightly better safety
-    const fn = new Function(`"use strict"; return (${sanitized})`)
-    const result = fn()
+    const result = math.evaluate(sanitized)
 
     if (typeof result !== "number" || !isFinite(result)) return "Error"
 
@@ -182,14 +173,14 @@ export default function Calculator() {
       <TabSwitcher tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Display */}
-      <div className="bg-muted/30 border border-border/50 rounded-xl p-4">
+      <ToolResult >
         <p className="text-sm text-muted-foreground text-right h-6 truncate">
           {expression || "\u00A0"}
         </p>
         <p className="text-3xl font-mono text-foreground text-right truncate">
           {display}
         </p>
-      </div>
+      </ToolResult>
 
       {/* Scientific buttons */}
       {activeTab === "scientific" && (
@@ -252,7 +243,7 @@ export default function Calculator() {
 
       {/* History */}
       {history.length > 0 && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">History</span>
             <button
@@ -264,9 +255,9 @@ export default function Calculator() {
           </div>
           <div className="space-y-1 max-h-40 overflow-y-auto">
             {history.map((entry) => (
-              <div
+              <ToolResult
                 key={entry.id}
-                className="flex items-center justify-between text-sm py-1 cursor-pointer hover:bg-muted/30 rounded px-1"
+                className="flex items-center justify-between text-sm py-1 cursor-pointer hover: rounded px-1"
                 onClick={() => {
                   setDisplay(entry.result)
                   setNewNumber(true)
@@ -276,10 +267,10 @@ export default function Calculator() {
                   {entry.expression}
                 </span>
                 <span className="font-mono text-foreground shrink-0">= {entry.result}</span>
-              </div>
+              </ToolResult>
             ))}
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

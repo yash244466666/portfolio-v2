@@ -1,32 +1,35 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Input } from "@/components/ui/input"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
-
-async function computeHash(algo: string, text: string): Promise<string> {
-  const data = new TextEncoder().encode(text)
-  const buf = await crypto.subtle.digest(algo, data)
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("")
-}
+import { hashText } from "@/components/tools/shared/crypto-utils"
 
 export default function HashDiff() {
   const [text1, setText1] = useState("")
   const [text2, setText2] = useState("")
   const [results, setResults] = useState<{ algo: string; hash1: string; hash2: string; match: boolean }[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const compare = useCallback(async () => {
     if (!text1 || !text2) return
     setLoading(true)
-    const algos = ["SHA-1", "SHA-256", "SHA-512"]
-    const out = []
-    for (const algo of algos) {
-      const [h1, h2] = await Promise.all([computeHash(algo, text1), computeHash(algo, text2)])
-      out.push({ algo, hash1: h1, hash2: h2, match: h1 === h2 })
+    setError("")
+    try {
+      const algos = ["SHA-1", "SHA-256", "SHA-512"]
+      const out = []
+      for (const algo of algos) {
+        const [h1, h2] = await Promise.all([hashText(algo, text1), hashText(algo, text2)])
+        out.push({ algo, hash1: h1, hash2: h2, match: h1 === h2 })
+      }
+      setResults(out)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hash comparison failed")
+      setResults([])
+    } finally {
+      setLoading(false)
     }
-    setResults(out)
-    setLoading(false)
   }, [text1, text2])
 
   const allMatch = results.length > 0 && results.every((r) => r.match)
@@ -58,6 +61,12 @@ export default function HashDiff() {
         {loading ? "Computing..." : "Compare Hashes"}
       </Button>
 
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
       {results.length > 0 && (
         <div className={`rounded-lg p-4 text-center text-sm font-medium ${allMatch ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400" : "bg-red-500/10 border border-red-500/30 text-red-400"}`}>
           {allMatch ? "Texts are IDENTICAL" : "Texts are DIFFERENT"}
@@ -65,7 +74,7 @@ export default function HashDiff() {
       )}
 
       {results.map((r) => (
-        <div key={r.algo} className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-2">
+        <ToolResult key={r.algo} className="    space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">{r.algo}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full ${r.match ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
@@ -76,7 +85,7 @@ export default function HashDiff() {
             <span className="text-muted-foreground">Text 1:</span><span className="text-foreground break-all">{r.hash1}</span>
             <span className="text-muted-foreground">Text 2:</span><span className="text-foreground break-all">{r.hash2}</span>
           </div>
-        </div>
+        </ToolResult>
       ))}
     </div>
   )

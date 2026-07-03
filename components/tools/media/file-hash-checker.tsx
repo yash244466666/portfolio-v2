@@ -1,16 +1,11 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import Dropzone from "@/components/tools/shared/dropzone"
 import CopyButton from "@/components/tools/shared/copy-button"
 import { Loader2 } from "lucide-react"
-
-async function computeFileHash(file: File, algorithm: string): Promise<string> {
-  const buffer = await file.arrayBuffer()
-  const hashBuffer = await crypto.subtle.digest(algorithm, buffer)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}
+import { hashBuffer } from "@/components/tools/shared/crypto-utils"
 
 const algorithms = [
   { id: "SHA-256", label: "SHA-256" },
@@ -30,20 +25,33 @@ export default function FileHashChecker() {
   const [file, setFile] = useState<File | null>(null)
   const [hashes, setHashes] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleFiles = useCallback(async (files: File[]) => {
     const selectedFile = files[0]
-    if (!selectedFile) return
+    if (!selectedFile) {
+      setFile(null)
+      setHashes({})
+      return
+    }
     setFile(selectedFile)
     setHashes({})
+    setError("")
     setLoading(true)
 
-    const results: Record<string, string> = {}
-    for (const algo of algorithms) {
-      results[algo.id] = await computeFileHash(selectedFile, algo.id)
+    try {
+      const buffer = await selectedFile.arrayBuffer()
+      const results: Record<string, string> = {}
+      for (const algo of algorithms) {
+        results[algo.id] = await hashBuffer(algo.id, buffer)
+      }
+      setHashes(results)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Hash computation failed")
+      setHashes({})
+    } finally {
+      setLoading(false)
     }
-    setHashes(results)
-    setLoading(false)
   }, [])
 
   const reset = useCallback(() => {
@@ -54,28 +62,19 @@ export default function FileHashChecker() {
 
   return (
     <div className="space-y-6">
-      {!file ? (
-        <Dropzone
-          onFiles={handleFiles}
-          label="Drop a file here to compute its hash"
-          maxSizeMB={500}
-        />
-      ) : (
+      <Dropzone
+        onFiles={handleFiles}
+        selectedFiles={file ? [file] : null}
+        label="Drop a file here to compute its hash"
+        maxSizeMB={500}
+      />
+      {file && (
         <>
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">File Name</span>
-              <span className="text-foreground font-medium">{file.name}</span>
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+              {error}
             </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-muted-foreground">Size</span>
-              <span className="text-foreground">{formatFileSize(file.size)}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm mt-2">
-              <span className="text-muted-foreground">Type</span>
-              <span className="text-foreground">{file.type || "Unknown"}</span>
-            </div>
-          </div>
+          )}
 
           {loading && (
             <div className="flex items-center justify-center py-8 gap-3">
@@ -87,9 +86,9 @@ export default function FileHashChecker() {
           {!loading && Object.keys(hashes).length > 0 && (
             <div className="space-y-3">
               {algorithms.map((algo) => (
-                <div
+                <ToolResult
                   key={algo.id}
-                  className="bg-muted/30 border border-border/50 rounded-lg p-3"
+                  
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-foreground">{algo.label}</span>
@@ -98,17 +97,11 @@ export default function FileHashChecker() {
                   <p className="font-mono text-xs text-muted-foreground break-all">
                     {hashes[algo.id]}
                   </p>
-                </div>
+                </ToolResult>
               ))}
             </div>
           )}
 
-          <button
-            onClick={reset}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Check another file
-          </button>
         </>
       )}
     </div>

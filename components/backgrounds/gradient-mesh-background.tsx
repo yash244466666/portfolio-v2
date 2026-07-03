@@ -26,6 +26,7 @@ export default function GradientMeshBackground() {
   const scopeRef = useRef<Scope | null>(null)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!rootRef.current) return
 
     scopeRef.current = createScope({ root: rootRef }).add(() => {
@@ -87,7 +88,7 @@ export default function GradientMeshBackground() {
             left: blob.x,
             top: blob.y,
             transform: "translate(-50%, -50%)",
-            animation: `fadeIn 2s ${i * 0.3}s forwards`,
+            animation: `fadeInMesh 2s ${i * 0.3}s forwards`,
           }}
         />
       ))}
@@ -101,11 +102,6 @@ export default function GradientMeshBackground() {
         }}
       />
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          to { opacity: 1; }
-        }
-      `}</style>
     </div>
   )
 }

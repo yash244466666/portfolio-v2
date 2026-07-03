@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { hexToRgb, rgbToHex } from "@/lib/tools/color-utils"
 import Dropzone from "@/components/tools/shared/dropzone"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -30,11 +31,17 @@ function extractColors(imageData: ImageData, count: number): string[] {
 export default function ColorPaletteFromImage() {
   const [palette, setPalette] = useState<string[]>([])
   const [imagePreview, setImagePreview] = useState("")
+  const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleFile = useCallback((files: File[]) => {
     const file = files[0]
-    if (!file) return
+    setFile(file || null)
+    if (!file) {
+      setImagePreview("")
+      setPalette([])
+      return
+    }
     setLoading(true)
 
     const img = new Image()
@@ -60,6 +67,7 @@ export default function ColorPaletteFromImage() {
     <div className="space-y-6">
       <Dropzone
         onFiles={handleFile}
+        selectedFiles={file ? [file] : null}
         accept="image/*"
         label="Drop an image here to extract its colors"
       />
@@ -104,9 +112,9 @@ export default function ColorPaletteFromImage() {
             <CopyButton text={palette.join(", ")} />
             <span className="text-xs text-muted-foreground ml-2">Copy all as CSS variables</span>
           </div>
-          <div className="mt-2 bg-muted/30 border border-border/50 rounded-lg p-3">
+          <ToolResult className="mt-2    ">
             <pre className="font-mono text-xs text-foreground">{palette.map((c, i) => `  --color-${i + 1}: ${c};`).join("\n")}</pre>
-          </div>
+          </ToolResult>
         </div>
       )}
     </div>

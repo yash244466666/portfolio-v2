@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -109,7 +110,7 @@ export default function CorsHeaderBuilder() {
       </div>
 
       {/* Methods */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <span className="text-sm font-medium text-foreground block mb-3">
           Allowed Methods
         </span>
@@ -134,10 +135,10 @@ export default function CorsHeaderBuilder() {
           placeholder="Custom methods (comma separated)"
           className="font-mono text-sm"
         />
-      </div>
+      </ToolResult>
 
       {/* Headers */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <span className="text-sm font-medium text-foreground block mb-3">
           Allowed Headers
         </span>
@@ -162,7 +163,7 @@ export default function CorsHeaderBuilder() {
           placeholder="Custom headers (comma separated)"
           className="font-mono text-sm"
         />
-      </div>
+      </ToolResult>
 
       {/* Max Age & Credentials */}
       <div className="grid grid-cols-2 gap-4">
@@ -195,7 +196,7 @@ export default function CorsHeaderBuilder() {
       </div>
 
       {/* Generated headers */}
-      <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+      <ToolResult >
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-foreground">
             Generated Headers
@@ -211,7 +212,7 @@ export default function CorsHeaderBuilder() {
             </div>
           ))}
         </div>
-      </div>
+      </ToolResult>
     </div>
   )
 }

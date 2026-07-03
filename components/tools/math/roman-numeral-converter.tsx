@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import TabSwitcher from "@/components/tools/shared/tab-switcher"
 import { Input } from "@/components/ui/input"
 
@@ -102,7 +103,7 @@ export default function RomanNumeralConverter() {
   }, [result])
 
   // Auto-add to history when result changes
-  useMemo(() => {
+  useEffect(() => {
     if (result) {
       handleConvert()
     }
@@ -142,19 +143,19 @@ export default function RomanNumeralConverter() {
       </div>
 
       {result && isValid && (
-        <div className="bg-muted/30 border border-border/50 rounded-xl p-6 text-center">
+        <ToolResult className="   p-6 text-center">
           <p className="text-xs text-muted-foreground mb-2">{result.direction}</p>
           {activeTab === "to-roman" ? (
             <p className="text-4xl font-mono text-foreground tracking-wider">{result.roman}</p>
           ) : (
             <p className="text-4xl font-mono text-foreground">{result.arabic}</p>
           )}
-        </div>
+        </ToolResult>
       )}
 
       {/* History */}
       {history.length > 0 && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-foreground">History</span>
             <button
@@ -177,7 +178,7 @@ export default function RomanNumeralConverter() {
               </div>
             ))}
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

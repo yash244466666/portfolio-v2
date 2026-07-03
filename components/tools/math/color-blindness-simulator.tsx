@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import { simulateColorBlindness, colorBlindnessTypes } from "@/lib/tools/color-blindness"
 
@@ -77,7 +78,7 @@ export default function ColorBlindnessSimulator() {
       {/* Side by side comparison */}
       {rgb && simulated && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-muted/30 border border-border/50 rounded-xl overflow-hidden">
+          <ToolResult className="   overflow-hidden">
             <div
               className="h-32"
               style={{ backgroundColor: hexColor }}
@@ -91,9 +92,9 @@ export default function ColorBlindnessSimulator() {
                 {hexColor.toUpperCase()}
               </p>
             </div>
-          </div>
+          </ToolResult>
 
-          <div className="bg-muted/30 border border-border/50 rounded-xl overflow-hidden">
+          <ToolResult className="   overflow-hidden">
             <div
               className="h-32"
               style={{
@@ -111,13 +112,13 @@ export default function ColorBlindnessSimulator() {
                 {toHex(simulated.r, simulated.g, simulated.b).toUpperCase()}
               </p>
             </div>
-          </div>
+          </ToolResult>
         </div>
       )}
 
       {/* All types comparison */}
       {rgb && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+        <ToolResult >
           <span className="text-sm font-medium text-foreground block mb-3">
             All Types
           </span>
@@ -140,7 +141,7 @@ export default function ColorBlindnessSimulator() {
               )
             })}
           </div>
-        </div>
+        </ToolResult>
       )}
     </div>
   )

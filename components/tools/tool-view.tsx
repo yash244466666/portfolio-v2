@@ -1,6 +1,6 @@
 "use client"
 
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useState } from "react"
 import { getToolById } from "@/lib/content/tools/utils"
 import ToolHeader from "@/components/tools/tool-header"
 
@@ -14,7 +14,7 @@ const HashGenerator = lazy(() => import("@/components/tools/core/hash-generator"
 const ImageCompressor = lazy(() => import("@/components/tools/core/image-compressor"))
 
 // Dev
-const JsonFormatter = lazy(() => import("@/components/tools/dev/json-formatter"))
+const JsonEditor = lazy(() => import("@/components/tools/dev/json-editor/json-editor"))
 const Base64Tool = lazy(() => import("@/components/tools/dev/base64-tool"))
 const QrGenerator = lazy(() => import("@/components/tools/dev/qr-generator"))
 const PasswordGenerator = lazy(() => import("@/components/tools/dev/password-generator"))
@@ -58,9 +58,11 @@ const AnimationCssGenerator = lazy(() => import("@/components/tools/dev/animatio
 const GlassmorphismGenerator = lazy(() => import("@/components/tools/dev/glassmorphism-generator"))
 const NeumorphismGenerator = lazy(() => import("@/components/tools/dev/neumorphism-generator"))
 const ChartGenerator = lazy(() => import("@/components/tools/dev/chart-generator"))
+const YoutubeDownloader = lazy(() => import("@/components/tools/dev/youtube-downloader"))
 
 // Text
 const WordCounter = lazy(() => import("@/components/tools/text/word-counter"))
+const CharacterCounter = lazy(() => import("@/components/tools/text/character-counter"))
 const CaseConverter = lazy(() => import("@/components/tools/text/case-converter"))
 const TextDiff = lazy(() => import("@/components/tools/text/text-diff"))
 const RemoveDuplicates = lazy(() => import("@/components/tools/text/remove-duplicates"))
@@ -111,7 +113,7 @@ const toolComponents: Record<string, React.ComponentType> = {
   "hash-generator": HashGenerator,
   "image-compressor": ImageCompressor,
   // Dev
-  "json-formatter": JsonFormatter,
+  "json-editor": JsonEditor,
   "base64-tool": Base64Tool,
   "qr-generator": QrGenerator,
   "password-generator": PasswordGenerator,
@@ -155,9 +157,10 @@ const toolComponents: Record<string, React.ComponentType> = {
   "glassmorphism-generator": GlassmorphismGenerator,
   "neumorphism-generator": NeumorphismGenerator,
   "chart-generator": ChartGenerator,
+  "youtube-downloader": YoutubeDownloader,
   // Text
   "word-counter": WordCounter,
-  "character-counter": WordCounter,
+  "character-counter": CharacterCounter,
   "case-converter": CaseConverter,
   "text-diff": TextDiff,
   "remove-duplicates": RemoveDuplicates,
@@ -212,28 +215,38 @@ interface ToolViewProps {
 
 export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
   const tool = getToolById(toolId)
+  const [resetKey, setResetKey] = useState(0)
 
   if (!tool) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center py-20">
-        <h2 className="text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
-        <p className="text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
-        <button onClick={onBack} className="text-primary hover:underline">{backLabel}</button>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-8 sm:p-12 shadow-2xl min-h-[600px] flex flex-col items-center justify-center text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
+          <p className="text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
+          <button onClick={onBack} className="text-primary hover:underline">{backLabel}</button>
+        </div>
       </div>
     )
   }
 
   const ToolComponent = toolComponents[toolId]
+  const maxWidth = tool.wide ? "max-w-7xl" : "max-w-4xl"
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6">
-      <ToolHeader label={tool.label} description={tool.description} icon={tool.icon} onBack={onBack} backLabel={backLabel} />
-      <div className="mt-8">
-        {ToolComponent ? (
-          <Suspense fallback={<ToolFallback />}><ToolComponent /></Suspense>
-        ) : (
-          <p className="text-muted-foreground text-center py-20">This tool is not yet available.</p>
-        )}
+    <div className={`${maxWidth} mx-auto px-4 sm:px-6`}>
+      <div id="tool-capture-area" className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px] flex flex-col">
+        <ToolHeader tool={tool} onBack={onBack} onReset={() => setResetKey(k => k + 1)} />
+        <div className="mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="h-full bg-background/40 border border-border/30 rounded-2xl p-6 sm:p-8 shadow-inner">
+            {ToolComponent ? (
+              <Suspense fallback={<ToolFallback />}><ToolComponent key={resetKey} /></Suspense>
+            ) : (
+              <div className="flex items-center justify-center h-full min-h-[200px]">
+                <p className="text-muted-foreground text-center">This tool is not yet available.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

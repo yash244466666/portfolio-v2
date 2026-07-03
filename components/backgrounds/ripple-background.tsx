@@ -31,6 +31,7 @@ export default function RippleBackground() {
   const mouseRef = useRef({ x: -1, y: -1 })
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -39,8 +40,10 @@ export default function RippleBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const startTime = performance.now()
 
@@ -134,7 +137,13 @@ export default function RippleBackground() {
       const rect = canvas.getBoundingClientRect()
       addRipple(e.clientX - rect.left, e.clientY - rect.top)
     }
-    const onResize = () => { w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h }
+    let resizeTimeout: NodeJS.Timeout;
+    const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+         w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h 
+      }, 150);
+    }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })
     window.addEventListener("click", onClick)

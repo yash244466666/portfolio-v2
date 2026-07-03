@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -81,18 +82,18 @@ export default function OpenGraphPreview() {
             </div>
             <div className="space-y-2">
               {tags.map((tag, i) => (
-                <div key={i} className="flex items-center gap-2 bg-muted/30 border border-border/50 rounded-lg p-2 text-sm">
+                <ToolResult key={i} className="flex items-center gap-2    p-2 text-sm">
                   <code className="text-primary font-mono text-xs">{tag.property}</code>
                   <span className="text-muted-foreground">=</span>
                   <code className="text-foreground font-mono text-xs flex-1 min-w-0 truncate">{tag.content}</code>
-                </div>
+                </ToolResult>
               ))}
             </div>
           </div>
 
           <div>
             <h3 className="text-sm font-medium text-foreground mb-3">Social Media Preview</h3>
-            <div className="max-w-md mx-auto bg-muted/30 border border-border/50 rounded-xl overflow-hidden">
+            <ToolResult className="max-w-md mx-auto    overflow-hidden">
               {displayImage && (
                 <div className="w-full h-48 bg-muted overflow-hidden">
                   <img
@@ -108,10 +109,10 @@ export default function OpenGraphPreview() {
                 <h4 className="text-foreground font-semibold mb-1 line-clamp-2">{displayTitle}</h4>
                 <p className="text-sm text-muted-foreground line-clamp-2">{displayDescription}</p>
               </div>
-            </div>
+            </ToolResult>
           </div>
 
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <h3 className="text-sm font-medium text-foreground mb-2">Summary</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
@@ -133,7 +134,7 @@ export default function OpenGraphPreview() {
                 </div>
               )}
             </div>
-          </div>
+          </ToolResult>
         </>
       )}
 

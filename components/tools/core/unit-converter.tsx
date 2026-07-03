@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
+import { Select } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import CopyButton from "@/components/tools/shared/copy-button"
 import { unitCategories, unitData, convertUnit, type UnitCategory } from "@/lib/tools/unit-data"
 
 export default function UnitConverter() {
@@ -50,40 +53,55 @@ export default function UnitConverter() {
             type="number"
             value={fromValue}
             onChange={(e) => setFromValue(e.target.value)}
-            className="bg-background/50 font-mono"
+            className="font-mono"
           />
-          <select
+          <Select
             value={fromUnit}
             onChange={(e) => setFromUnit(e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-border bg-background/50 text-foreground text-sm"
           >
             {units.map((u) => (
               <option key={u} value={u}>{u}</option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground block">To</label>
-          <div className="h-9 flex items-center px-3 rounded-md border border-border bg-muted/30 font-mono text-foreground text-lg">
-            {result || "—"}
+          <label className="text-sm font-medium text-foreground block flex justify-between">
+            <span>To</span>
+            <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">Result</span>
+          </label>
+          <div className="relative">
+            <Input
+              type="text"
+              readOnly
+              value={result || "—"}
+              className="font-mono pr-12 bg-muted/20 border-dashed"
+            />
+            {result && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <CopyButton text={result} iconOnly />
+              </div>
+            )}
           </div>
-          <select
+          <Select
             value={toUnit}
             onChange={(e) => setToUnit(e.target.value)}
-            className="w-full h-9 px-3 rounded-md border border-border bg-background/50 text-foreground text-sm"
           >
             {units.map((u) => (
               <option key={u} value={u}>{u}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
       {fromValue && result && (
-        <div className="text-sm text-muted-foreground bg-muted/30 border border-border/50 rounded-lg p-3">
+        <ToolResult 
+          label="Formula" 
+          className="mt-6"
+          copyValue={`${fromValue} ${fromUnit} = ${result} ${toUnit}`}
+        >
           {fromValue} {fromUnit} = {result} {toUnit}
-        </div>
+        </ToolResult>
       )}
     </div>
   )

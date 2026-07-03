@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
+import DOMPurify from "dompurify"
 import CopyButton from "@/components/tools/shared/copy-button"
 
 function minifySvg(svg: string): string {
@@ -97,7 +98,7 @@ export default function SvgOptimizer() {
 
       {input && (
         <div className="border border-border/50 rounded-lg overflow-hidden bg-white p-4 inline-block w-full">
-          <div dangerouslySetInnerHTML={{ __html: minified }} className="[&_svg]:max-w-full [&_svg]:h-auto" />
+          <div dangerouslySetInnerHTML={{ __html: typeof window !== "undefined" ? DOMPurify.sanitize(minified, { USE_PROFILES: { svg: true } }) : minified }} className="[&_svg]:max-w-full [&_svg]:h-auto" />
         </div>
       )}
     </div>

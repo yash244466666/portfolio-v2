@@ -28,6 +28,7 @@ export default function RainBackground() {
   const flashRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -36,8 +37,10 @@ export default function RainBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     // Generate drops
     const drops: RainDrop[] = []
@@ -130,7 +133,13 @@ export default function RainBackground() {
 
     rafRef.current = requestAnimationFrame(draw)
 
-    const onResize = () => { w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h }
+    let resizeTimeout: NodeJS.Timeout;
+    const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+         w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h 
+      }, 150);
+    }
     window.addEventListener("resize", onResize)
 
     return () => {

@@ -17,25 +17,26 @@ export default function ToolsPage() {
       setActiveToolId(hash)
     }
 
-    const handlePopState = () => {
+    const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
       setActiveToolId(hash || null)
     }
 
-    window.addEventListener("popstate", handlePopState)
-    return () => window.removeEventListener("popstate", handlePopState)
+    window.addEventListener("hashchange", handleHashChange)
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange)
+    }
   }, [])
 
   const selectTool = useCallback((id: string) => {
     setActiveToolId(id)
-    window.location.hash = id
+    window.history.replaceState(null, "", `#${id}`)
     window.scrollTo(0, 0)
   }, [])
 
   const goBack = useCallback(() => {
     setActiveToolId(null)
-    window.location.hash = ""
-    history.pushState(null, "", window.location.pathname)
+    window.history.replaceState(null, "", window.location.pathname)
   }, [])
 
   const filteredTools = searchQuery

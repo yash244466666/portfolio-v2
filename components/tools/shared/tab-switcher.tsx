@@ -13,10 +13,12 @@ interface TabSwitcherProps {
 
 export default function TabSwitcher({ tabs, activeTab, onTabChange }: TabSwitcherProps) {
   return (
-    <div className="flex gap-1 p-1 bg-muted/50 rounded-lg border border-border/50">
+    <div className="flex gap-1 p-1 bg-muted/50 rounded-lg border border-border/50" role="tablist">
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          role="tab"
+          aria-selected={activeTab === tab.id}
           onClick={() => onTabChange(tab.id)}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
             activeTab === tab.id

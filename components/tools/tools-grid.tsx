@@ -46,7 +46,7 @@ export default function ToolsGrid({
 
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
           <Input
             type="text"
             placeholder={searchPlaceholder}
@@ -58,6 +58,7 @@ export default function ToolsGrid({
         <div className="flex gap-2 flex-wrap justify-center">
           <button
             onClick={() => setActiveCategory(null)}
+            aria-pressed={activeCategory === null}
             className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
               activeCategory === null
                 ? "bg-primary text-primary-foreground"
@@ -70,6 +71,7 @@ export default function ToolsGrid({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
+              aria-pressed={activeCategory === cat.id}
               className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                 activeCategory === cat.id
                   ? "bg-primary text-primary-foreground"
@@ -101,20 +103,27 @@ export default function ToolsGrid({
       ) : (
         <div>
           {searchQuery ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTools.map((tool, index) => (
-                <ToolCard
-                  key={tool.id}
-                  tool={tool}
-                  onSelect={onSelectTool}
-                  animationDelay={index * 100}
-                />
-              ))}
-              {filteredTools.length === 0 && (
-                <p className="col-span-full text-center text-muted-foreground py-12">
-                  No tools found matching &quot;{searchQuery}&quot;
+            <div>
+              {activeCategory && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  Searching in {categories.find((c) => c.id === activeCategory)?.label} — <button onClick={() => setActiveCategory(null)} className="text-primary hover:underline">search all tools</button>
                 </p>
               )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTools.map((tool, index) => (
+                  <ToolCard
+                    key={tool.id}
+                    tool={tool}
+                    onSelect={onSelectTool}
+                    animationDelay={index * 100}
+                  />
+                ))}
+                {filteredTools.length === 0 && (
+                  <p className="col-span-full text-center text-muted-foreground py-12">
+                    No tools found matching &quot;{searchQuery}&quot;{activeCategory ? ` in ${categories.find((c) => c.id === activeCategory)?.label}` : ""}
+                  </p>
+                )}
+              </div>
             </div>
           ) : (
             categories.map((cat) => {

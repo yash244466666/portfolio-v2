@@ -14,6 +14,7 @@ export default function HexagonGridBackground() {
   const rafRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -22,8 +23,10 @@ export default function HexagonGridBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const SIZE = 30 // hex radius
     const GAP = 4
@@ -130,10 +133,17 @@ export default function HexagonGridBackground() {
       const rect = canvas.getBoundingClientRect()
       pulses.push({ cx: e.clientX - rect.left, cy: e.clientY - rect.top, time: performance.now() })
     }
+    let resizeTimeout: NodeJS.Timeout;
     const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        
       w = container.offsetWidth; h = container.offsetHeight
-      canvas.width = w; canvas.height = h
+      canvas.width = w * dpr; canvas.height = h * dpr
+      ctx.scale(dpr, dpr)
       hexes = buildGrid()
+    
+      }, 150);
     }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })

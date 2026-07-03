@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 
 export default function RegexTester() {
@@ -100,9 +101,9 @@ export default function RegexTester() {
 
       <div>
         <label className="text-sm font-medium text-foreground block mb-2">Highlighted Matches</label>
-        <div className="min-h-[100px] p-4 rounded-lg border border-border bg-muted/30 font-mono text-sm whitespace-pre-wrap break-all">
+        <ToolResult className="min-h-[100px]     font-mono text-sm whitespace-pre-wrap break-all">
           {renderHighlighted()}
-        </div>
+        </ToolResult>
       </div>
 
       <div>
@@ -112,7 +113,7 @@ export default function RegexTester() {
         {result.matches.length > 0 ? (
           <div className="space-y-2">
             {result.matches.map((m, i) => (
-              <div key={i} className="bg-muted/30 border border-border/50 rounded-lg p-3 text-sm">
+              <ToolResult key={i} className="    text-sm">
                 <span className="text-muted-foreground">#{i + 1} at index {m.index}:</span>{" "}
                 <span className="text-emerald-400 font-mono">{m.match}</span>
                 {m.groups.length > 0 && (
@@ -120,7 +121,7 @@ export default function RegexTester() {
                     Groups: {m.groups.map((g, gi) => <span key={gi} className="text-amber-400 font-mono mr-2">${gi + 1}: {g || "undefined"}</span>)}
                   </div>
                 )}
-              </div>
+              </ToolResult>
             ))}
           </div>
         ) : (

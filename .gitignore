@@ -9,6 +9,8 @@
 
 /tmp
 
+test-results
+
 # production
 /build
 
@@ -19,7 +21,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env*
+
 
 # vercel
 .vercel
@@ -27,3 +29,5 @@ yarn-error.log*
 # typescript
 # *.tsbuildinfo
 # next-env.d.ts
+
+mcp_server_browser_use.log

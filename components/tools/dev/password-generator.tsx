@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
 import StrengthMeter from "@/components/tools/shared/strength-meter"
@@ -45,7 +46,7 @@ export default function PasswordGenerator() {
   return (
     <div className="space-y-6">
       {password && (
-        <div className="bg-muted/30 border border-border/50 rounded-lg p-4 relative">
+        <ToolResult className="    relative">
           <p className="font-mono text-lg text-foreground break-all pr-20">{password}</p>
           <div className="absolute top-3 right-3 flex gap-2">
             <CopyButton text={password} />
@@ -53,7 +54,7 @@ export default function PasswordGenerator() {
           <div className="mt-3">
             <StrengthMeter score={strength} />
           </div>
-        </div>
+        </ToolResult>
       )}
 
       <div className="space-y-4">

@@ -31,6 +31,7 @@ export default function VortexBackground() {
   const boostRef = useRef(1)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -39,8 +40,10 @@ export default function VortexBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
 
     const particles: VortexParticle[] = []
     for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -123,7 +126,13 @@ export default function VortexBackground() {
       mouseRef.current.y = e.clientY / window.innerHeight
     }
     const onClick = () => { boostRef.current = 3 }
-    const onResize = () => { w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h }
+    let resizeTimeout: NodeJS.Timeout;
+    const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+         w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h 
+      }, 150);
+    }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })
     window.addEventListener("click", onClick)

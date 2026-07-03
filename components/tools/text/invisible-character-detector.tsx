@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Button } from "@/components/ui/button"
 import CopyButton from "@/components/tools/shared/copy-button"
 
@@ -96,7 +97,7 @@ export default function InvisibleCharacterDetector() {
           </div>
 
           {detection.chars.length > 0 && (
-            <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+            <ToolResult >
               <h3 className="text-sm font-medium text-foreground mb-3">
                 Detected Invisible Characters
               </h3>
@@ -118,7 +119,7 @@ export default function InvisibleCharacterDetector() {
                   </div>
                 ))}
               </div>
-            </div>
+            </ToolResult>
           )}
 
           {detection.chars.length > 0 && (

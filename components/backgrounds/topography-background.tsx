@@ -22,6 +22,7 @@ export default function TopographyBackground() {
   const fadeRef = useRef(0)
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -30,8 +31,10 @@ export default function TopographyBackground() {
 
     let w = container.offsetWidth
     let h = container.offsetHeight
-    canvas.width = w
-    canvas.height = h
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    ctx.scale(dpr, dpr)
     const startTime = performance.now()
 
     // Simple noise function
@@ -52,23 +55,32 @@ export default function TopographyBackground() {
       const mx = mouseRef.current.x
       const my = mouseRef.current.y
 
+      // Pre-calculate noise for the grid to avoid O(n * w * h) trig calls
+      const step = 12
+      const gridX = Math.ceil(w / step) + 1
+      const gridY = Math.ceil(h / step) + 1
+      const noiseGrid = new Float32Array(gridX * gridY)
+      
+      for (let x = 0, i = 0; x <= w; x += step, i++) {
+        for (let y = 0, j = 0; y <= h; y += step, j++) {
+          const dx = x - mx
+          const dy = y - my
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const warp = dist < MOUSE_RADIUS ? (1 - dist / MOUSE_RADIUS) * 0.6 : 0
+          noiseGrid[i * gridY + j] = noise(x, y, elapsed) + warp
+        }
+      }
+
       for (let i = 0; i < LINE_COUNT; i++) {
         const threshold = -1.5 + (i / LINE_COUNT) * 3
         const points: { x: number; y: number }[] = []
-        const step = 6
 
-        // March through grid to find contour
-        for (let x = 0; x < w; x += step) {
-          for (let y = 0; y < h; y += step) {
-            // Mouse warp
-            const dx = x - mx
-            const dy = y - my
-            const dist = Math.sqrt(dx * dx + dy * dy)
-            const warp = dist < MOUSE_RADIUS ? (1 - dist / MOUSE_RADIUS) * 0.6 : 0
-
-            const val = noise(x, y, elapsed) + warp
-            const valR = noise(x + step, y, elapsed)
-            const valB = noise(x, y + step, elapsed)
+        // March through pre-calculated grid
+        for (let x = 0, gi = 0; x < w; x += step, gi++) {
+          for (let y = 0, gj = 0; y < h; y += step, gj++) {
+            const val = noiseGrid[gi * gridY + gj]
+            const valR = noiseGrid[(gi + 1) * gridY + gj]
+            const valB = noiseGrid[gi * gridY + (gj + 1)]
 
             // Simple contour detection
             if ((val - threshold) * (valR - threshold) < 0 || (val - threshold) * (valB - threshold) < 0) {
@@ -113,7 +125,13 @@ export default function TopographyBackground() {
       mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
     }
     const onMouseLeave = () => { mouseRef.current = { x: -9999, y: -9999 } }
-    const onResize = () => { w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h }
+    let resizeTimeout: NodeJS.Timeout;
+    const onResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+         w = container.offsetWidth; h = container.offsetHeight; canvas.width = w; canvas.height = h 
+      }, 150);
+    }
 
     window.addEventListener("mousemove", onMouseMove, { passive: true })
     window.addEventListener("mouseleave", onMouseLeave)

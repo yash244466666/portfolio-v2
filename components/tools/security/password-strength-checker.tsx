@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import StrengthMeter from "@/components/tools/shared/strength-meter"
 import { Check, X, Shield } from "lucide-react"
@@ -124,7 +125,7 @@ export default function PasswordStrengthChecker() {
           />
 
           {/* Crack time estimate */}
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+          <ToolResult >
             <div className="flex items-center gap-2 mb-3">
               <Shield className="h-5 w-5 text-primary" />
               <span className="text-sm font-medium text-foreground">Crack Time Estimate</span>
@@ -157,10 +158,10 @@ export default function PasswordStrengthChecker() {
               <span className="text-sm text-muted-foreground">Length</span>
               <span className="text-sm font-mono text-foreground">{analysis.length}</span>
             </div>
-          </div>
+          </ToolResult>
 
           {/* Checklist */}
-          <div className="bg-muted/30 border border-border/50 rounded-lg p-4 space-y-2">
+          <ToolResult className="    space-y-2">
             <span className="text-sm font-medium text-foreground block mb-3">Requirements</span>
             {checks.map(({ label, pass }) => (
               <div key={label} className="flex items-center gap-2">
@@ -178,7 +179,7 @@ export default function PasswordStrengthChecker() {
                 </span>
               </div>
             ))}
-          </div>
+          </ToolResult>
         </>
       )}
     </div>
