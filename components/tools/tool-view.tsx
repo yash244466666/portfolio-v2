@@ -219,11 +219,11 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
 
   if (!tool) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-8 sm:p-12 shadow-2xl min-h-[600px] flex flex-col items-center justify-center text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
-          <p className="text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
-          <button onClick={onBack} className="text-primary hover:underline">{backLabel}</button>
+      <div className="tool-view tool-view--not-found-wrapper max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="tool-view__not-found bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-8 sm:p-12 shadow-2xl min-h-[600px] flex flex-col items-center justify-center text-center">
+          <h2 className="tool-view__not-found-title text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
+          <p className="tool-view__not-found-description text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
+          <button onClick={onBack} className="tool-view__not-found-back text-primary hover:underline">{backLabel}</button>
         </div>
       </div>
     )
@@ -233,16 +233,16 @@ export default function ToolView({ toolId, onBack, backLabel }: ToolViewProps) {
   const maxWidth = tool.wide ? "max-w-7xl" : "max-w-4xl"
 
   return (
-    <div className={`${maxWidth} mx-auto px-4 sm:px-6`}>
-      <div id="tool-capture-area" className="bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px] flex flex-col">
+    <div className={`tool-view tool-view--root ${maxWidth} mx-auto px-4 sm:px-6`}>
+      <div id="tool-capture-area" className="tool-view__card bg-background/70 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-10 shadow-2xl min-h-[600px] flex flex-col">
         <ToolHeader tool={tool} onBack={onBack} onReset={() => setResetKey(k => k + 1)} />
-        <div className="mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-          <div className="h-full bg-background/40 border border-border/30 rounded-2xl p-6 sm:p-8 shadow-inner">
+        <div className="tool-view__body mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="tool-view__body-inner h-full bg-background/40 border border-border/30 rounded-2xl p-6 sm:p-8 shadow-inner">
             {ToolComponent ? (
               <Suspense fallback={<ToolFallback />}><ToolComponent key={resetKey} /></Suspense>
             ) : (
-              <div className="flex items-center justify-center h-full min-h-[200px]">
-                <p className="text-muted-foreground text-center">This tool is not yet available.</p>
+              <div className="tool-view__unavailable flex items-center justify-center h-full min-h-[200px]">
+                <p className="tool-view__unavailable-message text-muted-foreground text-center">This tool is not yet available.</p>
               </div>
             )}
           </div>

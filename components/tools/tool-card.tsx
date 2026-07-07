@@ -38,7 +38,7 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
       role="button"
       tabIndex={0}
       aria-label={`Open ${tool.label} tool`}
-      className="tool-card group relative cursor-pointer overflow-hidden p-5 h-full flex flex-col gap-4
+      className="tool-card tool-card--root group relative cursor-pointer overflow-hidden p-5 h-full flex flex-col gap-4
         bg-muted/70 backdrop-blur-md border border-white/[0.08]
         transition-all duration-200 ease-out
         hover:-translate-y-1 hover:border-primary/30 hover:bg-muted/90
@@ -54,32 +54,32 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
       }}
     >
       {/** Subtle top-edge sheen for depth. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200" />
+      <div className="tool-card__sheen pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200" />
 
-      <div className="flex items-start justify-between gap-3">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary/30 transition-all duration-200">
+      <div className="tool-card__top flex items-start justify-between gap-3">
+        <div className="tool-card__icon-tile p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary/30 transition-all duration-200">
           <IconComponent className="h-6 w-6" aria-hidden="true" />
         </div>
         <span
-          className={`text-xs px-2.5 py-1 rounded-full border font-medium backdrop-blur-sm whitespace-nowrap ${categoryAccent[tool.category] || categoryAccent.dev}`}
+          className={`tool-card__category-badge text-xs px-2.5 py-1 rounded-full border font-medium backdrop-blur-sm whitespace-nowrap ${categoryAccent[tool.category] || categoryAccent.dev}`}
         >
           {categoryLabel}
         </span>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors duration-200 leading-tight">
+      <div className="tool-card__body flex-1 flex flex-col">
+        <h3 className="tool-card__title text-lg font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors duration-200 leading-tight">
           {tool.label}
         </h3>
-        <p className="text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed">
+        <p className="tool-card__description text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed">
           {tool.description}
         </p>
       </div>
 
-      <div className="flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06] group-hover:border-primary/20 transition-colors">
-        <span>Open tool</span>
+      <div className="tool-card__footer flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06] group-hover:border-primary/20 transition-colors">
+        <span className="tool-card__footer-label">Open tool</span>
         <ArrowRight
-          className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200"
+          className="tool-card__footer-arrow h-4 w-4 group-hover:translate-x-1 transition-transform duration-200"
           aria-hidden="true"
         />
       </div>

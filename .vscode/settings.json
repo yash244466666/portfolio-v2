@@ -1,5 +1,25 @@
 {
   "chat.agent.enabled": true,
   "github.copilot.chat.agent.thinkingTool": true,
-  "chat.agent.maxTurns": 30
+  "chat.agent.maxTurns": 30,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#9d51bb",
+    "activityBar.background": "#9d51bb",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#c0a55f",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#9d51bb",
+    "statusBar.background": "#813d9c",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#9d51bb",
+    "statusBarItem.remoteBackground": "#813d9c",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#813d9c",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#813d9c99",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#813d9c"
 }
