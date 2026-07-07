@@ -1,6 +1,5 @@
 "use client"
 
-import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import type { ToolDefinition } from "@/lib/content/tools/types"
 import { Card } from "@/components/ui/card"
 import { ArrowRight, Braces } from "lucide-react"
@@ -10,20 +9,25 @@ import { getToolCategories } from "@/lib/content/tools/utils"
 interface ToolCardProps {
   tool: ToolDefinition
   onSelect: (id: string) => void
-  animationDelay?: number
 }
 
-export default function ToolCard({ tool, onSelect, animationDelay = 0 }: ToolCardProps) {
-  const { sectionRef, isVisible } = useSectionVisibility({ once: true, threshold: 0.1 })
+/**
+ * Premium glassmorphism tool card.
+ *
+ * Reveal and scroll-driven motion are handled by the surrounding container, so
+ * this component stays fully visible and relies on a stable `.tool-card` class
+ * for any external animation targets.
+ */
+export default function ToolCard({ tool, onSelect }: ToolCardProps) {
   const IconComponent = iconMap[tool.icon] || Braces
 
-  const categoryColors: Record<string, string> = {
-    core: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    dev: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    text: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    media: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    security: "bg-red-500/10 text-red-400 border-red-500/20",
-    math: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  const categoryAccent: Record<string, string> = {
+    core: "text-blue-300 border-blue-400/30 bg-blue-400/10",
+    dev: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10",
+    text: "text-amber-300 border-amber-400/30 bg-amber-400/10",
+    media: "text-purple-300 border-purple-400/30 bg-purple-400/10",
+    security: "text-red-300 border-red-400/30 bg-red-400/10",
+    math: "text-cyan-300 border-cyan-400/30 bg-cyan-400/10",
   }
 
   const categories = getToolCategories()
@@ -31,12 +35,16 @@ export default function ToolCard({ tool, onSelect, animationDelay = 0 }: ToolCar
 
   return (
     <Card
-      ref={sectionRef as React.Ref<HTMLDivElement>}
       role="button"
       tabIndex={0}
       aria-label={`Open ${tool.label} tool`}
-      className={`group cursor-pointer p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 backdrop-blur-sm bg-background/80 border-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-      style={{ animationDelay: `${animationDelay}ms` }}
+      className="tool-card group relative cursor-pointer overflow-hidden p-5 h-full flex flex-col gap-4
+        bg-muted/70 backdrop-blur-md border border-white/[0.08]
+        transition-all duration-200 ease-out
+        hover:-translate-y-1 hover:border-primary/30 hover:bg-muted/90
+        hover:shadow-[0_12px_40px_-12px_rgba(124,58,237,0.25)]
+        active:scale-[0.98] active:duration-75
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       onClick={() => onSelect(tool.id)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -45,22 +53,35 @@ export default function ToolCard({ tool, onSelect, animationDelay = 0 }: ToolCar
         }
       }}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
-          <IconComponent className="h-5 w-5" />
+      {/** Subtle top-edge sheen for depth. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200" />
+
+      <div className="flex items-start justify-between gap-3">
+        <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary/30 transition-all duration-200">
+          <IconComponent className="h-6 w-6" aria-hidden="true" />
         </div>
-        <span className={`text-xs px-2 py-0.5 rounded-full border ${categoryColors[tool.category] || categoryColors.dev}`}>
+        <span
+          className={`text-xs px-2.5 py-1 rounded-full border font-medium backdrop-blur-sm whitespace-nowrap ${categoryAccent[tool.category] || categoryAccent.dev}`}
+        >
           {categoryLabel}
         </span>
       </div>
-      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-        {tool.label}
-      </h3>
-      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-        {tool.description}
-      </p>
-      <div className="flex items-center text-sm text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-        Open tool <ArrowRight className="ml-1 h-3.5 w-3.5" />
+
+      <div className="flex-1 flex flex-col">
+        <h3 className="text-lg font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors duration-200 leading-tight">
+          {tool.label}
+        </h3>
+        <p className="text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed">
+          {tool.description}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06] group-hover:border-primary/20 transition-colors">
+        <span>Open tool</span>
+        <ArrowRight
+          className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200"
+          aria-hidden="true"
+        />
       </div>
     </Card>
   )

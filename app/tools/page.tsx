@@ -25,8 +25,14 @@ export default function Tools() {
     <main className="min-h-screen bg-gray-950 relative">
       <AnimatedBackground />
       <div className="relative z-10 flex flex-col min-h-screen">
+        <a
+          href="#tools-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          Skip to tools content
+        </a>
         <Navigation />
-        <div className="pt-24 pb-16 flex-grow">
+        <div id="tools-content" className="pt-20 sm:pt-24 pb-16 flex-grow">
           <ToolsPage />
         </div>
         <Footer />

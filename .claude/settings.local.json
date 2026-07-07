@@ -1,7 +1,25 @@
 {
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(mkdir -p ~/.claude/skills)",
+      "Bash(curl -sL https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/SKILL.md -o /tmp/anthropics-frontend-design-skill.md)",
+      "Bash(curl -sL https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/LICENSE.txt -o /tmp/anthropics-frontend-design-license.txt)",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p ~/.claude/skills/frontend-design)",
+      "Bash(cp /tmp/anthropics-frontend-design-skill.md ~/.claude/skills/frontend-design/SKILL.md)",
+      "Bash(cp /tmp/anthropics-frontend-design-license.txt ~/.claude/skills/frontend-design/LICENSE.txt)",
+      "Read(//home/yash/ollama-account2/.claude/skills/**)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/ui-ux-pro-max ~/.claude/skills/)",
+      "Bash(mkdir -p ~/.claude/skills/ui-styling)",
+      "Bash(cp -r /tmp/ui-ux-pro-max-skill/.claude/skills/ui-styling/SKILL.md /tmp/ui-ux-pro-max-skill/.claude/skills/ui-styling/scripts /tmp/ui-ux-pro-max-skill/.claude/skills/ui-styling/references ~/.claude/skills/ui-styling/)",
+      "Bash(cp -r /tmp/animejs-skills ~/.claude/skills/animejs)",
+      "Bash(rm -rf ~/.claude/skills/animejs/.git ~/.claude/skills/animejs/install.sh)",
+      "Bash(cp -r /tmp/awwwards-animations-skill ~/.claude/skills/awwwards-animations)",
+      "Bash(rm -rf ~/.claude/skills/awwwards-animations/.git)"
+    ],
     "deny": []
   },
-  "enabledMcpjsonServers": ["browser-use-ollama"]
+  "enabledMcpjsonServers": [
+    "browser-use-ollama"
+  ]
 }

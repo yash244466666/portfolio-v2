@@ -59,8 +59,6 @@ export default function ToolsPage() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       searchPlaceholder={content.searchPlaceholder}
-      heading={content.heading}
-      description={content.description}
       onSelectTool={selectTool}
     />
   )
