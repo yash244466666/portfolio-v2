@@ -75,7 +75,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
   navOffsetRef.current = navOffset
   const onActiveCategoryChangeRef = useRef(onActiveCategoryChange)
   onActiveCategoryChangeRef.current = onActiveCategoryChange
-
+  const sectionDefinitionsRef = useRef<typeof sectionDefinitions>([])
   useEffect(() => {
     const check = () => {
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -193,8 +193,51 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
   }, [motionSafe])
 
   useEffect(() => {
+    if (motionSafe) return
+
+    // Mobile / reduced-motion fallback: the pinned filmstrip is disabled, so
+    // the pin-detection scroll handler does not run. Use an IntersectionObserver
+    // to detect which section's title is currently in view and surface it as
+    // the active category for the toolbar chip.
+    const sections = sectionEls.current.filter((el): el is HTMLElement => Boolean(el))
+    if (sections.length === 0) return
+
+    const visibility = new Map<HTMLElement, number>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          visibility.set(entry.target as HTMLElement, entry.intersectionRatio)
+        }
+        let bestEl: HTMLElement | null = null
+        let bestRatio = 0
+        visibility.forEach((ratio, el) => {
+          if (ratio > bestRatio) {
+            bestRatio = ratio
+            bestEl = el
+          }
+        })
+        if (!bestEl) return
+        const idx = sectionEls.current.indexOf(bestEl)
+        if (idx >= 0 && idx !== activeSectionIndexRef.current) {
+          setActiveSectionIndex(idx)
+        }
+      },
+      {
+        // Account for the sticky nav + toolbar at the top, plus a small lead so
+        // the chip flips right as the title clears the toolbar instead of after
+        // the user scrolls past it.
+        rootMargin: "-20% 0px -55% 0px",
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+      }
+    )
+
+    sections.forEach((s) => observer.observe(s))
+    return () => observer.disconnect()
+  }, [motionSafe])
+
+  useEffect(() => {
     if (!onActiveCategoryChangeRef.current) return
-    const section = sectionDefinitions[activeSectionIndex]
+    const section = sectionDefinitionsRef.current[activeSectionIndex]
     onActiveCategoryChangeRef.current(section?.categoryId ?? null)
   }, [activeSectionIndex])
 
@@ -240,6 +283,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
       }),
     [categories]
   )
+  sectionDefinitionsRef.current = sectionDefinitions
 
   useImperativeHandle(
     ref,
@@ -285,13 +329,13 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
             aria-labelledby={`section-title-${section.id}`}
           >
             <div
-              className="tools-section__panel sticky top-[var(--toolbar-offset,8.5rem)] z-40 overflow-visible flex flex-col pt-12 motion-reduce:!static motion-reduce:!h-auto motion-reduce:!overflow-visible motion-reduce:!pt-0 motion-reduce:!opacity-100 motion-reduce:!z-auto max-md:!static max-md:!h-auto max-md:!overflow-visible max-md:!pt-0 max-md:!opacity-100 max-md:!z-auto"
+              className="tools-section__panel sticky top-[var(--toolbar-offset,8.5rem)] z-40 overflow-visible flex flex-col pt-6 sm:pt-12 motion-reduce:!static motion-reduce:!h-auto motion-reduce:!overflow-visible motion-reduce:!pt-0 motion-reduce:!opacity-100 motion-reduce:!z-auto max-md:!static max-md:!h-auto max-md:!overflow-visible max-md:!pt-0 max-md:!opacity-100 max-md:!z-auto"
               style={{
                 opacity: "calc(1 - var(--section-release-progress, 0))",
                 pointerEvents: "var(--section-pointer-events, auto)" as React.CSSProperties["pointerEvents"],
               }}
             >
-              <header className="tools-section__header shrink-0 px-4 sm:px-6 pt-4 pb-8">
+              <header className="tools-section__header shrink-0 px-4 sm:px-6 pt-2 sm:pt-4 pb-4 sm:pb-8">
                 <div className="tools-section__title-row flex items-baseline justify-between gap-4">
                   <div className="tools-section__title-group flex items-baseline gap-3 min-w-0">
                     <h2
@@ -305,7 +349,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
                     </span>
                   </div>
                   {section.totalChunks > 1 && (
-                    <span className="tools-section__chunk-badge text-sm text-muted-foreground tabular-nums">
+                    <span className="tools-section__chunk-badge text-sm text-muted-foreground tabular-nums hidden sm:inline">
                       {String(section.chunkIndex + 1).padStart(2, "0")}/{String(section.totalChunks).padStart(2, "0")}
                     </span>
                   )}
@@ -356,7 +400,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
                   {section.tools.map((tool: ToolDefinition) => (
                     <div
                       key={tool.id}
-                      className="tools-section__card-slot flex-none w-[300px] sm:w-[340px] lg:w-[380px] h-[280px] sm:h-[320px] lg:h-[340px] overflow-visible motion-reduce:w-full motion-reduce:h-auto motion-reduce:overflow-visible max-md:w-full max-md:h-auto max-md:overflow-visible"
+                      className="tools-section__card-slot flex-none w-[300px] sm:w-[340px] lg:w-[380px] h-[280px] sm:h-[320px] lg:h-[340px] overflow-visible motion-reduce:w-full motion-reduce:h-auto motion-reduce:overflow-visible max-md:w-full max-md:min-h-[180px] max-md:h-auto max-md:overflow-visible"
                     >
                       <ToolCard tool={tool} onSelect={onSelect} />
                     </div>

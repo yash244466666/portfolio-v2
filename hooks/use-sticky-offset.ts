@@ -18,8 +18,13 @@ export function useStickyOffset(): { navHeight: number; toolbarOffset: number } 
     const write = () => {
       const nav = document.querySelector("[data-nav-root]") as HTMLElement | null
       const toolbar = document.querySelector("[data-tools-toolbar]") as HTMLElement | null
+      // Fallback estimates: nav is ~68px; toolbar is ~65px on desktop (single
+      // row) and ~150px on mobile (search row + chips row). 150 covers the
+      // 2-row mobile layout until the ResizeObserver fires with the real value.
+      const narrow = window.matchMedia("(max-width: 639px)").matches
+      const fallbackToolbar = narrow ? 150 : 65
       const navHeight = nav?.offsetHeight ?? 68
-      const toolbarHeight = toolbar?.offsetHeight ?? 65
+      const toolbarHeight = toolbar?.offsetHeight ?? fallbackToolbar
       const toolbarOffset = Math.round(navHeight + toolbarHeight)
       document.documentElement.style.setProperty("--nav-height", `${navHeight}px`)
       document.documentElement.style.setProperty("--toolbar-offset", `${toolbarOffset}px`)

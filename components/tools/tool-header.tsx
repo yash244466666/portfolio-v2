@@ -118,13 +118,13 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
 
           {/* Title and Description */}
           <div className="tool-header__meta">
-            <div className="tool-header__title-row flex flex-wrap items-center gap-3 mb-2">
+            <div className="tool-header__title-row flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
               <div className="tool-header__icon-mobile relative group shrink-0 sm:hidden">
                 <div className="relative p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary">
                   <IconComponent className="h-5 w-5" />
                 </div>
               </div>
-              <h1 className="tool-header__title text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              <h1 className="tool-header__title text-2xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 min-w-0">
                 {tool.label}
               </h1>
               <span className="tool-header__category-badge px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider hidden sm:inline-block">
@@ -151,11 +151,11 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
         </div>
 
         {/* Action Buttons */}
-        <div className="tool-header__actions flex items-center gap-2">
+        <div className="tool-header__actions flex items-center gap-2 self-end sm:self-auto">
           {onReset && (
             <button
               onClick={onReset}
-              className="tool-header__reset shrink-0 flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
+              className="tool-header__reset shrink-0 flex items-center justify-center gap-2 h-10 w-10 sm:w-auto sm:px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
               aria-label="Reset tool state"
             >
               <RotateCcw className="h-4 w-4" />
@@ -166,23 +166,23 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
           <button
             onClick={captureScreenshot}
             disabled={isCapturing}
-            className="tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            className="tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-3 sm:px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             aria-label="Take screenshot"
           >
           {isCapturing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              <span>Capturing...</span>
+              <span className="hidden sm:inline">Capturing...</span>
             </>
           ) : isSuccess ? (
             <>
               <Check className="h-4 w-4 text-green-500" />
-              <span className="text-green-500">Saved!</span>
+              <span className="hidden sm:inline text-green-500">Saved!</span>
             </>
           ) : (
             <>
               <Camera className="h-4 w-4 text-muted-foreground" />
-              <span>Capture</span>
+              <span className="hidden sm:inline">Capture</span>
             </>
             )}
           </button>

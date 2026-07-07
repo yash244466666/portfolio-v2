@@ -74,11 +74,11 @@ export default function ToolsToolbar({
   return (
     <div
       data-tools-toolbar
-      className="tools-toolbar tools-toolbar--root sticky top-[var(--nav-height,4.25rem)] z-50"
+      className="tools-toolbar tools-toolbar--root sticky top-[var(--nav-height,4.25rem)] z-50 max-sm:bg-background/85 max-sm:backdrop-blur-md max-sm:border-b max-sm:border-border/40 max-sm:shadow-[0_1px_0_0_rgba(255,255,255,0.04)]"
     >
-      <div className="tools-toolbar__inner max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-center gap-3">
+      <div className="tools-toolbar__inner max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-2 sm:gap-3">
         {/* Search — single native input, single clear button. */}
-        <div className="tools-toolbar__search relative shrink-0 w-44 sm:w-60">
+        <div className="tools-toolbar__search relative w-full sm:shrink-0 sm:w-60">
           <label htmlFor="tools-toolbar-search" className="sr-only">
             {searchPlaceholder}
           </label>
@@ -227,7 +227,7 @@ export default function ToolsToolbar({
         </div>
 
         {/* Category chips — centered, always visible, wrap on very small screens. */}
-        <div className="tools-toolbar__chips flex flex-wrap items-center justify-center gap-2 min-w-0">
+        <div className="tools-toolbar__chips flex flex-nowrap sm:flex-wrap items-center justify-start sm:justify-center gap-2 min-w-0 -mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
           {categories.map((cat) => {
             const isActive = activeCategoryId === cat.id
             const hasMatches = matchedCategoryIds === null || matchedCategoryIds.has(cat.id)
@@ -240,7 +240,7 @@ export default function ToolsToolbar({
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
                 aria-disabled={!hasMatches}
-                className={`tools-toolbar__chip min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 ${
+                className={`tools-toolbar__chip snap-start min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 ${
                   isActive
                     ? "is-active bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-4px_rgba(124,58,237,0.45)]"
                     : hasMatches

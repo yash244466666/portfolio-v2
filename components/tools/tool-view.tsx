@@ -79,7 +79,7 @@ export default function ToolView({ toolId, onBack, onHomeClick, onCategoryClick,
 
   return (
     <div className="tool-view tool-view--root min-h-screen w-full relative">
-      <div id="tool-capture-area" className={`tool-view__content ${maxWidth} mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-16 flex flex-col min-h-screen relative`}>
+      <div id="tool-capture-area" className={`tool-view__content ${maxWidth} mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 pb-12 sm:pb-16 flex flex-col min-h-screen relative`}>
         <ToolHeader
           tool={tool}
           onBack={onBack}
@@ -87,8 +87,8 @@ export default function ToolView({ toolId, onBack, onHomeClick, onCategoryClick,
           onCategoryClick={onCategoryClick}
           onReset={() => setResetKey(k => k + 1)}
         />
-        <div className="tool-view__body mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-          <div className="tool-view__body-inner h-full bg-background/70 backdrop-blur-xl border border-border/40 rounded-2xl p-6 sm:p-8 shadow-2xl">
+        <div className="tool-view__body mt-6 sm:mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <div className="tool-view__body-inner h-full bg-background/70 backdrop-blur-xl border border-border/40 rounded-2xl p-4 sm:p-8 shadow-2xl">
             {ToolComponent ? (
               <Suspense fallback={<ToolFallback />}><ToolComponent key={resetKey} /></Suspense>
             ) : (

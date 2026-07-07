@@ -38,11 +38,12 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
       href={`#${tool.id}`}
       data-tool-card={tool.id}
       aria-label={`Open ${tool.label} tool`}
-      className="tool-card tool-card--root group relative cursor-pointer overflow-hidden p-5 h-full flex flex-col gap-4 rounded-xl
+      className="tool-card tool-card--root group relative cursor-pointer overflow-hidden p-4 sm:p-5 h-full flex flex-col gap-3 sm:gap-4 rounded-xl
         bg-muted/70 backdrop-blur-md border border-white/[0.08]
         transition-all duration-200 ease-out
         hover:-translate-y-1
         active:scale-[0.98] active:duration-75
+        touch-manipulation
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       onClick={(e) => {
         if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
@@ -61,11 +62,11 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
         </span>
       </div>
 
-      <div className="tool-card__body flex-1 flex flex-col">
-        <h3 className="tool-card__title text-lg font-semibold text-foreground mb-1.5 leading-tight">
+      <div className="tool-card__body flex-1 flex flex-col min-h-0">
+        <h3 className="tool-card__title text-base sm:text-lg font-semibold text-foreground mb-1.5 leading-tight">
           {tool.label}
         </h3>
-        <p className="tool-card__description text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed">
+        <p className="tool-card__description text-sm text-muted-foreground/90 line-clamp-2 sm:line-clamp-3 leading-relaxed">
           {tool.description}
         </p>
       </div>

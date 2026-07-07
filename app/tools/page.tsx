@@ -17,6 +17,31 @@ const AnimatedBackground = dynamic(() => import("@/components/backgrounds"), {
 })
 
 export default function Tools() {
+  // Keep --toolbar-offset in sync with the actual rendered nav + toolbar height
+  // on every viewport. The ToolsSections hook only writes this on desktop (it
+  // short-circuits below 768px), so on mobile we measure the toolbar directly
+  // and ensure the page never renders content under the sticky header.
+  useEffect(() => {
+    const write = () => {
+      const nav = document.querySelector("[data-nav-root]") as HTMLElement | null
+      const toolbar = document.querySelector("[data-tools-toolbar]") as HTMLElement | null
+      if (!nav || !toolbar) return
+      const total = nav.offsetHeight + toolbar.offsetHeight
+      document.documentElement.style.setProperty("--toolbar-offset", `${total}px`)
+    }
+    write()
+    const ro = new ResizeObserver(write)
+    const nav = document.querySelector("[data-nav-root]")
+    const toolbar = document.querySelector("[data-tools-toolbar]")
+    if (nav) ro.observe(nav)
+    if (toolbar) ro.observe(toolbar)
+    window.addEventListener("resize", write)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", write)
+    }
+  }, [])
+
   return (
     <main className="min-h-screen bg-gray-950 relative">
       <AnimatedBackground />
@@ -28,7 +53,7 @@ export default function Tools() {
           Skip to tools content
         </a>
         <Navigation />
-        <div id="tools-content" className="pt-20 sm:pt-24 pb-16 flex-grow">
+        <div id="tools-content" className="tools-page-content pt-[calc(var(--nav-height,4.25rem)+0.5rem)] sm:pt-[calc(var(--toolbar-offset,8.5rem)+1rem)] pb-16 flex-grow">
           <ToolsPage />
         </div>
         <Footer />

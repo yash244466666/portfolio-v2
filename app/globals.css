@@ -118,7 +118,12 @@
     @apply border-border outline-ring/50;
   }
   html {
-    scroll-padding-top: 6rem;
+    scroll-padding-top: 12rem;
+  }
+  @media (min-width: 640px) {
+    html {
+      scroll-padding-top: 9rem;
+    }
   }
   body {
     @apply bg-background text-foreground;
