@@ -3,7 +3,7 @@
 import {
   ChevronRight, Home, Check, Camera, Loader2, RotateCcw, Braces
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { ToolDefinition } from "@/lib/content/tools/types"
 import { getToolCategories } from "@/lib/content/tools/utils"
 import { iconMap } from "@/lib/content/tools/icon-map"
@@ -11,15 +11,42 @@ import { iconMap } from "@/lib/content/tools/icon-map"
 interface ToolHeaderProps {
   tool: ToolDefinition
   onBack: () => void
+  onHomeClick?: () => void
+  onCategoryClick?: (categoryId: string) => void
   onReset?: () => void
 }
 
-export default function ToolHeader({ tool, onBack, onReset }: ToolHeaderProps) {
+export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick, onReset }: ToolHeaderProps) {
   const [isCapturing, setIsCapturing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const backButtonRef = useRef<HTMLButtonElement>(null)
   const IconComponent = iconMap[tool.icon] || Braces
   const categories = getToolCategories()
   const categoryLabel = categories.find((c) => c.id === tool.category)?.label || tool.category
+
+  // Move focus to the back button when a tool opens so keyboard users keep
+  // their place and can press Enter/Space to return immediately.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      backButtonRef.current?.focus()
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  const getPageBackgroundColor = (): string => {
+    const main = document.querySelector("main")
+    if (!main) return "#030712"
+    const computed = window.getComputedStyle(main).backgroundColor
+    if (!computed || computed === "rgba(0, 0, 0, 0)" || computed === "transparent") return "#030712"
+    return computed
+  }
+
+  const rgbToHex = (rgb: string): string => {
+    const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/)
+    if (!match) return rgb
+    const toHex = (n: number) => n.toString(16).padStart(2, "0")
+    return `#${toHex(Number(match[1]))}${toHex(Number(match[2]))}${toHex(Number(match[3]))}`
+  }
 
   const captureScreenshot = async () => {
     try {
@@ -29,9 +56,9 @@ export default function ToolHeader({ tool, onBack, onReset }: ToolHeaderProps) {
 
       // Use html-to-image to bypass html2canvas CSS parsing bugs (like oklch support)
       const htmlToImage = await import("html-to-image")
-      
+
       const image = await htmlToImage.toPng(element, {
-        backgroundColor: "#030712", // Fallback dark background
+        backgroundColor: rgbToHex(getPageBackgroundColor()),
         pixelRatio: 2, // High quality
       })
 
@@ -50,11 +77,12 @@ export default function ToolHeader({ tool, onBack, onReset }: ToolHeaderProps) {
   }
 
   return (
-    <div className="tool-header tool-header--root animate-fade-in-up">
+    <div className="tool-header tool-header--root animate-fade-in-up border-b border-border/30 pb-6">
       {/* Breadcrumb Navigation */}
       <nav className="tool-header__breadcrumb flex items-center gap-2 text-sm text-muted-foreground mb-8">
         <button
-          onClick={onBack}
+          ref={backButtonRef}
+          onClick={onHomeClick || onBack}
           data-tool-back-button
           className="tool-header__back flex items-center gap-1.5 hover:text-foreground transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
         >
@@ -62,7 +90,17 @@ export default function ToolHeader({ tool, onBack, onReset }: ToolHeaderProps) {
           Tools
         </button>
         <ChevronRight className="h-4 w-4 opacity-50" />
-        <span className="tool-header__breadcrumb-category opacity-75">{categoryLabel}</span>
+        {onCategoryClick ? (
+          <button
+            type="button"
+            onClick={() => onCategoryClick(tool.category)}
+            className="tool-header__breadcrumb-category opacity-75 hover:text-foreground hover:opacity-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+          >
+            {categoryLabel}
+          </button>
+        ) : (
+          <span className="tool-header__breadcrumb-category opacity-75">{categoryLabel}</span>
+        )}
         <ChevronRight className="h-4 w-4 opacity-50" />
         <span className="tool-header__breadcrumb-current text-foreground font-medium truncate max-w-[150px] sm:max-w-xs">{tool.label}</span>
       </nav>

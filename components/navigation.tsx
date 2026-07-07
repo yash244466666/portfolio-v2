@@ -93,6 +93,7 @@ export default function Navigation() {
 
   return (
     <nav
+      data-nav-root
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled || pathname !== "/"
           ? "bg-background/95 backdrop-blur-sm border-b border-border"
           : "bg-transparent"

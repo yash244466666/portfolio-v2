@@ -213,6 +213,15 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(170%) skewX(-20deg);
+  }
+}
+
 /* Interactive elements */
 html {
   scroll-behavior: smooth;

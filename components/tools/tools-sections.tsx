@@ -3,6 +3,7 @@
 import { useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, forwardRef } from "react"
 import type { ToolCategory, ToolDefinition } from "@/lib/content/tools/types"
 import { getToolsByCategory } from "@/lib/content/tools/utils"
+import { useStickyOffset } from "@/hooks/use-sticky-offset"
 import ToolCard from "@/components/tools/tool-card"
 
 interface ToolsSectionsProps {
@@ -14,13 +15,6 @@ interface ToolsSectionsProps {
 export interface ToolsSectionsHandle {
   scrollToCategory: (id: string) => void
 }
-
-// Distance from the viewport top at which a panel should stick. The fixed nav
-// is ~68px tall and the persistent toolbar (sticky top-[4.25rem], ~65px tall)
-// sits below it, so sections stick at top-[8.5rem] (136px) — flush with the
-// toolbar's bottom edge. Keeps the section header from sliding under the
-// transparent toolbar while pinning.
-const NAV_OFFSET = 136
 
 // Large categories (e.g. Dev: 44 tools) would create absurdly long horizontal
 // tracks if rendered as one section. Split them into chunks so each pinned
@@ -72,10 +66,13 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
   const viewportEls = useRef<(HTMLElement | null)[]>([])
   const progressEls = useRef<(HTMLElement | null)[]>([])
   const meta = useRef<SectionMeta[]>([])
+  const { toolbarOffset: navOffset } = useStickyOffset()
   const [motionSafe, setMotionSafe] = useState(false)
   const [activeSectionIndex, setActiveSectionIndex] = useState(0)
   const activeSectionIndexRef = useRef(activeSectionIndex)
   activeSectionIndexRef.current = activeSectionIndex
+  const navOffsetRef = useRef(navOffset)
+  navOffsetRef.current = navOffset
   const onActiveCategoryChangeRef = useRef(onActiveCategoryChange)
   onActiveCategoryChangeRef.current = onActiveCategoryChange
 
@@ -135,19 +132,25 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
         const scrollY = window.scrollY
         let nextActive = -1
 
+        let firstVisibleIndex = -1
         sectionEls.current.forEach((section, i) => {
           if (!section) return
           const track = trackEls.current[i]
           const m = meta.current[i]
           if (!track || !m) return
 
+          const currentNavOffset = navOffsetRef.current
           const rect = section.getBoundingClientRect()
-          const isPinned = rect.top <= NAV_OFFSET && rect.bottom > NAV_OFFSET
+          const isPinned = rect.top <= currentNavOffset && rect.bottom > currentNavOffset
           if (isPinned) nextActive = i
+
+          if (firstVisibleIndex === -1 && rect.bottom > currentNavOffset) {
+            firstVisibleIndex = i
+          }
 
           {
             const sectionTop = rect.top + scrollY
-            const pinStart = sectionTop - NAV_OFFSET
+            const pinStart = sectionTop - currentNavOffset
             let progress = (scrollY - pinStart) / m.pinTravel
             progress = Math.max(0, Math.min(1, progress))
             track.style.transform = `translateX(${-m.overflow * progress}px)`
@@ -167,6 +170,13 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
             section.style.setProperty("--section-pointer-events", releaseProgress > 0.01 ? "none" : "auto")
           }
         })
+
+        // If no section is currently pinned (e.g. we jumped to the very top),
+        // default to the first section visible below the toolbar so the active
+        // category chip updates immediately without requiring a scroll nudge.
+        if (nextActive === -1 && firstVisibleIndex !== -1) {
+          nextActive = firstVisibleIndex
+        }
 
         if (nextActive !== -1 && nextActive !== activeSectionIndexRef.current) {
           setActiveSectionIndex(nextActive)
@@ -193,10 +203,11 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return
+      const currentNavOffset = navOffsetRef.current
       const section = sectionEls.current.find((s) => {
         if (!s) return false
         const rect = s.getBoundingClientRect()
-        return rect.top <= NAV_OFFSET && rect.bottom > NAV_OFFSET
+        return rect.top <= currentNavOffset && rect.bottom > currentNavOffset
       })
       if (!section) return
       const i = sectionEls.current.indexOf(section)
@@ -237,11 +248,28 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
         const idx = sectionDefinitions.findIndex((s) => s.categoryId === id)
         const el = sectionEls.current[idx]
         if (!el) return
-        const top = el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET
-        window.scrollTo({ top, behavior: "auto" })
+        // If motion is disabled, just scroll the section into view normally.
+        if (!motionSafe) {
+          el.scrollIntoView({ behavior: "auto", block: "start" })
+          return
+        }
+        // For the pinned filmstrip, scroll to the exact point where this
+        // section becomes the active pinned scene (top of panel flush with
+        // the bottom of the sticky toolbar).
+        const currentNavOffset = navOffsetRef.current
+        const rect = el.getBoundingClientRect()
+        // If the element is not yet laid out (e.g. grid was display:none),
+        // fall back to standard scrollIntoView and let the browser find it.
+        if (rect.height === 0 && rect.width === 0) {
+          el.scrollIntoView({ behavior: "auto", block: "start" })
+          return
+        }
+        const sectionTop = rect.top + window.scrollY
+        const target = sectionTop - currentNavOffset
+        window.scrollTo({ top: target, behavior: "auto" })
       },
     }),
-    [sectionDefinitions]
+    [sectionDefinitions, motionSafe]
   )
 
   return (
@@ -257,7 +285,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
             aria-labelledby={`section-title-${section.id}`}
           >
             <div
-              className="tools-section__panel sticky top-[8.5rem] z-40 overflow-visible flex flex-col pt-12 motion-reduce:!static motion-reduce:!h-auto motion-reduce:!overflow-visible motion-reduce:!pt-0 motion-reduce:!opacity-100 motion-reduce:!z-auto max-md:!static max-md:!h-auto max-md:!overflow-visible max-md:!pt-0 max-md:!opacity-100 max-md:!z-auto"
+              className="tools-section__panel sticky top-[var(--toolbar-offset,8.5rem)] z-40 overflow-visible flex flex-col pt-12 motion-reduce:!static motion-reduce:!h-auto motion-reduce:!overflow-visible motion-reduce:!pt-0 motion-reduce:!opacity-100 motion-reduce:!z-auto max-md:!static max-md:!h-auto max-md:!overflow-visible max-md:!pt-0 max-md:!opacity-100 max-md:!z-auto"
               style={{
                 opacity: "calc(1 - var(--section-release-progress, 0))",
                 pointerEvents: "var(--section-pointer-events, auto)" as React.CSSProperties["pointerEvents"],

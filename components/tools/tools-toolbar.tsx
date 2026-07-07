@@ -1,14 +1,14 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { ToolCategory, ToolDefinition } from "@/lib/content/tools/types"
-import { getToolsByCategory } from "@/lib/content/tools/utils"
-import { Input } from "@/components/ui/input"
+import { getToolsByCategory, matchesTool } from "@/lib/content/tools/utils"
 import { Search, X } from "lucide-react"
 
 interface ToolsToolbarProps {
   categories: ToolCategory[]
   activeCategoryId?: string | null
+  matchedCategoryIds?: Set<string> | null
   onCategoryClick: (id: string) => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -16,14 +16,17 @@ interface ToolsToolbarProps {
 }
 
 /**
- * Persistent sticky toolbar for the tools page. Hosts the single search
- * combobox and category chips so they remain reachable while scrolling
- * through the pinned filmstrip sections and while browsing flat search
- * results. Sits flush below the fixed nav (≈68px tall).
+ * Persistent sticky command bar for the tools page.
+ *
+ * The toolbar is anchored directly below the fixed nav and stays reachable while
+ * the user scrolls through the pinned filmstrip sections or the flat search
+ * results. It combines a compact search combobox and category chips in a centered,
+ * strip that wraps gracefully on narrow screens.
  */
 export default function ToolsToolbar({
   categories,
   activeCategoryId = null,
+  matchedCategoryIds = null,
   onCategoryClick,
   searchQuery,
   onSearchChange,
@@ -32,6 +35,7 @@ export default function ToolsToolbar({
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(searchQuery)
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setInputValue(searchQuery)
@@ -42,9 +46,9 @@ export default function ToolsToolbar({
   }, [isOpen])
 
   useEffect(() => {
-    if (!isOpen) return
-    const input = document.querySelector<HTMLInputElement>("#tools-toolbar-search")
-    if (input) input.focus()
+    if (isOpen) {
+      inputRef.current?.focus()
+    }
   }, [isOpen])
 
   const allTools = useMemo(
@@ -55,18 +59,11 @@ export default function ToolsToolbar({
   const getSuggestions = (query: string): ToolDefinition[] => {
     const q = query.trim().toLowerCase()
     if (!q) return []
-    return allTools
-      .filter(
-        (tool) =>
-          tool.label.toLowerCase().includes(q) ||
-          tool.description.toLowerCase().includes(q)
-      )
-      .slice(0, 6)
+    return allTools.filter((tool) => matchesTool(q, tool)).slice(0, 6)
   }
 
   const suggestions = getSuggestions(inputValue)
   const listboxId = "tools-toolbar-listbox"
-  const showChips = !searchQuery
 
   const selectSuggestion = (label: string) => {
     setInputValue(label)
@@ -75,14 +72,21 @@ export default function ToolsToolbar({
   }
 
   return (
-    <div className="tools-toolbar tools-toolbar--root sticky top-[4.25rem] z-30">
-      <div className="tools-toolbar__inner max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-center gap-3">
-        <div className="tools-toolbar__search relative shrink-0">
+    <div
+      data-tools-toolbar
+      className="tools-toolbar tools-toolbar--root sticky top-[var(--nav-height,4.25rem)] z-50"
+    >
+      <div className="tools-toolbar__inner max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-center gap-3">
+        {/* Search — single native input, single clear button. */}
+        <div className="tools-toolbar__search relative shrink-0 w-44 sm:w-60">
+          <label htmlFor="tools-toolbar-search" className="sr-only">
+            {searchPlaceholder}
+          </label>
           <div
-            className={`tools-toolbar__search-combobox flex items-center h-11 rounded-full border transition-[width,background-color,border-color] duration-200 ease-out ${
+            className={`tools-toolbar__search-combobox w-full flex items-center h-11 rounded-full border transition-all duration-200 ease-out ${
               isOpen
-                ? "w-56 sm:w-72 bg-muted/80 border-primary/40 pr-1 shadow-[0_0_0_4px_rgba(124,58,237,0.08)]"
-                : "w-auto bg-muted/50 border-border/60 hover:bg-muted hover:border-border cursor-pointer"
+                ? "bg-background/80 border-primary/40 pr-1 shadow-[0_0_0_4px_rgba(124,58,237,0.08)]"
+                : "bg-muted/50 border-white/[0.08] hover:bg-muted/70 hover:border-white/[0.12] cursor-pointer"
             }`}
             onClick={isOpen ? undefined : () => setIsOpen(true)}
           >
@@ -96,12 +100,11 @@ export default function ToolsToolbar({
             >
               <Search className="h-4 w-4" aria-hidden="true" />
             </button>
+
             {isOpen ? (
               <div className="tools-toolbar__search-open flex-1 min-w-0 flex items-center gap-1">
-                <label htmlFor="tools-toolbar-search" className="sr-only">
-                  {searchPlaceholder}
-                </label>
-                <Input
+                <input
+                  ref={inputRef}
                   id="tools-toolbar-search"
                   type="text"
                   role="combobox"
@@ -162,7 +165,7 @@ export default function ToolsToolbar({
                   }}
                   autoComplete="off"
                   spellCheck={false}
-                  className="tools-toolbar__search-input h-11 min-w-0 flex-1 border-0 bg-transparent shadow-none px-1 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70 text-sm"
+                  className="tools-toolbar__search-input h-11 min-w-0 flex-1 bg-transparent border-0 outline-none px-1 text-sm text-foreground placeholder:text-muted-foreground/70"
                 />
                 {inputValue && (
                   <button
@@ -171,6 +174,7 @@ export default function ToolsToolbar({
                     onClick={() => {
                       setInputValue("")
                       onSearchChange("")
+                      inputRef.current?.focus()
                     }}
                     aria-label="Clear search input"
                     className="tools-toolbar__search-clear inline-flex items-center justify-center h-7 w-7 shrink-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -190,7 +194,7 @@ export default function ToolsToolbar({
             <ul
               id={listboxId}
               role="listbox"
-              className="tools-toolbar__suggestions absolute top-full left-0 mt-2 w-56 sm:w-72 max-h-72 overflow-auto rounded-xl border border-border/60 bg-popover/95 backdrop-blur-md shadow-xl shadow-black/30 z-50 py-1"
+              className="tools-toolbar__suggestions absolute top-full left-0 right-0 mt-2 max-h-72 overflow-auto rounded-xl border border-border/60 bg-popover/95 backdrop-blur-md shadow-xl shadow-black/30 z-50 py-1"
               onMouseDown={(e) => e.preventDefault()}
             >
               {suggestions.map((tool, idx) => {
@@ -222,29 +226,36 @@ export default function ToolsToolbar({
           )}
         </div>
 
-        {showChips && (
-          <div className="tools-toolbar__chips min-w-0 flex items-center justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-1 px-1">
-            {categories.map((cat) => {
-              const isActive = activeCategoryId === cat.id
-              return (
-                <button
-                  type="button"
-                  key={cat.id}
-                  onClick={() => onCategoryClick(cat.id)}
-                  aria-pressed={isActive}
-                  aria-current={isActive ? "true" : undefined}
-                  className={`tools-toolbar__chip min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 ${
-                    isActive
-                      ? "is-active bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-4px_rgba(124,58,237,0.45)]"
-                      : "bg-muted/50 text-foreground/80 border-border/60 hover:bg-muted hover:border-border hover:text-foreground"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              )
-            })}
-          </div>
-        )}
+        {/* Category chips — centered, always visible, wrap on very small screens. */}
+        <div className="tools-toolbar__chips flex flex-wrap items-center justify-center gap-2 min-w-0">
+          {categories.map((cat) => {
+            const isActive = activeCategoryId === cat.id
+            const hasMatches = matchedCategoryIds === null || matchedCategoryIds.has(cat.id)
+            return (
+              <button
+                type="button"
+                key={cat.id}
+                onClick={() => onCategoryClick(cat.id)}
+                disabled={!hasMatches}
+                aria-pressed={isActive}
+                aria-current={isActive ? "true" : undefined}
+                aria-disabled={!hasMatches}
+                className={`tools-toolbar__chip min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 ${
+                  isActive
+                    ? "is-active bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-4px_rgba(124,58,237,0.45)]"
+                    : hasMatches
+                      ? "bg-muted/50 text-foreground/80 border-white/[0.08] hover:bg-muted hover:border-white/[0.14] hover:text-foreground"
+                      : "bg-muted/30 text-muted-foreground/50 border-white/[0.06] cursor-not-allowed"
+                }`}
+              >
+                {cat.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Invisible balance element so the category chips stay visually centered on larger screens. */}
+        <div className="hidden sm:block w-44 sm:w-60 shrink-0" aria-hidden="true" />
       </div>
     </div>
   )

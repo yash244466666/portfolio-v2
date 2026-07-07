@@ -34,30 +34,24 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
   const categoryLabel = categories.find((c) => c.id === tool.category)?.label || "Dev"
 
   return (
-    <Card
-      role="button"
-      tabIndex={0}
+    <a
+      href={`#${tool.id}`}
+      data-tool-card={tool.id}
       aria-label={`Open ${tool.label} tool`}
-      className="tool-card tool-card--root group relative cursor-pointer overflow-hidden p-5 h-full flex flex-col gap-4
+      className="tool-card tool-card--root group relative cursor-pointer overflow-hidden p-5 h-full flex flex-col gap-4 rounded-xl
         bg-muted/70 backdrop-blur-md border border-white/[0.08]
         transition-all duration-200 ease-out
-        hover:-translate-y-1 hover:border-primary/30 hover:bg-muted/90
-        hover:shadow-[0_12px_40px_-12px_rgba(124,58,237,0.25)]
+        hover:-translate-y-1
         active:scale-[0.98] active:duration-75
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      onClick={() => onSelect(tool.id)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          onSelect(tool.id)
-        }
+      onClick={(e) => {
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+        onSelect(tool.id)
       }}
     >
-      {/** Subtle top-edge sheen for depth. */}
-      <div className="tool-card__sheen pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200" />
-
       <div className="tool-card__top flex items-start justify-between gap-3">
-        <div className="tool-card__icon-tile p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary/30 transition-all duration-200">
+        <div className="tool-card__icon-tile p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary border border-primary/10 transition-all duration-200">
           <IconComponent className="h-6 w-6" aria-hidden="true" />
         </div>
         <span
@@ -68,7 +62,7 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
       </div>
 
       <div className="tool-card__body flex-1 flex flex-col">
-        <h3 className="tool-card__title text-lg font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors duration-200 leading-tight">
+        <h3 className="tool-card__title text-lg font-semibold text-foreground mb-1.5 leading-tight">
           {tool.label}
         </h3>
         <p className="tool-card__description text-sm text-muted-foreground/90 line-clamp-3 leading-relaxed">
@@ -76,13 +70,13 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
         </p>
       </div>
 
-      <div className="tool-card__footer flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06] group-hover:border-primary/20 transition-colors">
+      <div className="tool-card__footer flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06]">
         <span className="tool-card__footer-label">Open tool</span>
         <ArrowRight
-          className="tool-card__footer-arrow h-4 w-4 group-hover:translate-x-1 transition-transform duration-200"
+          className="tool-card__footer-arrow h-4 w-4"
           aria-hidden="true"
         />
       </div>
-    </Card>
+    </a>
   )
 }

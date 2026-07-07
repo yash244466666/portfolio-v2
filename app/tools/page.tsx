@@ -17,10 +17,6 @@ const AnimatedBackground = dynamic(() => import("@/components/backgrounds"), {
 })
 
 export default function Tools() {
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
-
   return (
     <main className="min-h-screen bg-gray-950 relative">
       <AnimatedBackground />
