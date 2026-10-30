@@ -6,7 +6,7 @@ Personal portfolio site and a catalog of **87 browser-based developer utilities*
 - **Beta:** https://beta.yashcodes.com
 - **Repository:** https://github.com/yash244466666/portfolio-v2
 
-> **Deployment status (2026-10-31):** live on **vps-2** (`140.238.208.16`). `develop` deploys beta to `/opt/stacks/caddy/html/beta`; `main` deploys production to `/opt/stacks/caddy/html/production`. Both A records now point to vps-2 and Caddy has issued HTTPS certificates. DNS caches may still route some clients to the old hosts until the 300-second TTL expires. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+> **Deployment status (2026-10-31):** live on **vps-2** (`140.238.208.16`). `develop` deploys beta to `/opt/stacks/caddy/html/beta`; `main` deploys production to `/opt/stacks/caddy/html/production`. Both A records now point to vps-2 and Caddy has issued HTTPS certificates. DNS propagation is complete; clients that cached the old records may still see the old hosts until the TTL expires. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Contents
 
@@ -59,7 +59,7 @@ The old `master` branch was renamed to `main`; the remote `master` no longer exi
 
 - Full-screen loading screen with animated progress and a short fade.
 - Fixed navigation with active-section tracking and mobile menu.
-- Hero section with a cycling typewriter and parallax/scroll entrances.
+- Hero section with a cycling typewriter, CSS entrance animations, and scroll-to-section actions.
 - About section with six skill groups and gradient background elements.
 - Projects section with six featured project cards and image previews.
 - Contact section with a `mailto:` form and contact detail cards.
@@ -113,7 +113,7 @@ The site uses trailing slashes (`/tools/`, not `/tools`).
 | `typescript` | ^5 | Strict type checking |
 | `tailwindcss` | ^4.1.9 | Styling via the Tailwind PostCSS plugin |
 | `tw-animate-css` | 1.3.3 | Tailwind animation utilities |
-| `animejs` | ^4.3.6 | Selected background and scroll effects |
+| `animejs` | ^4.3.6 | Selected background effects |
 | `lucide-react` | ^0.454.0 | Icons |
 | `@radix-ui/react-slot` | 1.1.1 | shadcn-style composition |
 | `class-variance-authority` | ^0.7.1 | Variant styling |
@@ -372,9 +372,7 @@ The cutover was completed on 2026-10-31:
 3. Caddy issued Let's Encrypt certificates for both domains.
 4. `/` and `/tools/` return 200 on both sites.
 
-The previous vps-1 deployment remains as a fallback. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact configuration and rollback steps.
-
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact Caddy block, one-time server setup, manual deploy commands, rollback, and verification.
+The previous vps-1 deployment remains as a fallback. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact configuration, one-time server setup, manual deploy commands, rollback, and verification.
 
 ## Verification
 
@@ -458,7 +456,6 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 1. **Next.js 15.2.4 is flagged by pnpm as security-vulnerable.** Upgrade through a tested dependency change.
 2. **ESLint 9 has no flat configuration.** The current `next lint` script is unusable.
 3. **Next builds skip lint and TypeScript validation.** Run the standalone type check.
-4. **DNS caches can lag the cutover.** Both domains now target vps-2, but resolvers that cached the old A records may serve the old hosts until the 300-second TTL expires.
 
 ### Product and quality
 

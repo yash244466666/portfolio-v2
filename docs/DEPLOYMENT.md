@@ -20,8 +20,8 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
   issued Let's Encrypt certificates for both domains.
 - **Both sites are healthy on vps-2.** `/` and `/tools/` return 200; an unknown
   path returns 404.
-- **DNS caches may lag.** The records use TTL 300, so resolvers that cached the
-  old IPs can serve the old hosts briefly.
+- **DNS propagation is complete.** The records use TTL 300, so clients that
+  cached the old IPs may see the old hosts until the TTL expires.
 - **Backups:** the pre-cutover Caddyfile is
   `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; the staged file remains
   `/opt/stacks/caddy/Caddyfile.next`.
@@ -316,9 +316,9 @@ yashcodes.com {
 }
 ```
 
-Caddy obtains the certificates automatically once DNS points to vps-2.
-Do not add these blocks before DNS points to vps-2, because repeated ACME
-failures can hit rate limits.
+Caddy obtains the certificates automatically once DNS points to the target
+server. For a future move, add the blocks only after DNS points to the target;
+repeated ACME failures can hit rate limits.
 
 ### 3. Enable the HTTPS checks (completed)
 

@@ -458,7 +458,7 @@ Do not log contact message bodies, file contents, secrets, tokens, or other sens
 - **use-cycling-typewriter.ts** — timeout-based typing, pause, deletion, and phrase cycling.
 - **use-sticky-offset.ts** — measures fixed navigation and tools toolbar heights.
 - **use-mobile.ts** — matchMedia-backed 768 px breakpoint.
-- **use-anime-scope.ts** — scoped anime.js lifecycle and cleanup.
+- **use-anime-scope.ts** — scoped anime.js lifecycle wrapper; currently unused by the home sections. The backgrounds use their own `createScope` calls.
 - **use-instrumentation.ts** — component and frame telemetry helpers.
 - **use-custom-cursor.ts** — currently unused because the custom cursor is disabled.
 - **lib/utils.ts** — the cn class-merging helper.
@@ -515,7 +515,6 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 1. Next.js 15.2.4 is flagged by pnpm as a security-vulnerable release and should be upgraded through a tested dependency change.
 2. ESLint 9 cannot find a flat configuration; the current lint script is unusable.
 3. Next builds explicitly skip lint and TypeScript validation.
-4. DNS caches may still point to the old hosts until the 300-second TTL expires. Both domains now target vps-2 (`140.238.208.16`) and Caddy has valid certificates.
 
 ### Product and quality
 
@@ -600,7 +599,7 @@ At the last documentation update (2026-10-31):
 - The exported routes were **/**, **/tools/**, and the not-found route.
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
-- GitHub Actions runs passed for `develop` (beta) and `main` (production) on 2026-10-30; the first attempts were queued during a GitHub Actions incident.
+- The latest `develop` (beta) and `main` (production) runs, including HTTPS verification, passed on 2026-10-30 UTC; the first attempts were queued during a GitHub Actions incident.
 - The deployment target is vps-2. The vps-2 deploy user, directories, SSH key, and secrets are configured; both deploy runs passed, both A records now point to vps-2, and Caddy issued certificates on 2026-10-31.
 - The vps-2 Caddy blocks are applied in the live Caddyfile. The pre-cutover backup is `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; `/opt/stacks/caddy/Caddyfile.next` remains as the staged copy.
 
