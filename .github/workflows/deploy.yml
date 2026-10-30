@@ -1,0 +1,145 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  NEXT_PUBLIC_BG_MODE: random
+  NEXT_PUBLIC_DEFAULT_BG: neural
+  NEXT_PUBLIC_ENABLE_LOGS: "false"
+
+jobs:
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.8.1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: ./node_modules/.bin/tsc --noEmit --incremental false
+
+      - name: Build
+        run: pnpm build
+
+      - name: Verify export
+        run: |
+          test -s out/index.html
+          test -d out/_next
+          test -s out/tools/index.html
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: out
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy-beta:
+    name: Deploy beta
+    needs: build
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment:
+      name: beta
+      url: https://beta.yashcodes.com
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: out
+
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Sync to beta
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          rsync -az --delete --delay-updates \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+            out/ "$VPS_USER@$VPS_HOST:/data/sites/beta/"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            "$VPS_USER@$VPS_HOST" 'test -s /data/sites/beta/index.html'
+
+      - name: Verify beta
+        run: curl -fsS --retry 6 --retry-delay 3 https://beta.yashcodes.com/ > /dev/null
+
+  deploy-production:
+    name: Deploy production
+    needs: build
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://yashcodes.com
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: out
+
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Sync to production
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          rsync -az --delete --delay-updates \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+            out/ "$VPS_USER@$VPS_HOST:/data/sites/production/"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            "$VPS_USER@$VPS_HOST" 'test -s /data/sites/production/index.html'
+
+      # Enable after yashcodes.com has been pointed at this VPS and Caddy
+      # has issued its certificate:
+      # - name: Verify production
+      #   run: curl -fsS --retry 6 --retry-delay 3 https://yashcodes.com/ > /dev/null
