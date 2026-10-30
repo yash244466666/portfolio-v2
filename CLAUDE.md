@@ -599,8 +599,8 @@ At the last documentation update (2026-10-31):
 - The exported routes were **/**, **/tools/**, and the not-found route.
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
-- The GitHub Actions build job passed; the deploy job was queued during a GitHub Actions incident.
-- Beta was deployed manually with the same `rsync` command and verified; the production DNS cutover is still pending.
+- GitHub Actions runs passed for `develop` (beta) and `main` (production) on 2026-10-30; the first attempts were queued during a GitHub Actions incident.
+- Both VPS directories were deployed by CI and verified; the production DNS cutover is still pending.
 
 These are observations, not permanent guarantees. Re-run relevant checks after changes.
 

@@ -6,7 +6,7 @@ Personal portfolio site and a catalog of **87 browser-based developer utilities*
 - **Beta:** https://beta.yashcodes.com
 - **Repository:** https://github.com/yash244466666/portfolio-v2
 
-> **Deployment status (2026-10-31):** beta is live and verified. The production pipeline is configured to deploy to the VPS, but `yashcodes.com` still resolves to the old host (`103.65.138.220`). Change the A record to `152.67.67.128` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+> **Deployment status (2026-10-31):** both workflows are green. `develop` builds and deploys **beta**; `main` builds and deploys **production** to `/data/sites/production` on the VPS. `yashcodes.com` still resolves to the old host (`103.65.138.220`); change the A record to `152.67.67.128` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Contents
 

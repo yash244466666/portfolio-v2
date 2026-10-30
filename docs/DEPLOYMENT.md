@@ -9,12 +9,12 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 
 ## Current status (2026-10-31)
 
-- **Beta is live and verified.** The current build was deployed with the same `rsync` command the workflow uses. The deployed `index.html` hash matches the local `out/index.html`; `/` and `/tools/` return 200; an unknown path returns 404.
-- **CI build passed.** The first GitHub Actions run built and type-checked successfully.
-- **The hosted deploy job was blocked by a GitHub incident.** GitHub Actions, Pages, and Webhooks were degraded from 2026-10-30 17:50 UTC. Queued jobs were marked failed without starting. The workflow itself is valid; a watcher retries when Actions is healthy.
-- **Production is not serving from the VPS yet.** `yashcodes.com` still resolves to `103.65.138.220`. The production directory exists, but it is empty until a `main` deploy runs, and Caddy cannot issue a certificate until DNS points to `152.67.67.128`.
+- **Both deploys are green.** The `develop` workflow built and deployed beta; the `main` workflow built and deployed production to `/data/sites/production`. The deployed build is about 14 MB.
+- **Beta is healthy.** `/` and `/tools/` return 200 and an unknown path returns 404. The five project images and the pdf.js worker are present.
+- **The first attempts were blocked by a GitHub incident.** GitHub Actions, Pages, and Webhooks were degraded from 2026-10-30 17:50 UTC. Queued jobs were marked failed without starting. The subsequent `develop` and `main` runs completed successfully.
+- **Production is not serving from the VPS yet.** `yashcodes.com` still resolves to `103.65.138.220`, and Caddy has no `yashcodes.com` block. The production files are deployed to `/data/sites/production`, but the domain cannot be served from the VPS until the DNS A record changes to `152.67.67.128`.
 - **The production Caddy block has been validated** with `caddy validate`, but it has not been added to the live Caddyfile.
-- **Workflow commits:** `d910548` (initial CI/CD) followed by `e7570bc` (rsync ownership fix).
+- **Deployment commits:** `d910548` (initial CI/CD), `e7570bc` (rsync ownership fix), and `415c12d` (documentation).
 
 ## What the workflow does
 
