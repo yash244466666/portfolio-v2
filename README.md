@@ -6,7 +6,7 @@ Personal portfolio site and a catalog of **87 browser-based developer utilities*
 - **Beta:** https://beta.yashcodes.com
 - **Repository:** https://github.com/yash244466666/portfolio-v2
 
-> **Deployment status (2026-10-31):** both workflows are green. `develop` builds and deploys **beta**; `main` builds and deploys **production** to `/data/sites/production` on the VPS. `yashcodes.com` still resolves to the old host (`103.65.138.220`); change the A record to `152.67.67.128` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+> **Deployment status (2026-10-31):** deploys target **vps-2** (`140.238.208.16`). `develop` builds and deploys beta to `/opt/stacks/caddy/html/beta`; `main` builds and deploys production to `/opt/stacks/caddy/html/production`. Both domains still resolve to the old hosts; change the A records for `beta.yashcodes.com` and `yashcodes.com` to `140.238.208.16` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Contents
 
@@ -43,8 +43,8 @@ The UI is animation-heavy and predominantly client-rendered. Reduced-motion beha
 
 | Branch | Role | Deploys to | URL |
 |---|---|---|---|
-| `develop` | Default development branch | `/data/sites/beta/` on vps-1 | https://beta.yashcodes.com |
-| `main` | Stable / production branch | `/data/sites/production/` on vps-1 | https://yashcodes.com |
+| `develop` | Default development branch | `/opt/stacks/caddy/html/beta/` on vps-2 | https://beta.yashcodes.com |
+| `main` | Stable / production branch | `/opt/stacks/caddy/html/production/` on vps-2 | https://yashcodes.com |
 
 - `develop` is the default branch on GitHub. Day-to-day work is committed there.
 - `main` receives merges from `develop` when a release is ready.
@@ -338,39 +338,39 @@ The deploy jobs download the artifact, configure a dedicated SSH key, and run:
 ```bash
 rsync -rlz --delete --delay-updates --chmod=D755,F644 \
   -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-  out/ "$VPS_USER@$VPS_HOST:/data/sites/<environment>/"
+  out/ "$VPS_USER@$VPS_HOST:/opt/stacks/caddy/html/<environment>/"
 ```
 
-Beta is verified over HTTPS after deployment. Production currently verifies the files on disk; the HTTPS check is commented out until the `yashcodes.com` DNS cutover.
+Both deploy jobs verify the remote `index.html` on vps-2. The HTTPS checks are commented out until `beta.yashcodes.com` and `yashcodes.com` point to vps-2.
 
 ### Required GitHub secrets
 
 | Secret | Value |
 |---|---|
-| `VPS_HOST` | `152.67.67.128` |
+| `VPS_HOST` | `140.238.208.16` |
 | `VPS_USER` | `deploy` |
 | `VPS_SSH_KEY` | Private key of the deploy key |
-| `VPS_KNOWN_HOSTS` | `ssh-keyscan -H 152.67.67.128` output |
+| `VPS_KNOWN_HOSTS` | `ssh-keyscan -H 140.238.208.16` output |
 
-The `deploy` user has no sudo, no docker access, and write access only under `/data/sites`. The public key is restricted with `no-pty`, `no-agent-forwarding`, `no-port-forwarding`, and `no-X11-forwarding`.
+The `deploy` user has no sudo, no docker access, and write access only under `/opt/stacks/caddy/html/beta` and `/opt/stacks/caddy/html/production`. The public key is restricted with `no-pty`, `no-agent-forwarding`, `no-port-forwarding`, and `no-X11-forwarding`.
 
 ### VPS layout
 
 | Environment | Host path | Caddy root | Domain |
 |---|---|---|---|
-| Beta | `/data/sites/beta` | `/srv/sites/beta` | beta.yashcodes.com |
-| Production | `/data/sites/production` | `/srv/sites/production` | yashcodes.com |
+| Beta | `/opt/stacks/caddy/html/beta` | `/srv/beta` | beta.yashcodes.com |
+| Production | `/opt/stacks/caddy/html/production` | `/srv/production` | yashcodes.com |
 
-Caddy runs in Docker on vps-1. `/data/sites` is mounted read-only into the container as `/srv/sites`.
+Caddy runs in Docker on vps-2. `/opt/stacks/caddy/html` is mounted read-only into the container as `/srv`.
 
 ### Production cutover
 
-`yashcodes.com` still points at `103.65.138.220`. To serve production from the VPS:
+`beta.yashcodes.com` still points at `152.67.67.128` (vps-1), and `yashcodes.com` still points at `103.65.138.220`. To serve both from vps-2:
 
-1. Change the Dynadot A record for `yashcodes.com` to `152.67.67.128` (TTL 300).
-2. Add the validated `yashcodes.com` block from `docs/DEPLOYMENT.md` to `/opt/stacks/caddy/Caddyfile`.
+1. Change the Dynadot A records for `beta.yashcodes.com` and `yashcodes.com` to `140.238.208.16` (TTL 300).
+2. Add the validated `beta.yashcodes.com` and `yashcodes.com` blocks from `docs/DEPLOYMENT.md` to `/opt/stacks/caddy/Caddyfile`.
 3. Validate and reload Caddy.
-4. Enable the HTTPS verification step in the workflow and push to `main`.
+4. Enable the HTTPS verification steps in the workflow.
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact Caddy block, one-time server setup, manual deploy commands, rollback, and verification.
 
@@ -456,7 +456,7 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 1. **Next.js 15.2.4 is flagged by pnpm as security-vulnerable.** Upgrade through a tested dependency change.
 2. **ESLint 9 has no flat configuration.** The current `next lint` script is unusable.
 3. **Next builds skip lint and TypeScript validation.** Run the standalone type check.
-4. **Production DNS cutover is pending.** `yashcodes.com` still points at `103.65.138.220`; the VPS deployment is at `/data/sites/production` and the Caddy block is validated but not active.
+4. **DNS cutover is pending.** `beta.yashcodes.com` still points at `152.67.67.128` (vps-1) and `yashcodes.com` at `103.65.138.220`. The vps-2 deployment is at `/opt/stacks/caddy/html/beta` and `/opt/stacks/caddy/html/production`; the Caddy blocks are validated but not active.
 
 ### Product and quality
 

@@ -106,12 +106,13 @@ jobs:
         run: |
           rsync -rlz --delete --delay-updates --chmod=D755,F644 \
             -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-            out/ "$VPS_USER@$VPS_HOST:/data/sites/beta/"
+            out/ "$VPS_USER@$VPS_HOST:/opt/stacks/caddy/html/beta/"
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
-            "$VPS_USER@$VPS_HOST" 'test -s /data/sites/beta/index.html'
+            "$VPS_USER@$VPS_HOST" 'test -s /opt/stacks/caddy/html/beta/index.html'
 
-      - name: Verify beta
-        run: curl -fsS --retry 6 --retry-delay 3 https://beta.yashcodes.com/ > /dev/null
+      # Enable after beta.yashcodes.com points to vps-2 and Caddy has a cert:
+      # - name: Verify beta
+      #   run: curl -fsS --retry 6 --retry-delay 3 https://beta.yashcodes.com/ > /dev/null
 
   deploy-production:
     name: Deploy production
@@ -146,9 +147,9 @@ jobs:
         run: |
           rsync -rlz --delete --delay-updates --chmod=D755,F644 \
             -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
-            out/ "$VPS_USER@$VPS_HOST:/data/sites/production/"
+            out/ "$VPS_USER@$VPS_HOST:/opt/stacks/caddy/html/production/"
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
-            "$VPS_USER@$VPS_HOST" 'test -s /data/sites/production/index.html'
+            "$VPS_USER@$VPS_HOST" 'test -s /opt/stacks/caddy/html/production/index.html'
 
       # Enable after yashcodes.com has been pointed at this VPS and Caddy
       # has issued its certificate:

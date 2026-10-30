@@ -69,7 +69,7 @@ Historical documents such as **BUG-REPORT.md**, **ANIMATION-MIGRATION-PLAN.md**,
 - GitHub Actions workflow in `.github/workflows/deploy.yml`
 - VPS-hosted static files served by Caddy in Docker
 - `rsync` over SSH from the workflow to the VPS
-- Branch mapping: `develop` → `/data/sites/beta` (beta.yashcodes.com); `main` → `/data/sites/production` (yashcodes.com)
+- Branch mapping: `develop` → `/opt/stacks/caddy/html/beta` (beta.yashcodes.com); `main` → `/opt/stacks/caddy/html/production` (yashcodes.com)
 
 There is no Three.js or React Three Fiber dependency in the current frontend. There is no server-side contact backend.
 
@@ -506,7 +506,7 @@ Accessibility requirements:
 - Preserve rel attributes on external target-blank links.
 - The contact form is `mailto:`-only; do not reintroduce a server endpoint without updating the deployment model and docs.
 
-Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy user (`deploy`) has no sudo and no docker access and can write only under `/data/sites`. Never commit the deploy key, host keys, or any other credential.
+Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy user (`deploy`) has no sudo and no docker access and can write only under `/opt/stacks/caddy/html/beta` and `/opt/stacks/caddy/html/production`. Never commit the deploy key, host keys, or any other credential.
 
 ## 18. Known issues and technical debt
 
@@ -515,7 +515,7 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 1. Next.js 15.2.4 is flagged by pnpm as a security-vulnerable release and should be upgraded through a tested dependency change.
 2. ESLint 9 cannot find a flat configuration; the current lint script is unusable.
 3. Next builds explicitly skip lint and TypeScript validation.
-4. `yashcodes.com` still points at the old host `103.65.138.220`. Production files deploy to `/data/sites/production` on vps-1, but the A record must change to `152.67.67.128` before Caddy can serve the site and issue its certificate.
+4. `beta.yashcodes.com` still points at `152.67.67.128` (vps-1) and `yashcodes.com` still points at `103.65.138.220`. Deploys now target vps-2 (`140.238.208.16`), but both A records must change to `140.238.208.16` before Caddy can serve the sites and issue certificates.
 
 ### Product and quality
 
@@ -601,7 +601,8 @@ At the last documentation update (2026-10-31):
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
 - GitHub Actions runs passed for `develop` (beta) and `main` (production) on 2026-10-30; the first attempts were queued during a GitHub Actions incident.
-- Both VPS directories were deployed by CI and verified; the production DNS cutover is still pending.
+- The deployment target was switched to vps-2 on 2026-10-31. The vps-2 deploy user, directories, SSH key, and secrets are configured; the DNS cutover for `beta.yashcodes.com` and `yashcodes.com` is still pending.
+- The vps-2 Caddy blocks are staged in `/opt/stacks/caddy/Caddyfile.next` and validated; they are not applied until DNS points to vps-2.
 
 These are observations, not permanent guarantees. Re-run relevant checks after changes.
 
