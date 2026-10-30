@@ -6,7 +6,7 @@ Personal portfolio site and a catalog of **87 browser-based developer utilities*
 - **Beta:** https://beta.yashcodes.com
 - **Repository:** https://github.com/yash244466666/portfolio-v2
 
-> **Deployment status (2026-10-31):** deploys target **vps-2** (`140.238.208.16`). `develop` builds and deploys beta to `/opt/stacks/caddy/html/beta`; `main` builds and deploys production to `/opt/stacks/caddy/html/production`. Both domains still resolve to the old hosts; change the A records for `beta.yashcodes.com` and `yashcodes.com` to `140.238.208.16` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+> **Deployment status (2026-10-31):** deploys target **vps-2** (`140.238.208.16`), and both vps-2 deploys are green. `develop` builds and deploys beta to `/opt/stacks/caddy/html/beta`; `main` builds and deploys production to `/opt/stacks/caddy/html/production`. Both domains still resolve to the old hosts; change the A records for `beta.yashcodes.com` and `yashcodes.com` to `140.238.208.16` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Contents
 

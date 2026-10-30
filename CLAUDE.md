@@ -601,7 +601,7 @@ At the last documentation update (2026-10-31):
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
 - GitHub Actions runs passed for `develop` (beta) and `main` (production) on 2026-10-30; the first attempts were queued during a GitHub Actions incident.
-- The deployment target was switched to vps-2 on 2026-10-31. The vps-2 deploy user, directories, SSH key, and secrets are configured; the DNS cutover for `beta.yashcodes.com` and `yashcodes.com` is still pending.
+- The deployment target was switched to vps-2 on 2026-10-31. The vps-2 deploy user, directories, SSH key, and secrets are configured; both vps-2 deploy runs passed. The DNS cutover for `beta.yashcodes.com` and `yashcodes.com` is still pending.
 - The vps-2 Caddy blocks are staged in `/opt/stacks/caddy/Caddyfile.next` and validated; they are not applied until DNS points to vps-2.
 
 These are observations, not permanent guarantees. Re-run relevant checks after changes.

@@ -12,6 +12,9 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 - **The deployment target is vps-2** (`140.238.208.16`). The `deploy` user, the
   `site-deploy` group, both site directories, the SSH key, and the GitHub
   secrets are configured on vps-2.
+- **The vps-2 deploy is green.** The `develop` and `main` runs completed
+  successfully; `/opt/stacks/caddy/html/beta` and
+  `/opt/stacks/caddy/html/production` each contain the 14 MB build.
 - **Traffic has not moved yet.** `beta.yashcodes.com` still resolves to
   `152.67.67.128` (vps-1), and `yashcodes.com` still resolves to
   `103.65.138.220` (the old host). The existing sites stay online until the
