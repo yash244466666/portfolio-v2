@@ -92,6 +92,7 @@ Current tooling caveats:
 - The lint script still runs **next lint**, while the installed ESLint 9 expects an **eslint.config.js**, **eslint.config.mjs**, or **eslint.config.cjs** flat configuration. Linting is currently not operational.
 - Both lockfiles can drift. Do not regenerate or rewrite either lockfile unless dependency work is explicitly in scope.
 - The postinstall script copies the pdfjs worker into **public/pdf.worker.min.mjs**.
+- The build fetches DM Sans from Google Fonts through `next/font/google`. A transient fetch failure can fail the build; the workflow retries the build up to three times. Self-hosting the font with `next/font/local` is the durable fix.
 - Do not run package installation merely to inspect the repository; it can rewrite lockfile resolution metadata.
 
 When dependency state is already installed but pnpm's policy check blocks an unrelated validation, direct local binaries can be used for read-only verification.

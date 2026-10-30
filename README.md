@@ -470,6 +470,7 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 8. Historical planning and bug documents contain obsolete architecture claims.
 9. The contact form is `mailto:`-only and depends on the visitor having a configured mail client; it provides no delivery confirmation.
 10. The site has no analytics and no server-side form handling.
+11. The build fetches DM Sans from Google Fonts through `next/font/google`. A transient fetch failure can fail the build; the workflow retries the build up to three times. Self-hosting the font with `next/font/local` is the durable fix.
 
 ## Conventions
 

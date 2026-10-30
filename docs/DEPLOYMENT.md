@@ -12,6 +12,7 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 - **Both deploys are green.** The `develop` workflow built and deployed beta; the `main` workflow built and deployed production to `/data/sites/production`. The deployed build is about 14 MB.
 - **Beta is healthy.** `/` and `/tools/` return 200 and an unknown path returns 404. The five project images and the pdf.js worker are present.
 - **The first attempts were blocked by a GitHub incident.** GitHub Actions, Pages, and Webhooks were degraded from 2026-10-30 17:50 UTC. Queued jobs were marked failed without starting. The subsequent `develop` and `main` runs completed successfully.
+- **One `main` build failed on a transient Google Fonts fetch.** The error was `TypeError: Cannot read properties of null (reading '1')` in `next/font`. A retry succeeded. The workflow now retries the build up to three times.
 - **Production is not serving from the VPS yet.** `yashcodes.com` still resolves to `103.65.138.220`, and Caddy has no `yashcodes.com` block. The production files are deployed to `/data/sites/production`, but the domain cannot be served from the VPS until the DNS A record changes to `152.67.67.128`.
 - **The production Caddy block has been validated** with `caddy validate`, but it has not been added to the live Caddyfile.
 - **Deployment commits:** `d910548` (initial CI/CD), `e7570bc` (rsync ownership fix), and `415c12d` (documentation).
@@ -293,6 +294,18 @@ only directory timestamps fail.
 Check https://www.githubstatus.com/. GitHub Actions incidents can leave jobs
 queued for many minutes and then mark the run failed without starting a job.
 Retry with **Run workflow** after the incident clears.
+
+### `next/font` fails while fetching DM Sans
+
+The build fetches DM Sans from Google Fonts. A transient failure looks like:
+
+```text
+TypeError: Cannot read properties of null (reading '1')
+    at .../@next/font/dist/google/loader.js
+```
+
+The workflow retries the build up to three times. If it keeps failing, re-run
+the job or self-host the font with `next/font/local`.
 
 ### Caddy cannot issue a certificate for `yashcodes.com`
 
