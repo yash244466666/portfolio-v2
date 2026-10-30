@@ -515,7 +515,7 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 1. Next.js 15.2.4 is flagged by pnpm as a security-vulnerable release and should be upgraded through a tested dependency change.
 2. ESLint 9 cannot find a flat configuration; the current lint script is unusable.
 3. Next builds explicitly skip lint and TypeScript validation.
-4. `beta.yashcodes.com` still points at `152.67.67.128` (vps-1) and `yashcodes.com` still points at `103.65.138.220`. Deploys now target vps-2 (`140.238.208.16`), but both A records must change to `140.238.208.16` before Caddy can serve the sites and issue certificates.
+4. DNS caches may still point to the old hosts until the 300-second TTL expires. Both domains now target vps-2 (`140.238.208.16`) and Caddy has valid certificates.
 
 ### Product and quality
 
@@ -601,8 +601,8 @@ At the last documentation update (2026-10-31):
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
 - GitHub Actions runs passed for `develop` (beta) and `main` (production) on 2026-10-30; the first attempts were queued during a GitHub Actions incident.
-- The deployment target was switched to vps-2 on 2026-10-31. The vps-2 deploy user, directories, SSH key, and secrets are configured; both vps-2 deploy runs passed. The DNS cutover for `beta.yashcodes.com` and `yashcodes.com` is still pending.
-- The vps-2 Caddy blocks are staged in `/opt/stacks/caddy/Caddyfile.next` and validated; they are not applied until DNS points to vps-2.
+- The deployment target is vps-2. The vps-2 deploy user, directories, SSH key, and secrets are configured; both deploy runs passed, both A records now point to vps-2, and Caddy issued certificates on 2026-10-31.
+- The vps-2 Caddy blocks are applied in the live Caddyfile. The pre-cutover backup is `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; `/opt/stacks/caddy/Caddyfile.next` remains as the staged copy.
 
 These are observations, not permanent guarantees. Re-run relevant checks after changes.
 

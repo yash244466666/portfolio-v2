@@ -6,7 +6,7 @@ Personal portfolio site and a catalog of **87 browser-based developer utilities*
 - **Beta:** https://beta.yashcodes.com
 - **Repository:** https://github.com/yash244466666/portfolio-v2
 
-> **Deployment status (2026-10-31):** deploys target **vps-2** (`140.238.208.16`), and both vps-2 deploys are green. `develop` builds and deploys beta to `/opt/stacks/caddy/html/beta`; `main` builds and deploys production to `/opt/stacks/caddy/html/production`. Both domains still resolve to the old hosts; change the A records for `beta.yashcodes.com` and `yashcodes.com` to `140.238.208.16` to complete the cutover. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+> **Deployment status (2026-10-31):** live on **vps-2** (`140.238.208.16`). `develop` deploys beta to `/opt/stacks/caddy/html/beta`; `main` deploys production to `/opt/stacks/caddy/html/production`. Both A records now point to vps-2 and Caddy has issued HTTPS certificates. DNS caches may still route some clients to the old hosts until the 300-second TTL expires. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Contents
 
@@ -341,7 +341,7 @@ rsync -rlz --delete --delay-updates --chmod=D755,F644 \
   out/ "$VPS_USER@$VPS_HOST:/opt/stacks/caddy/html/<environment>/"
 ```
 
-Both deploy jobs verify the remote `index.html` on vps-2. The HTTPS checks are commented out until `beta.yashcodes.com` and `yashcodes.com` point to vps-2.
+Both deploy jobs verify the remote `index.html` on vps-2 and then request the public HTTPS URL.
 
 ### Required GitHub secrets
 
@@ -365,12 +365,14 @@ Caddy runs in Docker on vps-2. `/opt/stacks/caddy/html` is mounted read-only int
 
 ### Production cutover
 
-`beta.yashcodes.com` still points at `152.67.67.128` (vps-1), and `yashcodes.com` still points at `103.65.138.220`. To serve both from vps-2:
+The cutover was completed on 2026-10-31:
 
-1. Change the Dynadot A records for `beta.yashcodes.com` and `yashcodes.com` to `140.238.208.16` (TTL 300).
-2. Add the validated `beta.yashcodes.com` and `yashcodes.com` blocks from `docs/DEPLOYMENT.md` to `/opt/stacks/caddy/Caddyfile`.
-3. Validate and reload Caddy.
-4. Enable the HTTPS verification steps in the workflow.
+1. Both A records now point to `140.238.208.16` (TTL 300).
+2. The validated `beta.yashcodes.com` and `yashcodes.com` blocks are in `/opt/stacks/caddy/Caddyfile`.
+3. Caddy issued Let's Encrypt certificates for both domains.
+4. `/` and `/tools/` return 200 on both sites.
+
+The previous vps-1 deployment remains as a fallback. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact configuration and rollback steps.
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact Caddy block, one-time server setup, manual deploy commands, rollback, and verification.
 
@@ -456,7 +458,7 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 1. **Next.js 15.2.4 is flagged by pnpm as security-vulnerable.** Upgrade through a tested dependency change.
 2. **ESLint 9 has no flat configuration.** The current `next lint` script is unusable.
 3. **Next builds skip lint and TypeScript validation.** Run the standalone type check.
-4. **DNS cutover is pending.** `beta.yashcodes.com` still points at `152.67.67.128` (vps-1) and `yashcodes.com` at `103.65.138.220`. The vps-2 deployment is at `/opt/stacks/caddy/html/beta` and `/opt/stacks/caddy/html/production`; the Caddy blocks are validated but not active.
+4. **DNS caches can lag the cutover.** Both domains now target vps-2, but resolvers that cached the old A records may serve the old hosts until the 300-second TTL expires.
 
 ### Product and quality
 

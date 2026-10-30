@@ -110,9 +110,8 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
             "$VPS_USER@$VPS_HOST" 'test -s /opt/stacks/caddy/html/beta/index.html'
 
-      # Enable after beta.yashcodes.com points to vps-2 and Caddy has a cert:
-      # - name: Verify beta
-      #   run: curl -fsS --retry 6 --retry-delay 3 https://beta.yashcodes.com/ > /dev/null
+      - name: Verify beta
+        run: curl -fsS --retry 6 --retry-delay 3 https://beta.yashcodes.com/ > /dev/null
 
   deploy-production:
     name: Deploy production
@@ -151,7 +150,5 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
             "$VPS_USER@$VPS_HOST" 'test -s /opt/stacks/caddy/html/production/index.html'
 
-      # Enable after yashcodes.com has been pointed at this VPS and Caddy
-      # has issued its certificate:
-      # - name: Verify production
-      #   run: curl -fsS --retry 6 --retry-delay 3 https://yashcodes.com/ > /dev/null
+      - name: Verify production
+        run: curl -fsS --retry 6 --retry-delay 3 https://yashcodes.com/ > /dev/null

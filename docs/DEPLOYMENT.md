@@ -15,13 +15,16 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 - **The vps-2 deploy is green.** The `develop` and `main` runs completed
   successfully; `/opt/stacks/caddy/html/beta` and
   `/opt/stacks/caddy/html/production` each contain the 14 MB build.
-- **Traffic has not moved yet.** `beta.yashcodes.com` still resolves to
-  `152.67.67.128` (vps-1), and `yashcodes.com` still resolves to
-  `103.65.138.220` (the old host). The existing sites stay online until the
-  DNS records and Caddy blocks are switched.
-- **The vps-2 Caddy blocks are staged and validated** in
-  `/opt/stacks/caddy/Caddyfile.next`; they have not been applied to the live
-  `/opt/stacks/caddy/Caddyfile`.
+- **The cutover is complete.** Both A records now point to vps-2; the beta and
+  production blocks were applied to the live Caddyfile on 2026-10-31, and Caddy
+  issued Let's Encrypt certificates for both domains.
+- **Both sites are healthy on vps-2.** `/` and `/tools/` return 200; an unknown
+  path returns 404.
+- **DNS caches may lag.** The records use TTL 300, so resolvers that cached the
+  old IPs can serve the old hosts briefly.
+- **Backups:** the pre-cutover Caddyfile is
+  `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; the staged file remains
+  `/opt/stacks/caddy/Caddyfile.next`.
 - **vps-1 remains intact** with the previous build and Caddy configuration as
   a rollback fallback.
 - **History:** the first GitHub Actions attempts were blocked by a GitHub
@@ -69,8 +72,8 @@ The **production** deploy job runs only for `main` (push or manual):
 3. Rsyncs `out/` to `/opt/stacks/caddy/html/production/`.
 4. Verifies the remote `index.html` exists.
 
-The HTTPS checks are commented out until both domains point to vps-2 and
-Caddy has issued certificates. The remote file checks run in every deploy.
+The deploy jobs verify the remote `index.html` and then request the public
+HTTPS URL.
 
 The `environment:` keys create GitHub environments named `beta` and
 `production`. Add required reviewers under **Settings → Environments** if
@@ -218,30 +221,30 @@ curl -I https://yashcodes.com/tools/
 
 Expected: `/` and `/tools/` return 200, an unknown path returns 404.
 
-## DNS and Caddy cutover
+## DNS and Caddy cutover record (completed 2026-10-31)
 
-Both records currently point elsewhere:
+The cutover was completed on 2026-10-31. Both A records now point to
+`140.238.208.16` (vps-2). The previous values were `152.67.67.128` for
+`beta.yashcodes.com` and `103.65.138.220` for `yashcodes.com`.
 
-| Domain | Current | Target |
-|---|---|---|
-| `beta.yashcodes.com` | `152.67.67.128` (vps-1) | `140.238.208.16` (vps-2) |
-| `yashcodes.com` | `103.65.138.220` (old host) | `140.238.208.16` (vps-2) |
+The procedure below is the record and can be reused for a future move.
 
-### 1. Change DNS
+### 1. Change DNS (completed)
 
-In Dynadot, change both **A records** to `140.238.208.16` (TTL 300). Wait for
-propagation:
+The Dynadot **A records** were changed to `140.238.208.16` (TTL 300). DNS
+propagation was verified with:
 
 ```bash
 getent ahosts beta.yashcodes.com
 getent ahosts yashcodes.com
 ```
 
-### 2. Apply the staged Caddyfile
+### 2. Apply the staged Caddyfile (completed)
 
-The staged file `/opt/stacks/caddy/Caddyfile.next` contains the existing
+The staged file `/opt/stacks/caddy/Caddyfile.next` contained the existing
 `vps2.yashcodes.com` block plus the new `beta.yashcodes.com` and
-`yashcodes.com` blocks. It has been validated with `caddy validate`.
+`yashcodes.com` blocks. It was validated with `caddy validate` and then
+applied:
 
 ```bash
 cp /opt/stacks/caddy/Caddyfile /opt/stacks/caddy/Caddyfile.bak-$(date +%Y%m%d-%H%M%S)
@@ -249,6 +252,9 @@ cp /opt/stacks/caddy/Caddyfile.next /opt/stacks/caddy/Caddyfile
 docker exec caddy caddy validate --config /etc/caddy/Caddyfile
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
+
+The backup created during the cutover is
+`/opt/stacks/caddy/Caddyfile.bak-20261030-185633`.
 
 If editing the live file manually instead, add these blocks.
 
@@ -314,11 +320,10 @@ Caddy obtains the certificates automatically once DNS points to vps-2.
 Do not add these blocks before DNS points to vps-2, because repeated ACME
 failures can hit rate limits.
 
-### 3. Enable the HTTPS checks
+### 3. Enable the HTTPS checks (completed)
 
-Uncomment the `Verify beta` and `Verify production` steps in
-`.github/workflows/deploy.yml`, then push a commit or run the workflow
-manually.
+The `Verify beta` and `Verify production` steps are enabled in
+`.github/workflows/deploy.yml`.
 
 ### 4. Verify
 
