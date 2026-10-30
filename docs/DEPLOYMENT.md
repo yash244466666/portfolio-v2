@@ -109,7 +109,8 @@ the older artifact and sync it manually:
 
 ```bash
 gh run download <run-id> -n site -D /tmp/site
-rsync -az --delete --delay-updates -e "ssh -i ~/.ssh/portfolio-v2-deploy" \
+rsync -rlz --delete --delay-updates --chmod=D755,F644 \
+  -e "ssh -i ~/.ssh/portfolio-v2-deploy" \
   /tmp/site/ deploy@152.67.67.128:/data/sites/beta/
 ```
 

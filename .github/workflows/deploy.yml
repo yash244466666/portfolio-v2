@@ -93,7 +93,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
-          rsync -az --delete --delay-updates \
+          rsync -rlz --delete --delay-updates --chmod=D755,F644 \
             -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
             out/ "$VPS_USER@$VPS_HOST:/data/sites/beta/"
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
@@ -133,7 +133,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
-          rsync -az --delete --delay-updates \
+          rsync -rlz --delete --delay-updates --chmod=D755,F644 \
             -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
             out/ "$VPS_USER@$VPS_HOST:/data/sites/production/"
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
