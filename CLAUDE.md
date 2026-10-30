@@ -1,856 +1,623 @@
-# AGENT.md — Portfolio v2 Codebase Reference
-
-> **Last updated:** 2026-04-25
-> **Purpose:** Definitive context document for any AI agent working on this codebase.
-> This file describes the full architecture, every component, all animation systems, hooks, utilities, content management, tools section implementation, and known issues.
-
----
-
-## Table of Contents
-
-1. [Project Overview](#1-project-overview)
-2. [Tech Stack & Dependencies](#2-tech-stack--dependencies)
-3. [Project Structure](#3-project-structure)
-4. [Application Architecture](#4-application-architecture)
-5. [Page Lifecycle & Loading Flow](#5-page-lifecycle--loading-flow)
-6. [Component Reference](#6-component-reference)
-7. [Tools Implementation (/tools)](#7-tools-implementation-tools)
-8. [Animation Systems — Complete Guide](#8-animation-systems--complete-guide)
-9. [3D Background System (Three.js)](#9-3d-background-system-threejs)
-10. [Custom Hooks](#10-custom-hooks)
-11. [Telemetry & Instrumentation System](#11-telemetry--instrumentation-system)
-12. [Content Management System](#12-content-management-system)
-13. [Styling Architecture](#13-styling-architecture)
-14. [Build & Configuration](#14-build--configuration)
-15. [Known Issues & TODOs](#15-known-issues--todos)
-16. [Coding Conventions](#16-coding-conventions)
-17. [Development Workflow](#17-development-workflow)
-
----
-
-## 1. Project Overview
-
-This is **Yash Sikdar's** personal portfolio website — a dark-themed, animation-heavy, single-page application built with Next.js 15. The site features:
-
-- A **full-screen 3D animated hexagonal grid background** rendered with Three.js (`@react-three/fiber` + `@react-three/drei`)
-- A **loading screen** with animated progress bar
-- A **hero section** with cycling typewriter animation
-- **Skills/About section** with fade-in card animations and a secondary Three.js canvas
-- **Projects section** with image cards, staggered entry animations, and a secondary Three.js canvas
-- **Contact section** with a form and contact info cards, currently with a `mailto:` client-side fallback
-- A dedicated **Tools Section (/tools)** featuring 86 client-side developer utilities
-- **Custom mouse cursor** system (currently commented out / disabled)
-- **Floating 3D shapes** in About and Projects backgrounds (currently commented out)
-- A comprehensive **telemetry/instrumentation system** that wraps every component
-
-The main page is a single `"use client"` component tree (no SSR for the main page). The 3D background is dynamically imported with `next/dynamic` and `ssr: false`.
-
----
-
-## 2. Tech Stack & Dependencies
-
-### Core
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `next` | 15.2.4 | Framework (App Router) |
-| `react` / `react-dom` | ^19 | UI library |
-| `typescript` | ^5 | Language |
-| `tailwindcss` | ^4.1.9 | Styling (v4, uses `@import "tailwindcss"` syntax) |
-
-### 3D / Animation
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `three` | ^0.179.1 | 3D rendering engine |
-| `@react-three/fiber` | ^9.3.0 | React renderer for Three.js |
-| `@react-three/drei` | ^10.7.4 | Helpers/abstractions for R3F (Float, Box, MeshDistortMaterial, etc.) |
-| `tw-animate-css` | 1.3.3 | Tailwind animation utilities |
-
-### UI Components
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `@radix-ui/react-slot` | 1.1.1 | Slot composition for shadcn/ui Button |
-| `class-variance-authority` | ^0.7.1 | Button variant definitions |
-| `clsx` + `tailwind-merge` | latest | Utility class merging |
-| `lucide-react` | ^0.454.0 | Icon library |
-
-### Dev
-
-| Package | Purpose |
-|---------|---------|
-| `@tailwindcss/postcss` | PostCSS plugin for Tailwind v4 |
-| `eslint` + `eslint-config-next` | Linting |
-| `@types/three` | Three.js type definitions |
-
-### Package Manager
-
-- **pnpm** (lockfile: `pnpm-lock.yaml`)
-
----
-
-## 3. Project Structure
-
-```
-portfolio-v2/
-├── app/
-│   ├── globals.css              # Main CSS: Tailwind imports, CSS variables, animation keyframes, utility classes
-│   ├── layout.tsx               # Root layout: DM Sans font, dark mode, metadata
-│   ├── page.tsx                 # Single "use client" page: loading → main content orchestration
-│   └── tools/                   # Tools Page Route
-│       └── page.tsx             # Rendering ToolsPage wrapped with layout components
-│
-├── components/
-│   ├── background.tsx           # Smooth3DBackground: Three.js Canvas wrapper with mouse/touch tracking
-│   ├── background/
-│   │   ├── constants.ts         # GRID_CONFIG, COLOR_PALETTES, ENABLE_COLOR_CHANGE_ON_CLICK
-│   │   ├── interaction-state.ts # Shared mutable state: globalMouse, clickWave, mobileState
-│   │   ├── hexagonal-grid.tsx   # HexagonalGrid + HexagonalInstancedMesh (900 hex tubes, per-frame animation)
-│   │   ├── dynamic-lights.tsx   # DynamicLights: 2 point lights that follow mouse + click wave decay
-│   │   └── background-fallback.tsx # Static gradient fallback for SSR/no-canvas
-│   │
-│   ├── hero-section.tsx         # Hero orchestrator: visibility state, typewriter, scroll-to
-│   ├── hero-section/
-│   │   ├── hero-heading.tsx     # "Hi, I'm" + name with fade-in-up
-│   │   ├── hero-typewriter-title.tsx # Gradient title with blinking cursor
-│   │   ├── hero-description.tsx # Tagline paragraph with delayed fade-in-up
-│   │   ├── hero-actions.tsx     # "View My Work" / "Let's Talk" buttons with gradient + scale
-│   │   ├── hero-social-links.tsx # Social icon row with hover scale
-│   │   └── scroll-indicator.tsx # Bouncing down arrow
-│   │
-│   ├── about-section.tsx        # About orchestrator: visibility, canvas toggle, skills grid
-│   ├── about-section/
-│   │   ├── about-background.tsx # Canvas with ambient+point light (FloatingCubes commented out)
-│   │   ├── about-section-header.tsx # "About Me" heading + description with fade-in-up
-│   │   ├── skills-grid.tsx      # 3-column responsive grid of SkillCards
-│   │   ├── skill-card.tsx       # Card with icon, title, description — staggered fade-in-up
-│   │   ├── skill-icon.tsx       # Maps icon string name → Lucide component
-│   │   └── floating-cubes.tsx   # [COMMENTED OUT] Float + Box + MeshDistortMaterial cubes
-│   │
-│   ├── projects-section.tsx     # Projects orchestrator
-│   ├── projects-section/
-│   │   ├── projects-background.tsx # Canvas (FloatingShapes commented out)
-│   │   ├── projects-section-header.tsx # "Featured Projects" heading
-│   │   ├── projects-grid.tsx    # 3-column responsive grid of ProjectCards
-│   │   ├── project-card.tsx     # Image card with tech tags, Code/Live Demo buttons, hover lift
-│   │   └── floating-shapes.tsx  # [COMMENTED OUT] Float + Octahedron shapes
-│   │
-│   ├── contact-section.tsx      # Contact orchestrator with form state
-│   ├── contact-section/
-│   │   ├── contact-section-header.tsx # "Let's Work Together" heading
-│   │   ├── contact-form-card.tsx     # Form card with name/email/message + slide-in-left
-│   │   ├── contact-info-list.tsx     # Info cards wrapper with fade-in-up
-│   │   └── contact-info-item.tsx     # Individual email/phone/location row with icon
-│   │
-│   ├── navigation.tsx           # Navigation orchestrator: scroll detection, mobile menu
-│   ├── navigation/
-│   │   ├── desktop-nav-links.tsx    # Horizontal nav links (hidden on mobile)
-│   │   ├── mobile-nav.tsx           # Vertical mobile menu (conditionally rendered)
-│   │   ├── navigation-actions.tsx   # "Get In Touch" button (hidden on mobile)
-│   │   └── navigation-toggle.tsx    # Hamburger/X toggle button
-│   │
-│   ├── loading-screen.tsx       # Loading screen: spinner + progress bar + fade out
-│   ├── back-to-top.tsx          # Floating button: appears on scroll > 300px
-│   ├── footer.tsx               # Footer with name, social links, copyright
-│   ├── mouse-cursor.tsx         # [COMMENTED OUT] Custom cursor orchestrator
-│   ├── mouse-cursor/
-│   │   ├── cursor-dot.tsx       # [COMMENTED OUT] Small gradient dot
-│   │   ├── cursor-outer.tsx     # [COMMENTED OUT] Spinning ring
-│   │   └── cursor-trail.tsx     # [COMMENTED OUT] Blurred trail
-│   │
-│   ├── tools/                   # Tools Page Components
-│   │   ├── tools-page.tsx       # Orchestrator handling hash routing and tool selection state
-│   │   ├── tools-grid.tsx       # Render grid of tools, category filter and search bar
-│   │   ├── tool-card.tsx        # Individual interactive card representing a specific tool
-│   │   └── tool-view.tsx        # Dynamic renderer for the specific tool content
-│   │
-│   └── ui/                      # shadcn/ui primitives
-│       ├── button.tsx           # Button with CVA variants
-│       ├── card.tsx             # Card, CardHeader, CardContent, etc.
-│       ├── input.tsx            # Styled input
-│       └── textarea.tsx         # Styled textarea
-│
-├── hooks/
-│   ├── use-cycling-typewriter.ts   # Typewriter effect: type → pause → delete → next phrase
-│   ├── use-section-visibility.ts   # IntersectionObserver-based section visibility
-│   ├── use-scroll-threshold.ts     # Boolean: has user scrolled past N pixels
-│   ├── use-should-render-canvas.ts # Should Three.js canvases render (screen size + reduced motion)
-│   ├── use-mobile.ts               # Simple mobile breakpoint detection
-│   ├── use-instrumentation.ts      # useComponentInstrumentation, useFrameInstrumentation, instrumentComponent
-│   └── use-custom-cursor.ts        # [COMMENTED OUT] Custom cursor tracking + animation loop
-│
-├── lib/
-│   ├── utils.ts                 # cn() utility (clsx + tailwind-merge)
-│   ├── instrumentation.ts       # Core telemetry: logComponentEvent, logRenderCycle, recordMetric, etc.
-│   ├── react-telemetry.ts       # Auto-patches React.createElement for global telemetry
-│   └── content/
-│       ├── types.ts             # TypeScript interfaces for all content
-│       ├── index.ts             # All portfolio content data (personalInfo, projects, skills, etc.)
-│       ├── utils.ts             # Getter functions, search, filter, validation, stats
-│       └── tools/               # Tool specific content logic
-│           ├── types.ts         # Tool definition types
-│           └── utils.ts         # Tool querying and filtering functions
-│
-├── public/                      # Static assets (project images, favicons)
-├── components.json              # shadcn/ui configuration (new-york style, neutral base)
-├── next.config.mjs              # Static export mode, unoptimized images
-├── tsconfig.json                # ES6 target, bundler module resolution, @/* path alias
-├── postcss.config.mjs           # PostCSS with @tailwindcss/postcss
-└── package.json                 # pnpm, scripts: dev/build/export/lint/start
-```
-
----
-
-## 4. Application Architecture
-
-### Rendering Strategy
-
-- **Static Export mode:** `output: 'export'` in `next.config.mjs` — the site builds to static HTML/JS/CSS in `out/` directory
-- **Client-only rendering:** The entire `page.tsx` is `"use client"` — no server components
-- **Dynamic import for 3D:** `Smooth3DBackground` is loaded via `next/dynamic` with `ssr: false`
-
-### State Management
-
-- No external state library (no Redux, Zustand, etc.)
-- All state is local React state (`useState`)
-- Shared mutable state for 3D interactions lives in `background/interaction-state.ts` (plain objects, not React state — this is intentional for per-frame Three.js performance)
-- **Hash Routing State (`/tools`)**: The tools page utilizes browser's `hashchange` and `popstate` events simultaneously combined with React `useState` to maintain navigation without page reloads.
-
-### Data Flow
-
-```
-lib/content/index.ts  (static data)
-       ↓
-lib/content/utils.ts  (getter functions)
-       ↓
-Components call getPersonalInfo(), getSkills(), getProjects(), etc.
-```
-
-All content is hardcoded in `lib/content/index.ts` and `lib/content/tools/`. There is no backend, no CMS, no API calls.
-
----
-
-## 5. Page Lifecycle & Loading Flow
-
-```
-1. Browser loads page
-2. React mounts <Home /> (page.tsx)
-3. mounted = false → renders <LoadingScreen /> only
-4. useEffect sets mounted = true
-5. Re-render: Shows <LoadingScreen /> + <Smooth3DBackground /> (dynamic import starts)
-6. LoadingScreen runs a progress counter (0→100 over ~2.5s)
-7. After 2.5s timeout: setIsLoading(false) → LoadingScreen fades out
-8. After 300ms delay: onComplete() fires → loadingComplete = true
-9. Main content fades in: Navigation, Hero, About, Projects, Contact, Footer, BackToTop
-10. HeroSection: becomes visible after 200ms delay, typewriter starts after 800ms
-11. About/Projects/Contact: become visible when scrolled into viewport (IntersectionObserver)
-```
-
----
-
-## 6. Component Reference
-
-### Top-Level Components (rendered in page.tsx)
-
-| Component | File | Purpose |
-|-----------|------|---------|
-| `LoadingScreen` | `components/loading-screen.tsx` | Animated loading with spinner + progress bar. Auto-completes after 2.5s. |
-| `Smooth3DBackground` | `components/background.tsx` | Fixed full-screen Three.js canvas with hexagonal grid. Dynamically imported. |
-| `Navigation` | `components/navigation.tsx` | Fixed top nav bar. Transparent → blurred on scroll. Mobile hamburger menu. |
-| `HeroSection` | `components/hero-section.tsx` | Full-viewport hero with greeting, name, typewriter title, CTA buttons, social links, scroll indicator. |
-| `AboutSection` | `components/about-section.tsx` | Skills grid with section visibility trigger. Optional Three.js background canvas. |
-| `ProjectsSection` | `components/projects-section.tsx` | Project cards grid with section visibility trigger. Optional Three.js background canvas. |
-| `ContactSection` | `components/contact-section.tsx` | Contact form + info list with section visibility trigger. |
-| `Footer` | `components/footer.tsx` | Name, title, social links, copyright. |
-| `BackToTop` | `components/back-to-top.tsx` | Floating button (bottom-right) that appears when scrolled > 300px. |
-
-### Disabled/Commented-Out Components
-
-| Component | File | Status |
-|-----------|------|--------|
-| `MouseCursor` | `components/mouse-cursor.tsx` | Fully commented out. Was a custom cursor with dot, outer ring, and trail. Import commented out in `page.tsx`. |
-| `FloatingCubes` | `components/about-section/floating-cubes.tsx` | Fully commented out. Was `@react-three/drei` Float + Box + MeshDistortMaterial. Import commented out in `about-background.tsx`. |
-| `FloatingShapes` | `components/projects-section/floating-shapes.tsx` | Fully commented out. Was `@react-three/drei` Float + Octahedron + MeshDistortMaterial. Import commented out in `projects-background.tsx`. |
-
----
-
-## 7. Tools Implementation (/tools)
-
-The `/tools/` route serves as a comprehensive developer utilities suite featuring 86 distinct tools.
-
-### Architecture
-
-1. **`ToolsPage` (`components/tools/tools-page.tsx`)**: Orchestrator for the tools section.
-   - Listens to both `hashchange` and `popstate` to manage deep-linking (e.g. `/#pdf-converter`).
-   - Uses `history.pushState(null, "", window.location.pathname)` to clear the hash safely and seamlessly transition backwards to the grid without jumping to the top of the page.
-2. **`ToolsGrid` (`components/tools/tools-grid.tsx`)**: Grid rendering logic.
-   - Includes full-text search capability against tool names/descriptions.
-   - Includes category filtering (Core, Dev, Text, Media, Security, Math).
-   - Utilizes `animate-fade-in-up` to reveal tool cards iteratively.
-3. **`ToolCard` (`components/tools/tool-card.tsx`)**: Presentation of each individual utility. 
-   - Dynamically mapped with specific lucide icons and designated category colors.
-4. **`ToolView` (`components/tools/tool-view.tsx`)**: The dynamic wrapper that renders the actual tool content once selected.
-
-### Scale
-- Contains **86 standalone tool files** (e.g. PDF Converter, Markdown Preview, Text Diff, URL Encoder, SVG Optimizer, etc.)
-- Tools run 100% on the client side using robust Javascript implementations, avoiding any backend data transmission.
-
----
-
-## 8. Animation Systems — Complete Guide
-
-This codebase has **five distinct animation systems**. Understanding each is critical.
-
-### 8.1. CSS Keyframe Animations (globals.css)
-
-Defined in `app/globals.css`, these are the primary entry/reveal animations:
-
-| Keyframe | Class | Duration | Description |
-|----------|-------|----------|-------------|
-| `fadeInUp` | `.animate-fade-in-up` | 0.8s ease-out | Translate from Y+30px to Y0, opacity 0→1. Used by almost all section headers, cards, hero elements. |
-| `fadeIn` | `.animate-fade-in` | 0.6s ease-out | Simple opacity 0→1. Used by scroll indicator. |
-| `slideInLeft` | `.animate-slide-in-left` | 0.8s ease-out | Translate from X-30px to X0, opacity 0→1. Used by contact form card. |
-| `glow` | `.animate-glow` | 3s infinite | Purple box-shadow pulse. Available but not actively used in current state. |
-| `float` | `.animate-float` | 4s infinite | Y-axis bob ±10px. Used by CSS particles (if enabled). |
-| `pulse-glow` | `.animate-pulse-glow` | 2s infinite | Scale 1→1.05 + opacity 0.4→0.8. Available but not actively used. |
-
-**How entry animations are triggered:** Components accept an `isVisible` prop. When `false`, they have class `opacity-0`. When `true`, they get `animate-fade-in-up` (or similar). The `transition-all duration-1000` class on the wrapper provides the initial transition. The CSS animation then plays with `forwards` fill mode.
-
-**Staggered animations:** Cards use `animationDelay` via inline `style={{ animationDelay: '${index * 200}ms' }}`. Each card in a grid appears 200ms after the previous one.
-
-### 8.2. CSS Transition Animations
-
-These are hover/interaction micro-animations defined in `globals.css`:
-
-| Target | Effect |
-|--------|--------|
-| `.interactive-element:hover` | translateY(-2px) + purple box-shadow |
-| `.btn-primary` | Gradient background, shimmer pseudo-element sweep on hover, translateY(-3px) + scale(1.02) |
-| `.btn-primary:active` | translateY(-1px) + scale(0.98) quick snap |
-| All `button` / `.cursor-pointer` | translateY(-2px) on hover, scale(0.95) on active |
-| `.glow-on-hover:hover` | Blue box-shadow + border glow |
-| `nav a` / `.nav-link` | Underline expands from 0→100% width on hover (gradient line) |
-| `nav a:hover` | Color shift to blue-400 + translateY(-1px) |
-
-### 8.3. Tailwind Utility Animations
-
-From `tw-animate-css` and Tailwind's built-in utilities:
-
-| Class | Usage |
-|-------|-------|
-| `animate-spin` | Loading spinner border rotation |
-| `animate-pulse` | Typewriter cursor blink, cursor dot pulse |
-| `animate-bounce` | Scroll indicator arrow |
-
-### 8.4. Inline/Component Transition Animations
-
-Several components use Tailwind `transition-*` classes for programmatic animations:
-
-| Component | Animation |
-|-----------|-----------|
-| `Navigation` | `transition-all duration-300` — bg transparent → blurred on scroll |
-| `BackToTop` | `transition-all duration-300 ease-in-out` — opacity/translateY on scroll threshold |
-| `SkillCard` / `ProjectCard` | `transition-all duration-300 hover:-translate-y-2` — lift on hover |
-| `ProjectCard` image | `transition-transform duration-300 group-hover:scale-105` — zoom on hover |
-| Hero buttons | `transition-all transform hover:scale-105` — scale on hover |
-
-### 8.5. Three.js Per-Frame Animations (requestAnimationFrame)
-
-The most complex animation system. Runs at display refresh rate (~60fps). See [Section 9](#9-3d-background-system-threejs) for full details.
-
-| Animation | Location | Description |
-|-----------|----------|-------------|
-| Hexagonal grid depth wave | `hexagonal-grid.tsx` | Each hex instance oscillates Z-position using `sin(phase + time)` |
-| Mouse proximity effect | `hexagonal-grid.tsx` | Hexes near cursor position get pushed forward (Z-axis) with smooth hermite interpolation |
-| Grid tilt | `hexagonal-grid.tsx` | Entire grid tilts based on mouse position via `lerp` |
-| Dynamic lights follow mouse | `dynamic-lights.tsx` | Two point lights track mouse position in world space |
-| Click wave decay | `dynamic-lights.tsx` | On click, intensity starts at 1.0 and decays by 0.95× per frame until < 0.01 |
-| Color transition | `hexagonal-grid.tsx` | On click, all hex colors interpolate from current→random palette over ~50 frames |
-| Responsive scaling | `hexagonal-grid.tsx` | Grid group scales based on viewport aspect ratio |
-
----
-
-## 9. 3D Background System (Three.js)
-
-### Architecture
-
-```
-Smooth3DBackground (background.tsx)
-├── Registers mouse/touch event listeners on window
-├── Updates shared mutable state (globalMouse, clickWave)
-├── <Canvas> (camera at Z=100, FOV=50, DPR capped at 1.5)
-│   ├── <DynamicLights />
-│   │   ├── ambientLight (intensity 0.3)
-│   │   ├── pointLight #1 (white, intensity 1000, follows mouse)
-│   │   └── pointLight #2 (red, intensity 500, follows mouse at Z=-20)
-│   └── <HexagonalGrid />
-│       └── <group> (scales based on viewport)
-│           └── <HexagonalInstancedMesh />
-│               └── <instancedMesh> (900 instances, physical material)
-```
-
-### Configuration Constants (`background/constants.ts`)
-
-```typescript
-GRID_CONFIG = {
-  n: 30,              // Grid is 30×30 = 900 hexagon instances
-  radius: 2.5,        // Hex radius in world units
-  colors: [0x0066ff, 0x33ccff, 0xffffff],  // Default palette (blue, cyan, white)
-  lightIntensity1: 1000,
-  lightIntensity2: 500,
-  timeCoef: 1,         // Speed of sine wave animation
-  depthScale: 1,       // Mouse proximity push depth
-  metalness: 0.8,      // Material metalness
-  roughness: 0.5,
-  clearcoat: 1,        // Clearcoat for gloss
-  clearcoatRoughness: 0.1,
-}
-```
-
-### Color Palettes
-
-7 palettes that rotate randomly on click:
-1. Blue + Cyan + White (default)
-2. Gray tones
-3. Dark gray tones
-4. Near-black tones
-5. Light blue tones
-6. Purple + Violet
-7. Teal + Mint
-
-### Hexagonal Geometry
-
-- Created via `THREE.LatheGeometry` with 6 segments → hexagonal cross-section
-- Has rounded corners (cornerRadius = 0.15 × radius, 8 samples)
-- Height = radius × 5 = 12.5 world units
-- Uses `THREE.DoubleSide` rendering
-- Material: `MeshPhysicalMaterial` with vertex colors
-
-### Shared Mutable State (`background/interaction-state.ts`)
-
-```typescript
-globalMouse = { x: 0, y: 0 }        // Normalized device coordinates (-1 to 1)
-clickWave = { active: false, intensity: 0, decay: 0.95 }
-mobileState = { isMobileDevice: false }
-```
-
-These are **NOT** React state — they are plain objects mutated directly for per-frame performance. React state would cause re-renders on every mouse move.
-
-### Event Handling
-
-- **Desktop:** `mousemove` → update `globalMouse`; `click` → trigger `clickWave` + color/light randomization
-- **Mobile:** `touchstart` → trigger `clickWave` + randomization; `touchmove` → update `globalMouse`
-- Event listeners are added/removed in `useEffect` cleanup based on `mobileState.isMobileDevice`
-
-### Performance Considerations
-
-- DPR capped at 1.5 (`Math.min(window.devicePixelRatio, 1.5)`)
-- `useShouldRenderCanvas()` disables section canvases on screens < 768px or when `prefers-reduced-motion: reduce`
-- `InstancedMesh` is used for the grid (single draw call for 900 hexes)
-- `DynamicDrawUsage` on the color buffer attribute
-- Canvas is in a `pointer-events-none` div so it doesn't intercept clicks meant for UI
-
----
-
-## 10. Custom Hooks
-
-### `useCyclingTypewriter(phrases, options)`
-
-**File:** `hooks/use-cycling-typewriter.ts`
-
-Cycles through an array of phrases with a typewriter effect.
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `typingSpeed` | 80ms | Interval between each character typed |
-| `deletingSpeed` | 50ms | Interval between each character deleted |
-| `pauseDuration` | 2000ms | Pause after a phrase is fully typed before deleting |
-| `startDelay` | 0ms | Delay before starting the first phrase |
-
-**Returns:** `string` — the currently displayed text (partial phrase being typed or deleted).
-
-**State machine:** Type forward → pause → delete backward → move to next phrase → repeat.
-
-### `useSectionVisibility<T>(options)`
-
-**File:** `hooks/use-section-visibility.ts`
-
-Uses `IntersectionObserver` to detect when a section scrolls into view.
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `threshold` | 0.25 | How much of element must be visible (0–1) |
-| `rootMargin` | "0px" | Observer root margin |
-| `once` | true | Disconnect after first visibility (animation plays once) |
-| `fallbackVisible` | true | Fallback when IntersectionObserver unavailable |
-| `shouldSkip` | undefined | Predicate to skip observer (e.g., reduced motion, mobile) |
-
-**Returns:** `{ sectionRef: RefObject<T>, isVisible: boolean }`
-
-Used by `AboutSection`, `ProjectsSection`, `ContactSection` to trigger fade-in animations when scrolled into view.
-
-### `useScrollThreshold(threshold)`
-
-**File:** `hooks/use-scroll-threshold.ts`
-
-Simple boolean: has the user scrolled past `threshold` pixels (default: 50).
-
-**Returns:** `boolean`
-
-Used by `Navigation` to toggle between transparent and glass-morphism backgrounds.
-
-### `useShouldRenderCanvas(options)`
-
-**File:** `hooks/use-should-render-canvas.ts`
-
-Determines whether Three.js canvases should render.
-
-**Logic:** Returns `false` if screen width < 768px OR `prefers-reduced-motion: reduce` is set. Listens for media query changes.
-
-**Returns:** `boolean`
-
-Used by `AboutSection` and `ProjectsSection` to conditionally render their background canvases.
-
-### `useIsMobile()`
-
-**File:** `hooks/use-mobile.ts`
-
-Simple mobile breakpoint (< 768px) detection via `matchMedia`.
-
-**Returns:** `boolean`
-
-### `useCustomCursor()` — COMMENTED OUT
-
-**File:** `hooks/use-custom-cursor.ts`
-
-Would provide a custom animated cursor with dot, outer ring, and trail layers. Uses `requestAnimationFrame` for smooth tracking with easing. Detects interactive elements for hover scaling. Hides the native cursor via injected `<style>`. Respects reduced motion.
-
-### `useComponentInstrumentation(componentName, options)`
-
-**File:** `hooks/use-instrumentation.ts`
-
-Comprehensive instrumentation hook. See [Section 11](#11-telemetry--instrumentation-system).
-
-### `useFrameInstrumentation(componentName, callback, options)`
-
-**File:** `hooks/use-instrumentation.ts`
-
-Wraps a Three.js `useFrame` callback with duration tracking and metric recording. See [Section 11](#11-telemetry--instrumentation-system).
-
----
-
-## 11. Telemetry & Instrumentation System
-
-This codebase has an **extensive custom telemetry system**. It is important to understand because it adds significant code to every component.
-
-### Overview
-
-Every component in the app is instrumented in two ways:
-
-1. **Manual instrumentation** via `useComponentInstrumentation()` hook — used in all major components
-2. **Automatic instrumentation** via patched `React.createElement` in `lib/react-telemetry.ts` — wraps components NOT manually instrumented
-
-### Control
-
-- Telemetry is **OFF by default** unless `NEXT_PUBLIC_ENABLE_LOGS=true` env var is set
-- Can be toggled at runtime: `window.__PORTFOLIO_TELEMETRY__.enable()` / `.disable()` / `.toggle()`
-- Persisted in `localStorage` key `portfolio:telemetry:enabled`
-
-### What Gets Logged
-
-| Event | Description |
-|-------|-------------|
-| `mount` | Component mounted (with props snapshot) |
-| `unmount` | Component unmounted |
-| `render` | Every render cycle (duration, render count, state/props/metrics snapshots) |
-| `value-change` | Tracked values changed between renders (diff logged) |
-| Custom events | `scroll-to`, `navigate`, `form-submit`, `form-change`, `toggle-mobile`, `click-wave-complete`, `color-transition-complete`, `randomize-colors`, `randomize-lights`, `device-detected`, `pointer-move`, `pointer-click`, `touch-start`, `touch-move`, `progress-update`, `scroll-to-top`, etc. |
-| Frame metrics | Per-frame duration and interval for Three.js animation loops |
-
-### Throttling
-
-All log events are throttled (default 1200ms). Each event type has a configurable `throttleMs`. High-frequency events like pointer moves use 4800ms throttle.
-
-### Metric Buffering
-
-`recordMetric()` buffers values and only logs aggregated stats (average, min, max) when either:
-- `sampleSize` (default 45) samples collected, OR
-- `throttleMs` elapsed since last log AND buffer has data
-
-### React.createElement Monkey-Patch (`react-telemetry.ts`)
-
-This file patches `React.createElement` to automatically wrap any un-instrumented function component with telemetry. It:
-- Checks a `manualNameOverrides` set to skip already-instrumented components
-- Uses a `WeakMap` cache to avoid re-wrapping
-- Creates a `Telemetry(ComponentName)` wrapper that calls `useComponentInstrumentation`
-- Sets a `__IS_TELEMETRY_WRAPPED__` flag to prevent double-wrapping
-
-**Important:** This is imported at the top of `page.tsx` as a side effect: `import "@/lib/react-telemetry"`
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `lib/instrumentation.ts` | Core logging engine: `logComponentEvent`, `logRenderCycle`, `recordMetric`, `createDurationTracker`, `trackMutation` |
-| `lib/react-telemetry.ts` | Auto-patches `React.createElement` for global telemetry |
-| `hooks/use-instrumentation.ts` | React hooks: `useComponentInstrumentation`, `useFrameInstrumentation`, `instrumentComponent` HOC |
-
----
-
-## 12. Content Management System
-
-All website content is centralized in `lib/content/`:
-
-### `lib/content/types.ts`
-
-TypeScript interfaces for all content shapes:
-- `PersonalInfo`, `SocialLink`, `ContactInfo`, `Project`, `Skill`
-- `SectionContent`, `FormContent`, `ButtonTexts`, `FooterContent`
-- `SiteMetadata`, `ContentValidation`
-
-### `lib/content/index.ts`
-
-Contains all actual content data as exported constants:
-
-| Export | Type | Description |
-|--------|------|-------------|
-| `personalInfo` | `PersonalInfo` | Name, full name, title, greeting, typing titles, tagline, about description, contact availability |
-| `socialLinks` | `SocialLink[]` | GitHub, LinkedIn, Twitter, Email, + a "testing" entry |
-| `contactInfo` | `ContactInfo[]` | Email, Phone, Location |
-| `skills` | `Skill[]` | 9 skills (6 real + 3 "Testing" placeholders) |
-| `projects` | `Project[]` | 7 projects (6 real + 1 "Testing" placeholder) |
-| `navigationItems` | `NavigationItem[]` | About, Projects, Contact, + a "Testing" entry |
-| `buttonTexts` | `ButtonTexts` | All button labels |
-| `sectionContent` | `SectionContent` | Section headings and descriptions |
-| `formContent` | `FormContent` | Form placeholders and labels |
-| `footerContent` | `FooterContent` | Copyright text |
-| `siteMetadata` | `SiteMetadata` | SEO metadata |
-
-### `lib/content/utils.ts`
-
-Getter functions, search/filter utilities, validation:
-- `getPersonalInfo()`, `getSocialLinks()`, `getProjects()`, `getSkills()`, etc.
-- `getProjectsByTech(tech)` — filter projects by technology
-- `getIncompleteProjects()` — find projects with `#` placeholder links
-- `validateSocialLinks()` — check for invalid URLs
-- `getContentStats()` — content completeness statistics
-
----
-
-## 13. Styling Architecture
-
-### CSS Framework
-
-- **Tailwind CSS v4** with `@import "tailwindcss"` syntax (not PostCSS directives)
-- **tw-animate-css** for animation utility classes
-- **shadcn/ui** (new-york style) for base components
-
-### Theme System
-
-- **Dark mode only** — `<html>` has `class="dark"` hardcoded in `layout.tsx`
-- CSS custom properties defined in both `:root` and `.dark` selectors using `oklch` color space
-- Mapped to Tailwind via `@theme inline { ... }` block
-- Color tokens: `--background`, `--foreground`, `--card`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--chart-1` through `--chart-5`, `--sidebar-*`
-
-### Key Color Values (Dark Mode)
-
-| Token | Value | Visual |
-|-------|-------|--------|
-| `--background` | `oklch(0.145 0 0)` | Near-black (#1a1a1a) |
-| `--foreground` | `oklch(0.985 0 0)` | Near-white |
-| `--card` | `oklch(0.145 0 0)` | Same as background |
-| `--border` | `oklch(0.269 0 0)` | Dark gray |
-| `--muted-foreground` | `oklch(0.708 0 0)` | Medium gray |
-
-### Gradient System
-
-Key gradients used throughout:
-- **Hero buttons:** `from-purple-600 to-cyan-600` (primary CTA), `from-purple-400 to-cyan-400` (typewriter text)
-- **Loading bar:** `from-purple-500 to-cyan-400`
-- **Back to top:** `from-blue-600 to-cyan-600`
-- **CSS buttons:** `linear-gradient(135deg, #3b82f6, #06b6d4)` (blue-cyan)
-- **Nav underline:** `linear-gradient(90deg, #3b82f6, #06b6d4)` (blue-cyan)
-
----
-
-## 14. Build & Configuration
-
-### `next.config.mjs`
-
-```javascript
-{
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
-  images: { unoptimized: true },
-  output: 'export',          // Static HTML export
-  trailingSlash: true,
-  distDir: 'out',
-}
-```
-
-**Key points:**
-- ESLint and TypeScript errors are ignored during build
-- Images are unoptimized (no Next.js image optimization since it's a static export)
-- Output goes to `out/` directory
-- Trailing slashes enabled for static hosting compatibility
-
-### Development
-
-```bash
-pnpm dev         # Start dev server (default port 3000, currently running on 3001)
-pnpm build       # Build static export to out/
-pnpm start       # Serve the built static files
-pnpm lint        # Run ESLint
-```
-
-### `tsconfig.json`
-
-- Target: ES6
-- Module: ESNext with bundler resolution
-- Path alias: `@/*` → `./*`
-- Strict mode enabled
-
----
-
-## 15. Known Issues & TODOs
-
-### Placeholder/Testing Content
-**Note:** These placeholders currently remain purposefully implemented in the codebase (in `lib/content/index.ts`) for testing functionality.
-1. **`personalInfo.typingTitles`** — Last entry is `"testing testing testing testing testing "` (with trailing space)
-2. **`skills[]`** — Last 3 entries are "Testing Testing Testing..." placeholders
-3. **`projects[]`** — Last entry is a "Testing Testing Testing..." placeholder
-4. **`socialLinks[]`** — Last entry is `{ name: "testing", url: "mailto:info@testing.com" }` — visible as an extra email icon
-
-### Incomplete Project Links
-Most projects have `github: "#"` and `live: "#"` placeholder links. Only "Sendout.ai" has a real live URL.
-
-### Disabled Features
-- **Custom mouse cursor** (`mouse-cursor.tsx`, `use-custom-cursor.ts`) — Fully commented out. Was a 3-layer animated cursor replacement.
-- **Floating 3D objects** (`floating-cubes.tsx`, `floating-shapes.tsx`) — Commented out in About and Projects backgrounds. The Canvas elements still render but only have ambient/point lights with no visible objects.
-- **About/Projects background canvases** — Render empty Three.js scenes on desktop (nothing visible except lighting affecting nothing). These canvases consume resources for no visual benefit in current state.
-
-### Contact Form
-The form `handleSubmit` natively features a **client-side fallback** that maps form fields (Name, Email, Message) directly to a `mailto:` link, alongside logging telemetry events. No backend configuration exists yet.
-
-### Pending Animation Migration
-An open migration plan exists (`ANIMATION-MIGRATION-PLAN.md`) to transition all custom CSS Keyframes, CSS Transitions, and some Three.js animations safely to `anime.js v4` for highly optimized execution and 1:1 visual parity.
-
----
-
-## 16. Coding Conventions
-
-### Component Patterns
-
-- All components marked `"use client"` (even pure presentational ones)
-- Orchestrator components (section-level) handle state and pass props to sub-components
-- Sub-components are purely presentational with typed props interfaces
-- Every component has `useComponentInstrumentation()` call
-- Default exports used for section-level components, named exports for sub-components
-
-### Naming
-
-- Files: `kebab-case.tsx`
-- Components: `PascalCase`
-- Hooks: `use-kebab-case.ts` → `useCamelCase`
-- Props interfaces: `ComponentNameProps`
-- Content getters: `getXxx()` prefix
-
-### Animation Pattern
-
-Most animated components follow this pattern:
-
-```tsx
-function MyComponent({ isVisible = false }: { isVisible?: boolean }) {
-  return (
-    <div className={`transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-      {/* content */}
-    </div>
-  )
-}
-```
-
-For staggered animations in grids:
-
-```tsx
-<Card
-  className={`${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-  style={{ animationDelay: `${index * 200}ms` }}
->
-```
-
-### Import Conventions
-
-```typescript
-// React/Next
-import { useState, useEffect } from "react"
-import dynamic from "next/dynamic"
-
-// Three.js
-import * as THREE from "three"
-import { useFrame } from "@react-three/fiber"
-import { Canvas } from "@react-three/fiber"
-
-// Icons
-import { Github, Linkedin, Mail } from "lucide-react"
-
-// Internal (path alias)
-import { Button } from "@/components/ui/button"
-import { getPersonalInfo } from "@/lib/content/utils"
-import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
-import { logComponentEvent } from "@/lib/instrumentation"
-```
-
----
-
-## 17. Development Workflow
-
-### Running Locally
-
-```bash
-cd /home/yash/Desktop/yash/portfolio-v2
-pnpm install
-pnpm dev          # → http://localhost:3000 (or custom port like 3001)
-```
-
-### Enabling Telemetry for Debugging
-
-In browser console:
-```javascript
-window.__PORTFOLIO_TELEMETRY__.enable()   // Turn on
-window.__PORTFOLIO_TELEMETRY__.disable()  // Turn off
-window.__PORTFOLIO_TELEMETRY__.toggle()   // Toggle
-```
-
-### Modifying Content
-
-1. Edit `lib/content/index.ts` directly
-2. Types are in `lib/content/types.ts`
-3. No build step needed — content is bundled at build time
-
-### Adding a New Section
-
-1. Create `components/new-section.tsx` (orchestrator)
-2. Create `components/new-section/` directory for sub-components
-3. Add section content to `lib/content/index.ts` and `types.ts`
-4. Add `useSectionVisibility()` for scroll-triggered animations
-5. Add `useComponentInstrumentation()` for telemetry
-6. Import and render in `app/page.tsx` inside the `loadingComplete` conditional
-
-### Adding a New Animation
-
-1. For CSS animations: Add `@keyframes` and utility class to `app/globals.css`
-2. For Three.js animations: Add to the `useFrame` callback in the relevant component
-3. For transition animations: Use Tailwind `transition-*` utilities directly in JSX
-
-### Modifying the 3D Background
-
-1. Grid parameters: Edit `GRID_CONFIG` in `components/background/constants.ts`
-2. Color palettes: Edit `COLOR_PALETTES` in the same file
-3. Animation behavior: Edit the `useFrame` callback in `hexagonal-grid.tsx`
-4. Lighting: Edit `dynamic-lights.tsx`
-5. Interaction: Edit event handlers in `background.tsx` and mutable state in `interaction-state.ts`
-
----
-
-*End of AGENT.md — This document covers the entire codebase as of 2026-04-25.*
+# Repository Context for Coding Agents
+
+> Last verified: 2026-10-31
+> Applies to: AGENT.md and CLAUDE.md
+> These two files intentionally contain the same repository guidance. Keep them synchronized.
+
+## 1. Project summary
+
+This repository contains Yash Sikdar's personal portfolio and a large collection of browser-based developer utilities.
+
+The application has two public routes:
+
+- **/** — an animated single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
+- **/tools/** — a searchable catalog of 87 utilities with category navigation, cinematic desktop scrolling, mobile fallbacks, hash-addressable tool views, and lazy-loaded implementations.
+
+The frontend is a Next.js App Router application configured as a static export. The site is fully static: there is no server runtime, API route, or backend in this repository. The contact form opens the visitor's email client with a prefilled `mailto:` message.
+
+The UI is dark-themed, animation-heavy, and predominantly client-rendered. Preserve reduced-motion behavior, keyboard navigation, mobile layouts, and static-export compatibility when making changes.
+
+## 2. Sources of truth
+
+Use source code as the authority when documentation disagrees with implementation.
+
+Important source-of-truth files:
+
+- **package.json** — installed packages and scripts.
+- **next.config.mjs** — static-export and development-proxy behavior.
+- **app/page.tsx** — home-page composition and loading lifecycle.
+- **app/tools/page.tsx** — tools route shell.
+- **components/backgrounds/index.tsx** — available backgrounds and environment-controlled mode.
+- **lib/content/index.ts** — portfolio copy, navigation, skills, projects, contact details, and labels.
+- **lib/content/tools/index.ts** — tool categories and all tool definitions.
+- **components/tools/tools-page.tsx** — tools hash/history state.
+- **components/tools/tools-sections.tsx** — pinned horizontal desktop scrolling.
+- **components/contact-section.tsx** — frontend contact workflow.
+- **.github/workflows/deploy.yml** — CI/CD: build, type-check, and deploy the static export to the VPS.
+- **docs/DEPLOYMENT.md** — branch model, VPS paths, secrets, Caddy, DNS cutover, and rollback.
+
+Historical documents such as **BUG-REPORT.md**, **ANIMATION-MIGRATION-PLAN.md**, **SCROLL-DRIVEN-ANIMATION-GUIDE.md**, and **TESTING-GUIDE.md** may describe earlier snapshots. Confirm their claims against current source before acting.
+
+## 3. Current technology stack
+
+### Frontend
+
+- Next.js 15.2.4 with App Router
+- React 19
+- TypeScript in strict mode
+- Tailwind CSS 4 through the Tailwind PostCSS plugin
+- tw-animate-css and project-defined CSS animations
+- anime.js 4 for selected background effects
+- Lucide React icons
+- shadcn-style local UI primitives using Radix Slot, CVA, clsx, and tailwind-merge
+
+### Tool-specific libraries
+
+- CodeMirror 6 for the JSON editor
+- pdf-lib and pdfjs-dist for PDF tools
+- marked plus DOMPurify for sanitized Markdown rendering
+- DOMPurify for SVG sanitization
+- mathjs for calculator behavior
+- diff for text comparisons
+- js-yaml and sql-formatter for formatters
+- qrcode for QR generation
+- JSZip and html-to-image for export workflows
+- js-sha1, js-sha256, and js-sha512 for hashing
+
+### Deployment
+
+- GitHub Actions workflow in `.github/workflows/deploy.yml`
+- VPS-hosted static files served by Caddy in Docker
+- `rsync` over SSH from the workflow to the VPS
+- Branch mapping: `develop` → `/data/sites/beta` (beta.yashcodes.com); `main` → `/data/sites/production` (yashcodes.com)
+
+There is no Three.js or React Three Fiber dependency in the current frontend. There is no server-side contact backend.
+
+## 4. Package management and commands
+
+The repository contains both **pnpm-lock.yaml** and **package-lock.json**, but **pnpm-workspace.yaml** indicates pnpm is intended.
+
+Common commands:
+
+    pnpm install --frozen-lockfile
+    pnpm dev
+    pnpm build
+    ./node_modules/.bin/tsc --noEmit --incremental false
+
+CI uses Node 24 and pnpm 12.8.1. The deployment workflow runs the frozen install, strict TypeScript, and the static build before deploying.
+
+Current tooling caveats:
+
+- **pnpm-workspace.yaml** allows build scripts for `sharp` and `unrs-resolver`. Keep these values as booleans; placeholder strings block frozen installs.
+- The lint script still runs **next lint**, while the installed ESLint 9 expects an **eslint.config.js**, **eslint.config.mjs**, or **eslint.config.cjs** flat configuration. Linting is currently not operational.
+- Both lockfiles can drift. Do not regenerate or rewrite either lockfile unless dependency work is explicitly in scope.
+- The postinstall script copies the pdfjs worker into **public/pdf.worker.min.mjs**.
+- Do not run package installation merely to inspect the repository; it can rewrite lockfile resolution metadata.
+
+When dependency state is already installed but pnpm's policy check blocks an unrelated validation, direct local binaries can be used for read-only verification.
+
+## 5. Environment variables
+
+The tracked template is **.env.example**. Local values belong in the gitignored **.env.local**.
+
+Frontend variables are public and inlined at build time:
+
+- **NEXT_PUBLIC_BG_MODE**
+  - **switcher** shows the background selector.
+  - **random** selects a background on each page load.
+  - A valid background ID locks the site to that background.
+- **NEXT_PUBLIC_DEFAULT_BG** selects the initial or legacy locked background.
+- **NEXT_PUBLIC_BG_SWITCHER=false** is a legacy lock mechanism used only when BG_MODE is not explicitly set.
+- **NEXT_PUBLIC_ENABLE_LOGS=true** enables telemetry by default.
+
+Never put secrets in NEXT_PUBLIC variables.
+
+There is no private runtime configuration and no contact backend. The contact form uses `mailto:info@yashcodes.com`. Deployment credentials live only in GitHub Actions secrets (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`); never commit them or place them in `NEXT_PUBLIC_*` variables.
+
+## 6. Rendering and deployment model
+
+**next.config.mjs** configures:
+
+- Static export through output: export
+- Output directory **out/**
+- Trailing slashes
+- Unoptimized Next images
+- Ignored TypeScript and ESLint failures during Next builds
+
+Consequences:
+
+- No Next.js server runtime is available after deployment.
+- Do not add route handlers, server actions, middleware-dependent features, or runtime-only Next image optimization without changing the hosting model.
+- Deployment is handled by GitHub Actions: pushes to `develop` deploy to beta; pushes to `main` deploy to production. See **docs/DEPLOYMENT.md**.
+- A successful Next build does not prove type or lint correctness because both checks are skipped in build configuration.
+- The **start** script is not the normal production path for the exported site. Serve or deploy **out/** using the existing static host.
+
+## 7. Repository structure
+
+    app/
+      layout.tsx
+      page.tsx
+      globals.css
+      tools/
+        page.tsx
+        loading.tsx
+
+    components/
+      hero-section.tsx
+      hero-section/
+      about-section.tsx
+      about-section/
+      projects-section.tsx
+      projects-section/
+      contact-section.tsx
+      contact-section/
+      navigation.tsx
+      navigation/
+      backgrounds/
+      tools/
+        core/
+        dev/
+        text/
+        media/
+        security/
+        math/
+        shared/
+      ui/
+
+    hooks/
+      use-anime-scope.ts
+      use-cycling-typewriter.ts
+      use-custom-cursor.ts
+      use-instrumentation.ts
+      use-mobile.ts
+      use-scroll-threshold.ts
+      use-section-visibility.ts
+      use-sticky-offset.ts
+
+    lib/
+      content/
+      tools/
+      instrumentation.ts
+      react-telemetry.ts
+      utils.ts
+
+    .github/
+      workflows/
+        deploy.yml
+
+    docs/
+      DEPLOYMENT.md
+
+    public/
+      project images, favicons, placeholders, and pdf.worker.min.mjs
+
+    scratch/
+      historical refactor helpers
+
+## 8. Home route architecture
+
+**app/layout.tsx** provides:
+
+- DM Sans via next/font/google
+- Dark mode on the root html element
+- Global metadata and favicons
+- Global CSS
+
+**app/page.tsx** is a client component and orchestrates the home route.
+
+Lifecycle:
+
+1. The first client render shows LoadingScreen.
+2. A mount effect enables the full client tree.
+3. AnimatedBackground loads dynamically with SSR disabled.
+4. LoadingScreen advances its percentage every 40 ms.
+5. At approximately 2.5 seconds it begins a 500 ms fade.
+6. After completion, Navigation, HeroSection, AboutSection, ProjectsSection, ContactSection, Footer, and BackToTop render.
+7. Hero content becomes visible after a short delay and its typewriter cycles continuously.
+8. About, projects, and contact use IntersectionObserver-driven visibility.
+9. Small screens and reduced-motion users bypass selected entrance animations.
+
+The custom mouse cursor remains disabled in **app/page.tsx**. Do not enable it incidentally.
+
+About and projects use simple gradient background elements. Older documentation referring to empty Three.js canvases is obsolete.
+
+## 9. Background system
+
+**components/backgrounds/index.tsx** is the controller for 20 backgrounds:
+
+- aurora
+- particles
+- dotgrid
+- glass
+- waves
+- starfield
+- matrix
+- neural
+- fireflies
+- topography
+- rain
+- bokeh
+- vortex
+- ripple
+- neonrings
+- matrixrain
+- hexgrid
+- gradient
+- constellation
+- spotlight
+
+Implementation characteristics:
+
+- Components are conditionally lazy-loaded.
+- Switcher and random modes need all possible background modules.
+- A locked mode can exclude unrelated background modules from the bundle.
+- Switcher selections persist in localStorage under **portfolio-bg**.
+- The system falls back to a static gradient.
+- Reduced-motion preference renders the fallback instead of continuous animation.
+- The background wrapper is fixed, pointer-safe, and sits behind route content.
+- Backgrounds use a mixture of Canvas 2D, CSS, and anime.js. Do not assume a single animation engine.
+
+Any new background must update all of the following:
+
+1. Lazy import in **components/backgrounds/index.tsx**
+2. BACKGROUND_OPTIONS
+3. BackgroundRenderer
+4. The valid-ID documentation in **.env.example**
+5. Reduced-motion behavior and cleanup for animation frames, listeners, scopes, and observers
+
+## 10. Portfolio content model
+
+Static portfolio content lives in **lib/content/index.ts** and typed contracts live in **lib/content/types.ts**.
+
+It contains:
+
+- Personal identity and typewriter titles
+- Social links
+- Contact information
+- Six skill groups
+- Six featured projects
+- Navigation items
+- Button text
+- Section copy
+- Contact-form labels and placeholders
+- Footer copy and computed current year
+- Site metadata
+
+Components normally access this data through **lib/content/utils.ts**. Prefer editing centralized content rather than embedding new portfolio copy in component markup.
+
+Known content gap: most project GitHub and live-demo values are still **#** placeholders. Ensure cards do not claim a working external link when the value is a placeholder.
+
+## 11. Tools route architecture
+
+### Catalog
+
+**lib/content/tools/index.ts** currently defines 87 tools:
+
+- Core: 7
+- Dev: 45
+- Text: 17
+- Media: 3
+- Security: 5
+- Math and logic: 10
+
+All 87 definitions currently have matching implementations.
+
+A tool definition contains:
+
+- id
+- label
+- description
+- Lucide icon name
+- category
+- search tags
+- optional wide layout flag
+
+Tool IDs map to implementation paths:
+
+    components/tools/<category>/<tool-id>.tsx
+
+Directory implementations such as the JSON editor may expose an **index.ts** instead.
+
+### Route shell
+
+**app/tools/page.tsx** renders:
+
+- The shared animated background
+- A skip link
+- Navigation
+- ToolsPage
+- Footer
+- BackToTop
+
+It measures navigation and toolbar heights with ResizeObserver and writes CSS custom properties used by sticky content.
+
+### Grid and search
+
+**components/tools/tools-grid.tsx** owns the visible catalog mode:
+
+- ToolsToolbar provides the combobox and category chips.
+- Empty search shows cinematic category sections.
+- Active search shows normal grouped grid results.
+- Popular suggestions appear for empty results.
+- Tool filtering matches labels, descriptions, categories, and tags through content utilities.
+
+### Cinematic category sections
+
+**components/tools/tools-sections.tsx** implements desktop filmstrip scrolling:
+
+- Categories are divided into chunks of at most 12 cards.
+- Each chunk becomes a sticky scene.
+- Vertical page progress translates a horizontal card track.
+- A release interval crossfades to the next scene.
+- Scroll work is requestAnimationFrame-throttled.
+- ResizeObserver recalculates overflow and section heights.
+- Active category state feeds the toolbar.
+- Narrow screens below 768 px and reduced-motion users receive a normal stacked grid instead.
+
+When editing this subsystem, preserve:
+
+- Exact scroll restoration
+- Dynamic navigation and toolbar offsets
+- Reverse scrolling
+- Search-to-category transitions
+- Mobile non-sticky layout
+- Reduced-motion non-transformed layout
+- Resize and observer cleanup
+
+### Tool navigation and state
+
+**components/tools/tools-page.tsx** keeps the grid mounted while a tool is open, hiding it with display:none so search state and measured sections survive.
+
+Navigation behavior:
+
+1. Selecting a card records the grid scroll position in a dedicated history entry.
+2. A tool history entry is pushed with **#<tool-id>**.
+3. The selected tool view scrolls to the top.
+4. Browser back restores the grid and its recorded vertical position.
+5. Category breadcrumbs queue a category scroll after the grid returns.
+6. Direct hash loads open the matching tool.
+7. Unknown IDs render the Tool Not Found state.
+
+Do not casually replace this with router navigation. Browser history and scroll restoration are deliberate and tightly coupled.
+
+### Tool loading
+
+**components/tools/tool-view.tsx**:
+
+- Looks up metadata by ID.
+- Dynamically imports the tool implementation.
+- Caches lazy components by module path.
+- Shows a Suspense spinner during chunk loading.
+- Shows ToolUnavailable if the dynamic import rejects.
+- Remounts the current tool when Reset is selected.
+- Uses a wider content shell for definitions marked wide.
+
+When adding a tool:
+
+1. Add metadata to **lib/content/tools/index.ts**.
+2. Add its icon to **lib/content/tools/icon-map.ts** if not already mapped.
+3. Create the matching implementation file or directory entry.
+4. Use local shared primitives where appropriate.
+5. Keep processing client-side unless the UI clearly discloses an external service.
+6. Add keyboard labels and reduced-motion handling where relevant.
+7. Verify direct navigation to **/tools/#<id>**, reset, browser back, search, and mobile layout.
+
+## 12. External network behavior
+
+The statement in the tools-page description that everything runs locally is not universally accurate.
+
+Known networked features include:
+
+- Currency Converter calls the Frankfurter exchange-rate API and caches results.
+- DNS Lookup calls Cloudflare's DNS-over-HTTPS API.
+- YouTube Downloader sends the supplied URL to the Cobalt website and loads YouTube thumbnail images.
+- The contact form opens the visitor's email client via `mailto:info@yashcodes.com`; it makes no network request from the site.
+- Fonts are integrated through next/font/google during the build process.
+
+Do not add external calls without clear user-facing disclosure, reasonable error handling, and privacy-conscious behavior. Update the tools-page claim so it remains truthful when working on content.
+
+## 13. Contact form flow
+
+**components/contact-section.tsx** is a client-only contact form. On submit it builds a `mailto:info@yashcodes.com` URL containing the sender's name, email, and message, then sets `window.location.href`. It does not call an API, upload files, or store submissions.
+
+- The form fields are name, email, and message.
+- The form uses `noValidate`; the visitor's email client is responsible for delivery.
+- There is no file upload, honeypot, rate limiting, presign, or backend validation in this repository.
+- If no mail client is configured, the browser may do nothing; the contact details are also listed in the contact section.
+- Do not claim that the form submits to a server or guarantees delivery.
+
+## 14. Telemetry
+
+The home route imports **lib/react-telemetry.ts**, which patches React.createElement in the browser to wrap eligible components. Important components also call **useComponentInstrumentation** manually.
+
+Telemetry records can include:
+
+- Mount and unmount events
+- Render counts and durations
+- Sanitized prop and state snapshots
+- Interaction events
+- Aggregated animation and performance metrics
+- Browser heap figures where available
+
+Telemetry is off by default unless enabled by environment, saved localStorage state, or the browser bridge:
+
+    window.__PORTFOLIO_TELEMETRY__.enable()
+    window.__PORTFOLIO_TELEMETRY__.disable()
+    window.__PORTFOLIO_TELEMETRY__.toggle()
+    window.__PORTFOLIO_TELEMETRY__.getEnabled()
+
+The localStorage key is **portfolio:telemetry:enabled**.
+
+Do not log contact message bodies, file contents, secrets, tokens, or other sensitive values.
+
+## 15. Hooks and shared utilities
+
+- **use-section-visibility.ts** — IntersectionObserver with once, fallback, and skip behavior.
+- **use-scroll-threshold.ts** — passive scroll listener returning a boolean threshold state.
+- **use-cycling-typewriter.ts** — timeout-based typing, pause, deletion, and phrase cycling.
+- **use-sticky-offset.ts** — measures fixed navigation and tools toolbar heights.
+- **use-mobile.ts** — matchMedia-backed 768 px breakpoint.
+- **use-anime-scope.ts** — scoped anime.js lifecycle and cleanup.
+- **use-instrumentation.ts** — component and frame telemetry helpers.
+- **use-custom-cursor.ts** — currently unused because the custom cursor is disabled.
+- **lib/utils.ts** — the cn class-merging helper.
+
+Clean up every timer, event listener, observer, animation frame, object URL, media stream, and anime.js scope introduced by a component.
+
+## 16. Styling and accessibility
+
+**app/globals.css** contains:
+
+- Tailwind CSS 4 import
+- tw-animate-css import
+- Dark theme and shadcn-compatible design tokens
+- Keyframes for fade, slide, glow, float, and pulse effects
+- Navigation link styling
+- Range input styling
+- Mobile typography and minimum touch-target rules
+- Reduced-motion behavior
+- Tools-page layout support
+
+Local UI primitives live under **components/ui** and follow the New York shadcn style.
+
+Accessibility requirements:
+
+- Preserve the tools skip link.
+- Keep interactive tool cards as real anchors or buttons.
+- Keep focus-visible rings.
+- Maintain 44 px mobile touch targets.
+- Label icon-only controls.
+- Preserve combobox, listbox, option, progressbar, and breadcrumb semantics.
+- Avoid hiding content behind opacity when motion is disabled.
+- Test keyboard navigation and Escape behavior in search.
+- Keep decorative icons and backgrounds hidden from assistive technology.
+- Never rely on hover alone.
+
+## 17. Security rules
+
+- Sanitize untrusted Markdown HTML with DOMPurify.
+- Sanitize SVG before rendering it.
+- Do not use eval or Function for calculators or code-like input.
+- JWT decoding is inspection only; do not imply signature verification.
+- Treat file MIME and metadata as untrusted in tools that accept files.
+- Keep deployment credentials in GitHub Actions secrets; never commit them.
+- Do not log sensitive form content.
+- Preserve rel attributes on external target-blank links.
+- The contact form is `mailto:`-only; do not reintroduce a server endpoint without updating the deployment model and docs.
+
+Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy user (`deploy`) has no sudo and no docker access and can write only under `/data/sites`. Never commit the deploy key, host keys, or any other credential.
+
+## 18. Known issues and technical debt
+
+### High priority
+
+1. Next.js 15.2.4 is flagged by pnpm as a security-vulnerable release and should be upgraded through a tested dependency change.
+2. ESLint 9 cannot find a flat configuration; the current lint script is unusable.
+3. Next builds explicitly skip lint and TypeScript validation.
+4. `yashcodes.com` still points at the old host `103.65.138.220`. Production files deploy to `/data/sites/production` on vps-1, but the A record must change to `152.67.67.128` before Caddy can serve the site and issue its certificate.
+
+### Product and quality
+
+1. There are no committed automated test files or Playwright configuration despite Playwright being a development dependency.
+2. The tools-page local-processing claim conflicts with several external API integrations.
+3. Most project Code and Live Demo URLs remain placeholders.
+4. The repository has both npm and pnpm lockfiles.
+5. The frontend is heavily client-rendered, including many purely presentational components.
+6. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
+7. Dynamic tool import failures are converted into a generic unavailable state, which can obscure the original loading error.
+8. The contact form is `mailto:`-only and depends on the visitor having a configured mail client; there is no delivery confirmation.
+9. Historical planning and bug documents contain obsolete architecture claims.
+10. Scratch scripts and empty legacy directories should not be assumed to participate in production.
+
+## 19. Coding conventions
+
+Follow the existing patterns unless a task explicitly includes a refactor:
+
+- File names use kebab-case.
+- React components use PascalCase.
+- Hooks start with use.
+- Section orchestrators usually use default exports.
+- Presentational subcomponents commonly use named exports.
+- Props and data contracts are typed.
+- The project uses the **@/** path alias.
+- Portfolio copy belongs in **lib/content/index.ts**.
+- Tool metadata belongs in **lib/content/tools/index.ts**.
+- Shared tool datasets and pure algorithms belong in **lib/tools**.
+- Generic tool UI belongs in **components/tools/shared**.
+- Base UI primitives belong in **components/ui**.
+- Use the cn helper for conditional class composition.
+- Preserve local formatting in touched files; the repository currently mixes semicolon and no-semicolon styles.
+- Keep unrelated user changes intact.
+- Avoid adding dependencies for behavior that current platform APIs or installed packages already cover.
+
+## 20. Verification workflow
+
+Choose checks proportional to the change.
+
+### Baseline source checks
+
+    pnpm install --frozen-lockfile
+    ./node_modules/.bin/tsc --noEmit --incremental false
+    pnpm build
+
+Do not commit generated `out/` or `.next/` files; check the final diff for them.
+
+### Frontend smoke checks
+
+Run the development server and verify:
+
+- **/** returns successfully.
+- **/tools/** returns successfully.
+- Loading completes and home content appears.
+- Navigation scrolls to home sections.
+- Tools search opens, filters, clears, and handles keyboard selection.
+- Category chips move to the expected section.
+- Desktop filmstrips advance and reverse without overlap.
+- Mobile tools render as a normal stacked grid.
+- A direct tool hash opens the expected tool.
+- Reset remounts the active tool.
+- Back restores the grid scroll position.
+- Reduced-motion mode keeps all content usable.
+- Browser console has no unexpected errors.
+
+### Contact checks
+
+The contact form only opens the visitor's email client:
+
+- Submitting with a valid name, email, and message builds a `mailto:info@yashcodes.com` link.
+- No network request is made by the site.
+- The visible contact details remain available if no mail client is configured.
+
+Do not send live email or deploy external changes without explicit user authorization.
+
+### Build notes
+
+At the last documentation update (2026-10-31):
+
+- Strict TypeScript checking passed.
+- Static production build passed.
+- The exported routes were **/**, **/tools/**, and the not-found route.
+- ESLint was blocked by missing flat configuration.
+- No automated tests were discovered.
+- The GitHub Actions build job passed; the deploy job was queued during a GitHub Actions incident.
+- Beta was deployed manually with the same `rsync` command and verified; the production DNS cutover is still pending.
+
+These are observations, not permanent guarantees. Re-run relevant checks after changes.
+
+## 21. Completion checklist for agents
+
+Before handing off implementation work:
+
+1. Confirm the working tree before editing.
+2. Read the source files that own the affected behavior.
+3. Preserve static-export constraints.
+4. Preserve desktop, mobile, keyboard, and reduced-motion behavior.
+5. Update centralized content or tool metadata rather than duplicating it.
+6. Validate direct hash navigation when touching tools.
+7. Validate the `mailto:` contact form when touching the contact section.
+8. Run strict TypeScript independently from the Next build.
+9. Report skipped or blocked checks clearly.
+10. Check the final Git diff for unrelated or generated files.
+11. Update both **AGENT.md** and **CLAUDE.md** together whenever repository context changes.
+12. Run the CI-equivalent checks (`pnpm install --frozen-lockfile`, `tsc --noEmit`, `pnpm build`) before pushing.
+13. Update **README.md** and **docs/DEPLOYMENT.md** when branches, secrets, VPS paths, or deployment behavior change.
