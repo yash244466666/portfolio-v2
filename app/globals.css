@@ -130,6 +130,17 @@
   }
 }
 
+/* Modal scroll lock (see hooks/use-body-scroll-lock.ts).
+   Reserving the gutter keeps the layout — including the fixed navigation —
+   from jumping when the scrollbar is hidden. */
+html {
+  scrollbar-gutter: stable;
+}
+
+html[data-scroll-locked] {
+  overflow: hidden;
+}
+
 /* Enhanced animations for dark theme portfolio */
 @keyframes fadeInUp {
   from {

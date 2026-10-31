@@ -32,6 +32,42 @@ export interface Project {
    * Defaults to `true` when omitted.
    */
   showLiveDemo?: boolean;
+  /**
+   * Optional long-form copy shown in the project detail modal.
+   * The modal falls back to `description` when this is omitted.
+   */
+  longDescription?: string;
+  /**
+   * Optional bullet points listed under the modal's highlights heading.
+   * The highlights section is hidden when this is missing or empty.
+   */
+  highlights?: string[];
+  /** Optional role label shown in the modal meta row; hidden when omitted. */
+  role?: string;
+  /** Optional year label shown in the modal meta row; hidden when omitted. */
+  year?: string;
+}
+
+/**
+ * User-facing labels for the project detail modal.
+ * Kept here so all modal copy can be edited in one place.
+ */
+export interface ProjectModalContent {
+  /**
+   * Accessible label for the full-card button that opens the modal.
+   * `{title}` is replaced with the project title.
+   */
+  openLabelTemplate: string;
+  /** Accessible label for the modal close button. */
+  closeLabel: string;
+  /** Heading above the optional highlights list. */
+  highlightsHeading: string;
+  /** Label preceding the optional project role. */
+  roleLabel: string;
+  /** Label preceding the optional project year. */
+  yearLabel: string;
+  /** Hint appended to actions whose link is still a `#` placeholder. */
+  unavailableLabel: string;
 }
 
 export interface Skill {

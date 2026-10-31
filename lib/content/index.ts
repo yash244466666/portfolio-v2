@@ -8,6 +8,7 @@ import type {
   SocialLink,
   ContactInfo,
   Project,
+  ProjectModalContent,
   Skill,
   PersonalInfo,
   SectionContent,
@@ -23,6 +24,7 @@ export type {
   SocialLink,
   ContactInfo,
   Project,
+  ProjectModalContent,
   Skill,
   PersonalInfo,
   SectionContent,
@@ -163,6 +165,20 @@ export const skills: Skill[] = [
 //   showLiveDemo: false  hides the "Live Demo" button for that project.
 // Hiding one keeps the other; hiding both removes the action row entirely.
 // Example: { ..., showCode: false } renders only the Live Demo button.
+//
+// Projects render on the home page as cards and open a detail modal on click.
+// Besides the card fields, each project may carry these optional fields, which
+// are only used by the modal (see components/projects-section/project-modal.tsx):
+//
+//   longDescription — longer copy shown under the summary paragraph.
+//                     Falls back to `description` when omitted.
+//   highlights      — short bullet points listed under the highlights heading.
+//                     The whole section is hidden when this is missing/empty.
+//   role            — the part played on the project; hidden when omitted.
+//   year            — display year, e.g. "2024"; hidden when omitted. Omit it
+//                     rather than guessing if the date is not confirmed.
+//
+// Every link that is still "#" is rendered as a visibly disabled action.
 export const projects: Project[] = [
   {
     title: "Sendout.ai - SaaS Platform",
@@ -172,6 +188,14 @@ export const projects: Project[] = [
     tech: ["React", "Node.js", "AI Integration", "SaaS"],
     github: "#", // TODO: Add actual GitHub link
     live: "https://sendout.ai",
+    role: "Full Stack Developer",
+    longDescription:
+      "An AI-powered automation SaaS platform where I maintain the existing product and ship new features. The work spans the React frontend, the Node.js backend, and the AI integrations behind the platform's automation flows — including reverse-engineering existing behaviour to trace and fix defects.",
+    highlights: [
+      "Maintain and extend an AI-powered automation SaaS platform",
+      "Ship new features across a React and Node.js stack",
+      "Reverse-engineer existing behaviour to track down and fix defects",
+    ],
   },
   {
     title: "ERP & CRM Systems",
@@ -181,6 +205,14 @@ export const projects: Project[] = [
     tech: ["MongoDB", "Express.js", "React", "Node.js"],
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
+    role: "Full Stack Developer",
+    longDescription:
+      "Business management applications built on the MERN stack. The systems cover day-to-day operations, with ticket tracking and workflow automation tying the modules together.",
+    highlights: [
+      "Built ERP and CRM applications on MongoDB, Express.js, React, and Node.js",
+      "Implemented a ticket system for support and internal workflows",
+      "Automated recurring business workflows",
+    ],
   },
   {
     title: "Unity Game Development",
@@ -190,6 +222,14 @@ export const projects: Project[] = [
     tech: ["Unity", "C#", "Game Development", "UI/UX"],
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
+    role: "Game Developer",
+    longDescription:
+      "Interactive games built with Unity and C#. The work covered gameplay mechanics, player-facing UI/UX, and the engagement features that keep players coming back.",
+    highlights: [
+      "Built interactive games in Unity with C#",
+      "Implemented gameplay mechanics and player-facing UI/UX",
+      "Added user engagement features",
+    ],
   },
   {
     title: "Ruby on Rails Web App",
@@ -199,6 +239,14 @@ export const projects: Project[] = [
     tech: ["Ruby on Rails", "React", "PostgreSQL", "RSpec"],
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
+    role: "Full Stack Developer",
+    longDescription:
+      "Scalable web applications built with Ruby on Rails, React, and PostgreSQL. RSpec testing ran alongside delivery, which is how the work reached 100% client satisfaction.",
+    highlights: [
+      "Built scalable web applications with Ruby on Rails and React",
+      "Modelled data in PostgreSQL",
+      "Covered behaviour with RSpec tests as part of delivery",
+    ],
   },
   {
     title: "Lost & Found Mobile App",
@@ -208,6 +256,14 @@ export const projects: Project[] = [
     tech: ["Mobile Development", "Performance Optimization", "Testing"],
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
+    role: "Mobile Developer",
+    longDescription:
+      "An existing lost-and-found application that I improved rather than rebuilt. Profiling and testing cut bugs by 30% and improved performance by 25%, while keeping the flows people use most intact.",
+    highlights: [
+      "Reduced bugs by 30% in an existing mobile application",
+      "Improved performance by 25% through optimization and testing",
+      "Strengthened test coverage across core flows",
+    ],
   },
   {
     title: "Government R&H System",
@@ -217,8 +273,35 @@ export const projects: Project[] = [
     tech: ["Full Stack", "Government Systems", "Quality Assurance"],
     github: "#", // TODO: Add actual GitHub link
     live: "#", // TODO: Add actual live demo link
+    role: "Full Stack Developer",
+    longDescription:
+      "Full-stack applications for a government R&H department, delivered with a heavy quality-assurance process. Comprehensive testing and modern techniques brought the project to a 99% satisfaction rate.",
+    highlights: [
+      "Built full-stack applications for a government R&H department",
+      "Applied a comprehensive testing and quality-assurance process",
+      "Reached a 99% satisfaction rate with the delivered system",
+    ],
   },
 ];
+
+// =============================================================================
+// PROJECT DETAIL MODAL COPY
+// =============================================================================
+// Labels used by the project detail modal. Project-specific copy lives on the
+// projects above; this covers the surrounding UI so it can be edited in one place.
+export const projectModalContent: ProjectModalContent = {
+  // Accessible label for the full-card button. "{title}" becomes the project title.
+  openLabelTemplate: "View {title} details",
+  // Accessible label for the modal close button.
+  closeLabel: "Close project details",
+  // Heading above the project's highlights list.
+  highlightsHeading: "Highlights",
+  // Labels for the optional meta row entries.
+  roleLabel: "Role",
+  yearLabel: "Year",
+  // Shown on actions whose link is still a "#" placeholder.
+  unavailableLabel: "Coming soon",
+};
 
 // =============================================================================
 // NAVIGATION & UI TEXT

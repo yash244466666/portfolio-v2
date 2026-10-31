@@ -169,6 +169,7 @@ Consequences:
 
     hooks/
       use-anime-scope.ts
+      use-body-scroll-lock.ts
       use-cycling-typewriter.ts
       use-custom-cursor.ts
       use-instrumentation.ts
@@ -289,6 +290,8 @@ It contains:
 Components normally access this data through **lib/content/utils.ts**. Prefer editing centralized content rather than embedding new portfolio copy in component markup.
 
 Known content gap: most project GitHub and live-demo values are still **#** placeholders. Ensure cards do not claim a working external link when the value is a placeholder.
+
+Each project may also define optional **longDescription**, **highlights**, **role**, and **year** fields used only by the project detail modal; missing fields are omitted from the modal, which falls back to **description**. Modal labels and accessible names live in **projectModalContent** in the same file.
 
 ## 11. Tools route architecture
 
@@ -462,6 +465,7 @@ Do not log contact message bodies, file contents, secrets, tokens, or other sens
 - **use-sticky-offset.ts** — measures fixed navigation and tools toolbar heights.
 - **use-mobile.ts** — matchMedia-backed 768 px breakpoint.
 - **use-anime-scope.ts** — scoped anime.js lifecycle wrapper; currently unused by the home sections. The backgrounds use their own `createScope` calls.
+- **use-body-scroll-lock.ts** — locks page scrolling for overlays and restores the scroll offset; pairs with the `data-scroll-locked` root attribute in **app/globals.css**.
 - **use-instrumentation.ts** — component and frame telemetry helpers.
 - **use-custom-cursor.ts** — currently unused because the custom cursor is disabled.
 - **lib/utils.ts** — the cn class-merging helper.
@@ -495,6 +499,7 @@ Accessibility requirements:
 - Avoid hiding content behind opacity when motion is disabled.
 - Test keyboard navigation and Escape behavior in search.
 - Keep decorative icons and backgrounds hidden from assistive technology.
+- Preserve the project detail dialog's `role="dialog"` semantics, focus trap, Escape handling, and focus restoration to the card that opened it.
 - Never rely on hover alone.
 
 ## 17. Security rules
