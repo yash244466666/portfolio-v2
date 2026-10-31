@@ -143,9 +143,11 @@ export default function ContactSection() {
     if (result.ok) {
       setStatus("success")
       setFeedback(
-        result.confirmationSent === false
-          ? formContent.status.successNoConfirmation
-          : formContent.status.success
+        result.attachmentMode === "link"
+          ? formContent.status.attachmentAsLink
+          : result.confirmationSent === false
+            ? formContent.status.successNoConfirmation
+            : formContent.status.success
       )
       setFormData(EMPTY_FORM)
       setTurnstileToken("")
@@ -158,6 +160,8 @@ export default function ContactSection() {
         detail: {
           confirmationSent: result.confirmationSent !== false,
           hasAttachment: Boolean(attachmentPayload),
+          attachmentSent: result.attachmentSent === true,
+          reference: result.reference ?? "",
         },
         throttleMs: 1500,
       })
@@ -165,7 +169,11 @@ export default function ContactSection() {
     }
 
     setStatus("error")
-    setFeedback(formContent.status.error)
+    setFeedback(
+      result.error === "attachment-rejected"
+        ? formContent.status.attachmentRejected
+        : formContent.status.error
+    )
     setTurnstileToken("")
     setTurnstileResetKey((key) => key + 1)
     logComponentEvent("ContactSection", {

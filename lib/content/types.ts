@@ -169,6 +169,10 @@ export interface FormContent {
     fileTypeUnsupported: string;
     /** Shown when the send failed while a file was selected. */
     fileNotSent: string;
+    /** Shown when the mail provider refuses the attached file. */
+    attachmentRejected: string;
+    /** Success copy when an archive was delivered as a download link. */
+    attachmentAsLink: string;
     /**
      * Cloudflare attribution shown next to the submit button. The Turnstile
      * widget stays hidden unless a challenge is required, so the branding is

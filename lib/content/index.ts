@@ -379,7 +379,7 @@ export const formContent: FormContent = {
     hint: "PDF, Office, text, ZIP or image — up to 4 MB.",
     remove: "Remove",
     privacy:
-      "Your file is forwarded by email only and is not stored on this site.",
+      "Your file is used only to deliver your message; when it travels as a download link, it is deleted after 7 days.",
   },
   status: {
     sending: "Sending…",
@@ -401,6 +401,10 @@ export const formContent: FormContent = {
       "That file type is not accepted. Choose a PDF, Office document, text, ZIP or image.",
     fileNotSent:
       "The file was not delivered either — attach it manually if you email me directly.",
+    attachmentRejected:
+      "The mail provider refused that file. Try a PDF or an image, or email me directly.",
+    attachmentAsLink:
+      "Message sent — check your inbox. Your archive travels as a download link there, since mail providers block archive attachments.",
   },
   honeypotLabel: "Website",
 };

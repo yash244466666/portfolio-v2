@@ -23,6 +23,12 @@ export interface ContactSendResult {
   ok: boolean
   error?: string
   confirmationSent?: boolean
+  /** Short Brevo message id, for tracing a missing email. */
+  reference?: string
+  /** Whether the file was actually forwarded with the message. */
+  attachmentSent?: boolean
+  /** `link` when the file was hosted and shared by URL instead of attached. */
+  attachmentMode?: "attached" | "link" | "none"
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
@@ -106,13 +112,25 @@ export async function sendContactMessage(
       ok?: boolean
       error?: string
       confirmationSent?: boolean
+      reference?: string
+      attachmentSent?: boolean
+      attachmentMode?: string
     }
 
     if (data.ok !== true) {
       return { ok: false, error: data.error ?? "unknown" }
     }
 
-    return { ok: true, confirmationSent: data.confirmationSent !== false }
+    return {
+      ok: true,
+      confirmationSent: data.confirmationSent !== false,
+      reference: typeof data.reference === "string" ? data.reference : undefined,
+      attachmentSent: data.attachmentSent === true,
+      attachmentMode:
+        data.attachmentMode === "attached" || data.attachmentMode === "link"
+          ? data.attachmentMode
+          : "none",
+    }
   } catch {
     return { ok: false, error: "network" }
   } finally {
