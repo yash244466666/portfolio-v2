@@ -6,7 +6,7 @@
 
 ## 1. Project summary
 
-This repository contains Yash Sikdar's personal portfolio and a large collection of browser-based developer utilities.
+This repository contains MD. Mohi Minul Islam Yash's personal portfolio (display name: Yash Sikdar) and a large collection of browser-based developer utilities.
 
 The application has two public routes:
 
