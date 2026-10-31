@@ -13,6 +13,7 @@ import Footer from "@/components/footer"
 // import MouseCursor from "@/components/mouse-cursor"
 import BackToTop from "@/components/back-to-top"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
+import { useHashScroll } from "@/hooks/use-hash-scroll"
 
 const AnimatedBackground = dynamic(() => import("@/components/backgrounds"), {
   ssr: false,
@@ -42,6 +43,8 @@ export default function Home() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useHashScroll(loadingComplete)
 
   if (!mounted) {
     return (

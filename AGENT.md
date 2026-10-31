@@ -179,6 +179,7 @@ Consequences:
       use-body-scroll-lock.ts
       use-cycling-typewriter.ts
       use-custom-cursor.ts
+      use-hash-scroll.ts
       use-instrumentation.ts
       use-mobile.ts
       use-scroll-threshold.ts
@@ -488,6 +489,7 @@ Do not log contact message bodies, email addresses, Turnstile tokens, file conte
 - **use-section-visibility.ts** — IntersectionObserver with once, fallback, and skip behavior.
 - **use-scroll-threshold.ts** — passive scroll listener returning a boolean threshold state.
 - **use-cycling-typewriter.ts** — timeout-based typing, pause, deletion, and phrase cycling.
+- **use-hash-scroll.ts** — retries the home route's URL hash after the loading screen mounts the sections, and on later hash changes; smooth unless reduced motion is requested.
 - **use-sticky-offset.ts** — measures fixed navigation and tools toolbar heights.
 - **use-mobile.ts** — matchMedia-backed 768 px breakpoint.
 - **use-anime-scope.ts** — scoped anime.js lifecycle wrapper; currently unused by the home sections. The backgrounds use their own `createScope` calls.
