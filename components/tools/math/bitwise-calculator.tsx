@@ -211,7 +211,7 @@ export default function BitwiseCalculator() {
                   <span
                     key={i}
                     className={`w-3.5 h-4 flex items-center justify-center rounded-sm text-[10px] ${
-                      bit === "1" ? "bg-green-500/30 text-green-900" : "bg-muted text-muted-foreground"
+                      bit === "1" ? "bg-green-500/30 text-green-950" : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {bit}
