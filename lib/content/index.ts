@@ -411,6 +411,8 @@ export const formContent: FormContent = {
     tooManyFiles: "You can attach up to 5 files per message.",
     uploading: "Uploading…",
     verifying: "Checking verification…",
+    tooManyUploads:
+      "Too many upload attempts from this network. Try again in an hour, or attach one smaller file.",
   },
   honeypotLabel: "Website",
 };

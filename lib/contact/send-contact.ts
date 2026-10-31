@@ -18,22 +18,27 @@ export interface PresignedUpload {
 }
 
 export interface UploadTicketInput {
-  name: string
-  size: number
-  type: string
+  files: { name: string; size: number; type: string }[]
   turnstileToken: string
 }
 
+export type UploadUrlResult =
+  | { ok: true; uploads: PresignedUpload[] }
+  | { ok: false; reason: "unavailable" | "rate-limited" | "verification" | "too-large" | "error" }
+
 /**
- * Ask the Worker for a presigned PUT. Returns `null` when object storage is not
- * configured (501), which tells the caller to fall back to an email attachment.
+ * Ask the Worker for a presigned PUT.
+ *
+ * `unavailable` means object storage is not configured, which is the only case
+ * that should fall back to an email attachment — every other reason has to be
+ * reported, or the visitor is told the wrong thing.
  */
 export async function requestUploadUrl(
   input: UploadTicketInput,
   endpoint: string | undefined
-): Promise<PresignedUpload | null> {
+): Promise<UploadUrlResult> {
   const base = normalizeContactEndpoint(endpoint)
-  if (!base) return null
+  if (!base) return { ok: false, reason: "unavailable" }
 
   const url = new URL("upload-url", base.endsWith("/") ? base : `${base}/`)
 
@@ -45,28 +50,50 @@ export async function requestUploadUrl(
         "X-Turnstile-Token": input.turnstileToken,
       },
       body: JSON.stringify({
-        name: input.name,
-        size: input.size,
-        type: input.type,
+        files: input.files,
         turnstileToken: input.turnstileToken,
       }),
     })
 
-    if (response.status === 501) return null
-    if (!response.ok) return null
+    if (response.status === 501) return { ok: false, reason: "unavailable" }
 
-    const data = (await response.json()) as Partial<PresignedUpload> & { ok?: boolean }
-    if (data?.ok !== true || !data.key || !data.url) return null
-
-    return {
-      key: data.key,
-      url: data.url,
-      ticket: typeof data.ticket === "string" ? data.ticket : "",
-      maxBytes: data.maxBytes ?? 0,
-      expiresIn: data.expiresIn ?? 0,
+    let data:
+      | {
+          ok?: boolean
+          error?: string
+          maxBytes?: number
+          expiresIn?: number
+          uploads?: { key?: string; url?: string; ticket?: string }[]
+        }
+      | null = null
+    try {
+      data = await response.json()
+    } catch {
+      data = null
     }
+
+    if (response.status === 429) return { ok: false, reason: "rate-limited" }
+    if (response.status === 413) return { ok: false, reason: "too-large" }
+    if (response.status === 403) return { ok: false, reason: "verification" }
+    if (!response.ok || data?.ok !== true || !Array.isArray(data.uploads)) {
+      return { ok: false, reason: "error" }
+    }
+
+    const uploads: PresignedUpload[] = []
+    for (const entry of data.uploads) {
+      if (!entry?.key || !entry?.url) return { ok: false, reason: "error" }
+      uploads.push({
+        key: entry.key,
+        url: entry.url,
+        ticket: typeof entry.ticket === "string" ? entry.ticket : "",
+        maxBytes: data.maxBytes ?? 0,
+        expiresIn: data.expiresIn ?? 0,
+      })
+    }
+
+    return { ok: true, uploads }
   } catch {
-    return null
+    return { ok: false, reason: "error" }
   }
 }
 

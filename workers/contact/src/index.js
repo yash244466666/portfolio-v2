@@ -163,7 +163,9 @@ function formatBytes(bytes) {
  * Turnstile + optional KV rate limit. Returns a `Response` when the request
  * must be rejected, or `null` when it may continue.
  */
-async function enforceGate(env, token, ip, origin) {
+async function enforceGate(env, token, ip, origin, options = {}) {
+  const { bucket = "submit", limit = 5 } = options
+
   if (!token) {
     return json({ ok: false, error: "Missing captcha" }, 400, origin)
   }
@@ -173,12 +175,22 @@ async function enforceGate(env, token, ip, origin) {
     return json({ ok: false, error: "Captcha failed" }, 403, origin)
   }
 
-  // Optional KV rate limit: 5 submissions per IP per hour.
+  // Optional KV rate limit, counted per bucket: presigning runs once per file,
+  // so it needs a budget of its own or one five-file message would use up the
+  // whole hour and every retry afterwards would fail.
   if (env.RATE_LIMIT && ip) {
-    const key = `rate:${ip}`
+    const key = `rate:${bucket}:${ip}`
     const used = Number((await env.RATE_LIMIT.get(key)) || "0")
-    if (used >= 5) {
-      return json({ ok: false, error: "Too many requests" }, 429, origin)
+    if (used >= limit) {
+      return json(
+        {
+          ok: false,
+          error: "rate-limited",
+          message: "Too many attempts. Try again later.",
+        },
+        429,
+        origin
+      )
     }
     await env.RATE_LIMIT.put(key, String(used + 1), { expirationTtl: 3600 })
   }
@@ -590,14 +602,15 @@ async function verifyUploadTicket(env, key, ticket) {
   return diff === 0
 }
 
-/** `POST /upload-url` — validate a file and hand back a presigned PUT. */
+/**
+ * `POST /upload-url` — validate files and hand back presigned PUTs.
+ *
+ * One call for the whole message: a Turnstile token authorises exactly one
+ * request, so asking per file made every file after the first fail.
+ */
 async function handleUploadUrl(request, env, ctx, origin) {
   if (!storageConfigured(env)) {
-    return json(
-      { ok: false, error: "storage-unavailable" },
-      501,
-      origin
-    )
+    return json({ ok: false, error: "storage-unavailable" }, 501, origin)
   }
 
   let data
@@ -607,45 +620,77 @@ async function handleUploadUrl(request, env, ctx, origin) {
     return json({ ok: false, error: "Invalid JSON" }, 400, origin)
   }
 
-  const name = typeof data?.name === "string" ? data.name.trim() : ""
-  const size = Number(data?.size)
-  const extension = extensionOf(name)
+  const requested = Array.isArray(data?.files)
+    ? data.files
+    : data?.name
+      ? [{ name: data.name, size: data.size }]
+      : []
 
-  if (!name || !Number.isFinite(size) || size <= 0) {
+  if (requested.length === 0) {
     return json({ ok: false, error: "Invalid file" }, 400, origin)
   }
-  if (size > STORAGE_MAX_BYTES) {
+  if (requested.length > MAX_STORED_FILES) {
     return json(
-      { ok: false, error: "file-too-large", maxBytes: STORAGE_MAX_BYTES },
-      413,
+      { ok: false, error: "too-many-files", maxFiles: MAX_STORED_FILES },
+      400,
       origin
     )
   }
-  if (!extension) {
-    return json({ ok: false, error: "file-name-invalid" }, 400, origin)
+
+  // Validate everything before signing anything.
+  const plans = []
+  for (const file of requested) {
+    const name = typeof file?.name === "string" ? file.name.trim() : ""
+    const size = Number(file?.size)
+    const extension = extensionOf(name)
+
+    if (!name || !Number.isFinite(size) || size <= 0) {
+      return json({ ok: false, error: "Invalid file" }, 400, origin)
+    }
+    if (size > STORAGE_MAX_BYTES) {
+      return json(
+        { ok: false, error: "file-too-large", maxBytes: STORAGE_MAX_BYTES },
+        413,
+        origin
+      )
+    }
+    if (!extension) {
+      return json({ ok: false, error: "file-name-invalid" }, 400, origin)
+    }
+    plans.push({ name, size, extension })
   }
 
   const token = request.headers.get("X-Turnstile-Token") || ""
   const ip = request.headers.get("CF-Connecting-IP") || ""
-  const blocked = await enforceGate(env, token, ip, origin)
+  const blocked = await enforceGate(env, token, ip, origin, {
+    bucket: "upload",
+    limit: 24,
+  })
   if (blocked) return blocked
 
   await pruneStoredFiles(env, ctx)
 
-  const key = `${STORAGE_PREFIX}${crypto.randomUUID()}.${extension}`
-  const url = await presignS3(env, {
-    method: "PUT",
-    key,
-    expires: UPLOAD_URL_TTL_SECONDS,
-  })
+  const uploads = []
+  for (const plan of plans) {
+    const key = `${STORAGE_PREFIX}${crypto.randomUUID()}.${plan.extension}`
+    uploads.push({
+      name: plan.name,
+      key,
+      url: await presignS3(env, {
+        method: "PUT",
+        key,
+        expires: UPLOAD_URL_TTL_SECONDS,
+      }),
+      ticket: await signUploadTicket(env, key),
+    })
+  }
 
   return json(
     {
       ok: true,
-      key,
-      url,
-      ticket: await signUploadTicket(env, key),
+      uploads,
       maxBytes: STORAGE_MAX_BYTES,
+      maxFiles: MAX_STORED_FILES,
       expiresIn: UPLOAD_URL_TTL_SECONDS,
     },
     200,
