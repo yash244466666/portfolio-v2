@@ -188,6 +188,13 @@ async function enforceGate(env, token, ip, origin) {
 
 const BRAND = {
   siteUrl: "https://yashcodes.com",
+  /**
+   * Mirrors `personalInfo.resumeUrl` in `lib/content/index.ts`. This Worker is
+   * a separate deployable and cannot import the Next content module, so this
+   * is the one place to change the résumé link.
+   */
+  resumeUrl: "https://yashcodes.com/resume.pdf",
+  resumeLabel: "Download my resume",
   wordmark: "Yash Sikdar",
   name: "Yash",
   accent: "#3ecf8e",
@@ -211,7 +218,7 @@ const BRAND = {
  * explicit dark color-scheme so Gmail and iOS Mail do not invert the palette.
  */
 function buildConfirmationHtml({ name, message }) {
-  const { font, background, surface, quoteSurface, border, foreground, body, muted, faint, accent, siteUrl, wordmark } = BRAND
+  const { font, background, surface, quoteSurface, border, foreground, body, muted, faint, accent, siteUrl, wordmark, resumeUrl, resumeLabel } = BRAND
 
   return `<!doctype html>
 <html lang="en" dir="ltr">
@@ -256,7 +263,7 @@ function buildConfirmationHtml({ name, message }) {
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 0 0;">
 <tr>
 <td style="border-radius:10px;background-color:${foreground};">
-<a href="${siteUrl}" style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:600;color:${background};text-decoration:none;border-radius:10px;font-family:${font};">View portfolio</a>
+<a href="${resumeUrl}" style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:600;color:${background};text-decoration:none;border-radius:10px;font-family:${font};">${resumeLabel}</a>
 </td>
 </tr>
 </table>
@@ -294,6 +301,8 @@ Your message:
 ${message}
 
 Need to add something? Just reply to this email and it comes straight to me.
+
+${BRAND.resumeLabel}: ${BRAND.resumeUrl}
 
 — ${BRAND.name}
 ${BRAND.siteUrl}`
