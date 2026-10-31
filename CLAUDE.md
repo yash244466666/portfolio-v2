@@ -1,6 +1,6 @@
 # Repository Context for Coding Agents
 
-> Last verified: 2026-10-31
+> Last verified: 2026-11-01
 > Applies to: AGENT.md and CLAUDE.md
 > These two files intentionally contain the same repository guidance. Keep them synchronized.
 
@@ -445,12 +445,14 @@ Do not add external calls without clear user-facing disclosure, reasonable error
 
 Primary flow:
 
-- The fields are name, email, and message; all three are `required`.
+- The fields are name, email, message, and an optional single attachment; the first three are `required`.
 - A hidden `website` honeypot must stay empty.
-- The Cloudflare Turnstile widget issues a token; the submit button is disabled while the request is in flight.
-- **lib/contact/send-contact.ts** POSTs `{ name, email, message, turnstileToken, website }` to `NEXT_PUBLIC_CONTACT_ENDPOINT` with a 15-second timeout.
-- The Worker verifies Turnstile, rate-limits through the `RATE_LIMIT` KV binding when it is configured (5 per IP per hour), and calls Brevo twice: the owner notification (`Reply-To` = visitor) and the visitor confirmation (`Reply-To` = owner).
-- Success resets the fields and the Turnstile widget; failure keeps the fields, shows a generic error, and offers a prefilled `mailto:info@yashcodes.com` fallback.
+- Turnstile renders with `appearance: "interaction-only"`, so the widget stays out of the layout unless Cloudflare needs a challenge; a small "Protected by Cloudflare" link carries the attribution instead.
+- **lib/contact/send-contact.ts** POSTs `{ name, email, message, turnstileToken, attachment, website }` to `NEXT_PUBLIC_CONTACT_ENDPOINT`, with the token also in `X-Turnstile-Token` so the Worker can verify it before parsing the body. The timeout is 15 seconds, or 30 with an attachment.
+- **lib/contact/attachment.ts** owns the client rules: a 4 MB ceiling, the Brevo extension allowlist, the `accept` attribute, chunked base64 reading, and the size formatter. Keep it in sync with the Worker.
+- The Worker verifies Turnstile, rate-limits through the `RATE_LIMIT` KV binding when it is configured (5 per IP per hour), and calls Brevo twice: the owner notification at `md.mohi.minul.islam.yash@gmail.com` (`Reply-To` = visitor, carrying the attachment) and the visitor confirmation (`Reply-To` = owner). Sender stays `info@yashcodes.com`; only the recipient is the Gmail address.
+- The confirmation is a branded dark template built by `buildConfirmationHtml` / `buildConfirmationText` in the Worker, with inline styles, table layout, and no external assets.
+- Success resets the fields, the attachment, and the Turnstile widget; failure keeps the fields and the file, shows a generic error, and offers a prefilled `mailto:info@yashcodes.com` fallback that states the file must be re-attached.
 
 Constraints:
 

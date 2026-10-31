@@ -11,7 +11,10 @@
  *   RATE_LIMIT             KV namespace binding (5 submissions / IP / hour)
  *
  * Request contract (POST, JSON):
- *   { name, email, message, turnstileToken, website }
+ *   { name, email, message, turnstileToken, attachment, website }
+ *   `turnstileToken` may instead be sent as the `X-Turnstile-Token` header,
+ *   which lets the Worker verify it before reading the body.
+ *   `attachment` is optional: { name, content } with base64 `content`.
  *   `website` is the honeypot and must be empty.
  *
  * Response: { ok: true, confirmationSent } or { ok: false, error }.
@@ -32,8 +35,34 @@ const OWNER_EMAIL = "md.mohi.minul.islam.yash@gmail.com"
 const SENDER_EMAIL = "info@yashcodes.com"
 const SENDER_NAME = "Yash"
 
-const MAX_BODY_BYTES = 32 * 1024
-const LIMITS = { name: 100, email: 254, message: 5000 }
+/**
+ * Body ceiling. Base64 inflates the file by ~33%, so this leaves room for a
+ * 4 MB attachment plus the message and JSON overhead. Cloudflare's own limit
+ * is far higher; the real constraint is Worker CPU time spent parsing.
+ */
+const MAX_BODY_BYTES = 6 * 1024 * 1024
+const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024
+const LIMITS = { name: 100, email: 254, message: 5000, fileName: 120 }
+
+/** Extensions Brevo accepts, kept narrow enough for a contact form. */
+const ALLOWED_ATTACHMENT_EXTENSIONS = [
+  "pdf",
+  "doc",
+  "docx",
+  "odt",
+  "txt",
+  "csv",
+  "xls",
+  "xlsx",
+  "ppt",
+  "pptx",
+  "zip",
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+]
 
 function corsHeaders(origin) {
   const allowed =
@@ -42,7 +71,7 @@ function corsHeaders(origin) {
     "Access-Control-Allow-Origin": allowed,
     Vary: "Origin",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, X-Turnstile-Token",
     "Access-Control-Max-Age": "86400",
   }
 }
@@ -69,6 +98,92 @@ function escapeHtml(value) {
 
 function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)
+}
+
+/**
+ * Validate an optional `{ name, content }` attachment.
+ *
+ * The browser's MIME type is ignored — it is attacker-controlled and often
+ * wrong. The extension allowlist and the decoded byte count are what matter.
+ * Returns `{ ok: true, attachment }` where `attachment` is `null` when the
+ * field is absent, so callers can tell "no file" apart from "bad file".
+ */
+function parseAttachment(raw) {
+  if (raw === undefined || raw === null) return { ok: true, attachment: null }
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    return { ok: false, error: "Invalid attachment" }
+  }
+
+  const rawName = typeof raw.name === "string" ? raw.name : ""
+  // Some encoders wrap base64 at 76 columns.
+  const content =
+    typeof raw.content === "string" ? raw.content.replace(/\s+/g, "") : ""
+  if (!rawName || !content) return { ok: false, error: "Invalid attachment" }
+
+  if (content.length > Math.ceil((MAX_ATTACHMENT_BYTES * 4) / 3) + 8) {
+    return { ok: false, error: "Attachment too large" }
+  }
+
+  // Drop any path a client might have sent and control characters.
+  const baseName = rawName.split(/[\\/]/).pop() || ""
+  const name = baseName
+    .replace(/[\u0000-\u001f\u007f"]/g, "")
+    .trim()
+    .slice(0, LIMITS.fileName)
+  if (!name) return { ok: false, error: "Invalid attachment" }
+
+  const extension = name.includes(".")
+    ? name.split(".").pop().toLowerCase()
+    : ""
+  if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(extension)) {
+    return { ok: false, error: "Attachment type not allowed" }
+  }
+
+  let size
+  try {
+    size = atob(content).length
+  } catch {
+    return { ok: false, error: "Invalid attachment" }
+  }
+  if (size === 0) return { ok: false, error: "Invalid attachment" }
+  if (size > MAX_ATTACHMENT_BYTES) {
+    return { ok: false, error: "Attachment too large" }
+  }
+
+  return { ok: true, attachment: { name, content, size } }
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+/**
+ * Turnstile + optional KV rate limit. Returns a `Response` when the request
+ * must be rejected, or `null` when it may continue.
+ */
+async function enforceGate(env, token, ip, origin) {
+  if (!token) {
+    return json({ ok: false, error: "Missing captcha" }, 400, origin)
+  }
+
+  const human = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY, ip)
+  if (!human) {
+    return json({ ok: false, error: "Captcha failed" }, 403, origin)
+  }
+
+  // Optional KV rate limit: 5 submissions per IP per hour.
+  if (env.RATE_LIMIT && ip) {
+    const key = `rate:${ip}`
+    const used = Number((await env.RATE_LIMIT.get(key)) || "0")
+    if (used >= 5) {
+      return json({ ok: false, error: "Too many requests" }, 429, origin)
+    }
+    await env.RATE_LIMIT.put(key, String(used + 1), { expirationTtl: 3600 })
+  }
+
+  return null
 }
 
 const BRAND = {
@@ -250,6 +365,17 @@ export default {
       return json({ ok: false, error: "Payload too large" }, 413, origin)
     }
 
+    // When the client sends the token as a header, the gate runs before the
+    // body is read, so an unauthenticated request cannot push megabytes
+    // through the Worker. Bodies carrying the token inline fall back to the
+    // legacy order further down.
+    const ip = request.headers.get("CF-Connecting-IP") || ""
+    const headerToken = request.headers.get("X-Turnstile-Token") || ""
+    if (headerToken) {
+      const blocked = await enforceGate(env, headerToken, ip, origin)
+      if (blocked) return blocked
+    }
+
     let data
     try {
       const body = await request.text()
@@ -274,8 +400,6 @@ export default {
     const email = typeof data.email === "string" ? data.email.trim() : ""
     const message =
       typeof data.message === "string" ? data.message.trim() : ""
-    const token =
-      typeof data.turnstileToken === "string" ? data.turnstileToken : ""
 
     if (!name || name.length > LIMITS.name) {
       return json({ ok: false, error: "Invalid name" }, 400, origin)
@@ -286,40 +410,36 @@ export default {
     if (!message || message.length > LIMITS.message) {
       return json({ ok: false, error: "Invalid message" }, 400, origin)
     }
-    if (!token) {
-      return json({ ok: false, error: "Missing captcha" }, 400, origin)
+
+    if (!headerToken) {
+      const bodyToken =
+        typeof data.turnstileToken === "string" ? data.turnstileToken : ""
+      const blocked = await enforceGate(env, bodyToken, ip, origin)
+      if (blocked) return blocked
     }
 
-    const ip = request.headers.get("CF-Connecting-IP") || ""
-    const human = await verifyTurnstile(
-      token,
-      env.TURNSTILE_SECRET_KEY,
-      ip
-    )
-    if (!human) {
-      return json({ ok: false, error: "Captcha failed" }, 403, origin)
+    const parsedAttachment = parseAttachment(data.attachment)
+    if (!parsedAttachment.ok) {
+      return json({ ok: false, error: parsedAttachment.error }, 400, origin)
     }
-
-    // Optional KV rate limit: 5 submissions per IP per hour.
-    if (env.RATE_LIMIT && ip) {
-      const key = `rate:${ip}`
-      const used = Number((await env.RATE_LIMIT.get(key)) || "0")
-      if (used >= 5) {
-        return json({ ok: false, error: "Too many requests" }, 429, origin)
-      }
-      await env.RATE_LIMIT.put(key, String(used + 1), {
-        expirationTtl: 3600,
-      })
-    }
+    const attachment = parsedAttachment.attachment
 
     const safeName = escapeHtml(name)
     const safeEmail = escapeHtml(email)
     const safeMessage = escapeHtml(message).replace(/\n/g, "<br />")
 
+    const attachmentHtml = attachment
+      ? `<p><strong>Attachment:</strong> ${escapeHtml(attachment.name)} (${formatBytes(attachment.size)})</p>`
+      : ""
+    const attachmentText = attachment
+      ? `\nAttachment: ${attachment.name} (${formatBytes(attachment.size)})`
+      : ""
+
     const ownerHtml = `
       <h2>New portfolio message</h2>
       <p><strong>Name:</strong> ${safeName}<br />
       <strong>Email:</strong> ${safeEmail}</p>
+      ${attachmentHtml}
       <p><strong>Message:</strong></p>
       <p>${safeMessage}</p>
     `
@@ -337,7 +457,12 @@ export default {
         replyTo: { email, name },
         subject: `New portfolio message from ${name}`,
         htmlContent: ownerHtml,
-        textContent: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+        textContent: `Name: ${name}\nEmail: ${email}${attachmentText}\n\n${message}`,
+        // The file goes to the owner only. Echoing it on the visitor
+        // confirmation would double Brevo usage and bounce more often.
+        ...(attachment
+          ? { attachment: [{ name: attachment.name, content: attachment.content }] }
+          : {}),
       })
     } catch {
       return json({ ok: false, error: "Could not send message" }, 502, origin)
