@@ -71,6 +71,119 @@ function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)
 }
 
+const BRAND = {
+  siteUrl: "https://yashcodes.com",
+  wordmark: "Yash Sikdar",
+  name: "Yash",
+  accent: "#3ecf8e",
+  background: "#0a0a0a",
+  surface: "#171717",
+  quoteSurface: "#141414",
+  border: "#262626",
+  foreground: "#fafafa",
+  body: "#d4d4d4",
+  muted: "#a3a3a3",
+  faint: "#737373",
+  font: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+}
+
+/**
+ * Visitor confirmation email.
+ *
+ * `name` and `message` must already be HTML-escaped; `message` keeps its
+ * `<br />` line breaks. Written for email clients rather than browsers:
+ * inline styles only, table layout, no external images or fonts, and an
+ * explicit dark color-scheme so Gmail and iOS Mail do not invert the palette.
+ */
+function buildConfirmationHtml({ name, message }) {
+  const { font, background, surface, quoteSurface, border, foreground, body, muted, faint, accent, siteUrl, wordmark } = BRAND
+
+  return `<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<meta name="supported-color-schemes" content="dark light" />
+<title>Thanks for contacting ${wordmark}</title>
+</head>
+<body style="margin:0;padding:0;background-color:${background};color:${body};font-family:${font};">
+<div style="display:none;font-size:1px;color:${background};line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">Your message reached me — here is a copy for your records.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${background};">
+<tr>
+<td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:${surface};border:1px solid ${border};border-radius:10px;overflow:hidden;">
+
+<tr>
+<td style="padding:28px 28px 20px 28px;">
+<p style="margin:0;font-size:17px;font-weight:700;letter-spacing:-0.01em;color:${foreground};font-family:${font};">${wordmark}</p>
+<p style="margin:4px 0 0 0;font-size:13px;color:${faint};font-family:${font};">Full Stack Software Engineer</p>
+</td>
+</tr>
+
+<tr>
+<td style="height:2px;line-height:2px;font-size:0;background-color:${foreground};background-image:linear-gradient(90deg,${foreground} 0%,${accent} 100%);">&nbsp;</td>
+</tr>
+
+<tr>
+<td style="padding:28px;">
+<h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:${foreground};font-family:${font};">Message received</h1>
+<p style="margin:0 0 14px 0;font-size:15px;line-height:1.7;color:${muted};font-family:${font};">Hi ${name},</p>
+<p style="margin:0 0 22px 0;font-size:15px;line-height:1.7;color:${body};font-family:${font};">Thanks for getting in touch. Your message reached me and I will reply soon — usually within a day or two.</p>
+
+<p style="margin:0 0 8px 0;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:${faint};font-family:${font};">Your message</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${quoteSurface};border:1px solid ${border};border-left:3px solid ${accent};border-radius:10px;">
+<tr>
+<td style="padding:16px 20px;font-size:15px;line-height:1.7;color:${body};font-family:${font};word-break:break-word;">${message}</td>
+</tr>
+</table>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 0 0;">
+<tr>
+<td style="border-radius:10px;background-color:${foreground};">
+<a href="${siteUrl}" style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:600;color:${background};text-decoration:none;border-radius:10px;font-family:${font};">View portfolio</a>
+</td>
+</tr>
+</table>
+
+<p style="margin:22px 0 0 0;font-size:14px;line-height:1.7;color:${muted};font-family:${font};">Need to add something? Just reply to this email and it comes straight to me.</p>
+</td>
+</tr>
+
+<tr>
+<td style="padding:0 28px;"><div style="height:1px;line-height:1px;font-size:0;background-color:${border};">&nbsp;</div></td>
+</tr>
+
+<tr>
+<td style="padding:20px 28px 26px 28px;">
+<p style="margin:0 0 6px 0;font-size:12px;line-height:1.6;color:${faint};font-family:${font};">You received this because you used the contact form at <a href="${siteUrl}" style="color:${muted};text-decoration:underline;">${siteUrl.replace(/^https?:\/\//, "")}</a>. Your address is only used to reply to you.</p>
+<p style="margin:0;font-size:12px;line-height:1.6;color:${faint};font-family:${font};">&copy; ${new Date().getUTCFullYear()} ${BRAND.name}</p>
+</td>
+</tr>
+
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>`
+}
+
+/** Plain-text twin of the confirmation email. */
+function buildConfirmationText({ name, message }) {
+  return `Hi ${name},
+
+Thanks for getting in touch. Your message reached me and I will reply soon — usually within a day or two.
+
+Your message:
+${message}
+
+Need to add something? Just reply to this email and it comes straight to me.
+
+— ${BRAND.name}
+${BRAND.siteUrl}`
+}
+
 async function verifyTurnstile(token, secret, ip) {
   const form = new FormData()
   form.append("secret", secret)
@@ -211,13 +324,11 @@ export default {
       <p>${safeMessage}</p>
     `
 
-    const confirmationHtml = `
-      <p>Hi ${safeName},</p>
-      <p>Thanks for getting in touch. I received your message and will reply soon.</p>
-      <p><strong>Your message:</strong></p>
-      <p>${safeMessage}</p>
-      <p>— Yash</p>
-    `
+    const confirmationHtml = buildConfirmationHtml({
+      name: safeName,
+      message: safeMessage,
+    })
+    const confirmationText = buildConfirmationText({ name, message })
 
     try {
       await sendBrevo(env.BREVO_API_KEY, {
@@ -242,7 +353,7 @@ export default {
         replyTo: { email: OWNER_EMAIL, name: SENDER_NAME },
         subject: "Thanks for contacting Yash",
         htmlContent: confirmationHtml,
-        textContent: `Hi ${name},\n\nThanks for getting in touch. I received your message and will reply soon.\n\n${message}\n\n— Yash`,
+        textContent: confirmationText,
       })
     } catch {
       confirmationSent = false
