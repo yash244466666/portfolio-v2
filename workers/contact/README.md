@@ -169,3 +169,22 @@ Worker variables needed for this path (Settings → Variables and Secrets):
 
 Links expire after 7 days (AWS's presigned ceiling). Objects are deleted after
 30 days by a best-effort prune that runs when a new upload URL is issued.
+
+## Admin page
+
+`GET /admin` is a small management UI for the bucket: sign in, then list every
+stored upload with its name, size and date, download it again under its original
+name, or delete it.
+
+- Requires the `ADMIN_PASSWORD` Worker secret. With it unset the page answers
+  `503` and does nothing else.
+- The session cookie is `expiry.HMAC(password, expiry)`, HttpOnly, Secure,
+  SameSite=Lax, valid for 12 hours.
+- Deletes are `POST /admin/delete` with a CSRF token derived from the same
+  secret, and only keys matching `uploads/<uuid>/<name>` are accepted.
+- Failed logins are counted per IP through the `RATE_LIMIT` KV when it is bound
+  (10 per hour).
+
+The page lives here because Garage 2.1 ships no web console and MinIO cannot be
+installed on vps-2 (Docker Hub no longer serves `minio/minio`, `dl.min.io`
+returns 410).
