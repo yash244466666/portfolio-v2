@@ -501,25 +501,34 @@ function toHex(bytes) {
  * `UNSIGNED-PAYLOAD`, which is what lets the browser stream the file without
  * the Worker ever seeing its bytes.
  */
-async function presignS3(env, { method, key, expires }) {
+async function presignS3(env, { method, key, expires, query }) {
   const endpoint = env.S3_ENDPOINT.replace(/\/$/, "")
   const url = new URL(`${endpoint}/${env.S3_BUCKET}/${key}`)
   const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "")
   const dateStamp = amzDate.slice(0, 8)
   const scope = `${dateStamp}/${env.S3_REGION}/s3/aws4_request`
 
-  const query = new URLSearchParams({
-    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
-    "X-Amz-Credential": `${env.S3_ACCESS_KEY}/${scope}`,
-    "X-Amz-Date": amzDate,
-    "X-Amz-Expires": String(expires),
-    "X-Amz-SignedHeaders": "host",
-  })
+  // Every query parameter is part of the signature, and S3 requires the
+  // canonical form to be sorted by name with RFC 3986 encoding (no `+` for
+  // spaces). Stuffing `?list-type=2` into `key` silently dropped it, which made
+  // a prefixed listing return the whole bucket.
+  const params = [
+    ["X-Amz-Algorithm", "AWS4-HMAC-SHA256"],
+    ["X-Amz-Credential", `${env.S3_ACCESS_KEY}/${scope}`],
+    ["X-Amz-Date", amzDate],
+    ["X-Amz-Expires", String(expires)],
+    ["X-Amz-SignedHeaders", "host"],
+    ...(query ? [...new URLSearchParams(query).entries()] : []),
+  ]
+    .map(([name, value]) => [encodeURIComponent(name), encodeURIComponent(value)])
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+
+  const canonicalQuery = params.map(([name, value]) => `${name}=${value}`).join("&")
 
   const canonicalRequest = [
     method,
     url.pathname,
-    query.toString(),
+    canonicalQuery,
     `host:${url.host}\n`,
     "host",
     "UNSIGNED-PAYLOAD",
@@ -541,8 +550,7 @@ async function presignS3(env, { method, key, expires }) {
   )
   const signature = toHex(await hmacSha256(signingKey, stringToSign))
 
-  query.append("X-Amz-Signature", signature)
-  return `${url.origin}${url.pathname}?${query.toString()}`
+  return `${url.origin}${url.pathname}?${canonicalQuery}&X-Amz-Signature=${signature}`
 }
 
 /** Delete objects older than the retention window. Best effort, never fatal. */
@@ -551,8 +559,9 @@ async function pruneStoredFiles(env, ctx) {
     try {
       const listUrl = await presignS3(env, {
         method: "GET",
-        key: `?list-type=2&prefix=${encodeURIComponent(STORAGE_PREFIX)}`,
+        key: "",
         expires: 300,
+        query: `list-type=2&prefix=${encodeURIComponent(STORAGE_PREFIX)}`,
       })
       const response = await fetch(listUrl)
       if (!response.ok) return
@@ -564,6 +573,7 @@ async function pruneStoredFiles(env, ctx) {
         const key = /<Key>([^<]+)<\/Key>/.exec(entry)?.[1]
         const modified = /<LastModified>([^<]+)<\/LastModified>/.exec(entry)?.[1]
         if (!key || !modified) continue
+        if (!STORED_KEY_PATTERN.test(key)) continue
         if (new Date(modified).getTime() > cutoff) continue
         const deleteUrl = await presignS3(env, { method: "DELETE", key, expires: 300 })
         await fetch(deleteUrl, { method: "DELETE" })
@@ -712,10 +722,272 @@ async function handleUploadUrl(request, env, ctx, origin) {
   )
 }
 
+
+/* =============================================================================
+   Admin page — browse, download and delete stored uploads
+   =============================================================================
+   A tiny management UI for the bucket. Garage has no web console of its own and
+   MinIO cannot be installed on vps-2, so this lives here where the S3
+   credentials and the SigV4 signer already are.
+
+   Requires the ADMIN_PASSWORD Worker secret. Without it the page answers 503.
+   ========================================================================== */
+
+const ADMIN_SESSION_TTL_SECONDS = 12 * 60 * 60
+const ADMIN_COOKIE = "portfolio_admin"
+
+function parseCookies(header) {
+  const out = {}
+  for (const part of String(header || "").split(";")) {
+    const index = part.indexOf("=")
+    if (index === -1) continue
+    out[part.slice(0, index).trim()] = decodeURIComponent(part.slice(index + 1).trim())
+  }
+  return out
+}
+
+async function adminSign(env, scope, expires) {
+  return toHex(await hmacSha256(env.ADMIN_PASSWORD, `${scope}:${expires}`))
+}
+
+async function issueSession(env) {
+  const expires = Math.floor(Date.now() / 1000) + ADMIN_SESSION_TTL_SECONDS
+  return { expires, token: `${expires}.${await adminSign(env, "session", expires)}` }
+}
+
+async function sessionValid(env, value) {
+  if (typeof value !== "string") return false
+  const [expiresRaw, signature] = value.split(".")
+  const expires = Number(expiresRaw)
+  if (!Number.isFinite(expires) || expires * 1000 < Date.now()) return false
+  const expected = await adminSign(env, "session", expires)
+  if (!signature || signature.length !== expected.length) return false
+  let diff = 0
+  for (let index = 0; index < expected.length; index += 1) {
+    diff |= expected.charCodeAt(index) ^ signature.charCodeAt(index)
+  }
+  return diff === 0
+}
+
+function passwordMatches(candidate, expected) {
+  if (typeof candidate !== "string" || typeof expected !== "string") return false
+  if (candidate.length !== expected.length) return false
+  let diff = 0
+  for (let index = 0; index < expected.length; index += 1) {
+    diff |= candidate.charCodeAt(index) ^ expected.charCodeAt(index)
+  }
+  return diff === 0
+}
+
+async function listStoredObjects(env) {
+  const url = await presignS3(env, {
+    method: "GET",
+    key: "",
+    expires: 300,
+    query: `list-type=2&prefix=${encodeURIComponent(STORAGE_PREFIX)}&max-keys=1000`,
+  })
+  const response = await fetch(url)
+  if (!response.ok) return null
+  const xml = await response.text()
+
+  return [...xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)].map(([, entry]) => ({
+    key: /<Key>([^<]+)<\/Key>/.exec(entry)?.[1] ?? "",
+    size: Number(/<Size>(\d+)<\/Size>/.exec(entry)?.[1] ?? 0),
+    modified: /<LastModified>([^<]+)<\/LastModified>/.exec(entry)?.[1] ?? "",
+  }))
+}
+
+function htmlPage(body) {
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<title>Uploads · Yash</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0a0a; color: #fafafa; font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  p.sub { margin: 0 0 24px; color: #a3a3a3; font-size: 14px; }
+  .card { background: #171717; border: 1px solid #262626; border-radius: 10px; padding: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #262626; font-size: 14px; }
+  th { color: #a3a3a3; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  tr:last-child td { border-bottom: 0; }
+  .name { word-break: break-all; }
+  .muted { color: #737373; font-size: 13px; }
+  a { color: #fafafa; }
+  button, input[type="password"] { font: inherit; }
+  input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #333; background: #0f0f0f; color: #fafafa; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 8px; border: 0; background: #fafafa; color: #0a0a0a; font-weight: 600; cursor: pointer; }
+  .btn-ghost { background: transparent; color: #a3a3a3; border: 1px solid #333; font-weight: 500; }
+  .btn-danger { background: transparent; color: #f87171; border: 1px solid #4a2020; font-weight: 500; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .error { color: #fca5a5; font-size: 14px; margin: 0 0 12px; }
+  form.inline { display: inline; }
+</style></head><body><main>${body}</main></body></html>`
+}
+
+function escapeAdmin(value) {
+  return escapeHtml(String(value ?? ""))
+}
+
+function loginPage(message = "") {
+  return htmlPage(`
+  <h1>Uploads</h1>
+  <p class="sub">Sign in to manage the contact-form files.</p>
+  <div class="card" style="max-width:420px">
+    ${message ? `<p class="error">${escapeAdmin(message)}</p>` : ""}
+    <form method="POST" action="/admin/login">
+      <label for="password" class="muted">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+      <div style="margin-top:14px"><button class="btn" type="submit">Sign in</button></div>
+    </form>
+  </div>`)
+}
+
+function storagePage({ files, csrf, totalBytes }) {
+  const rows = files.length
+    ? files
+        .map((file) => {
+          const name = file.key.split("/").pop() ?? file.key
+          return `<tr>
+      <td class="name">${escapeAdmin(name)}</td>
+      <td class="muted">${formatBytes(file.size)}</td>
+      <td class="muted">${escapeAdmin(file.modified.replace("T", " ").slice(0, 16))}</td>
+      <td>
+        <div class="row">
+          <a class="btn btn-ghost" href="/file/${file.key.split("/").map(encodeURIComponent).join("/")}">Download</a>
+          <form class="inline" method="POST" action="/admin/delete">
+            <input type="hidden" name="key" value="${escapeAdmin(file.key)}" />
+            <input type="hidden" name="csrf" value="${escapeAdmin(csrf)}" />
+            <button class="btn btn-danger" type="submit">Delete</button>
+          </form>
+        </div>
+      </td>
+    </tr>`
+        })
+        .join("")
+    : `<tr><td colspan="4" class="muted">No uploads yet.</td></tr>`
+
+  return htmlPage(`
+  <div class="row" style="justify-content:space-between;margin-bottom:6px">
+    <h1 style="margin:0">Uploads</h1>
+    <form class="inline" method="POST" action="/admin/logout"><button class="btn btn-ghost" type="submit">Sign out</button></form>
+  </div>
+  <p class="sub">${files.length} file${files.length === 1 ? "" : "s"} · ${formatBytes(totalBytes)} stored</p>
+  <div class="card"><table>
+    <thead><tr><th>File</th><th>Size</th><th>Uploaded</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`)
+}
+
+async function handleAdmin(request, env, origin) {
+  if (!env.ADMIN_PASSWORD) {
+    return new Response("Admin is not configured.", { status: 503 })
+  }
+
+  const url = new URL(request.url)
+  const cookies = parseCookies(request.headers.get("Cookie"))
+  const signedIn = await sessionValid(env, cookies[ADMIN_COOKIE])
+
+  if (request.method === "GET") {
+    if (!signedIn) return new Response(loginPage(), { headers: { "Content-Type": "text/html; charset=utf-8" } })
+
+    const files = await listStoredObjects(env)
+    if (!files) {
+      return new Response("Storage is unavailable.", { status: 502 })
+    }
+    const csrf = await adminSign(env, "csrf", cookies[ADMIN_COOKIE].split(".")[0])
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0)
+    return new Response(storagePage({ files, csrf, totalBytes }), {
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    })
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 })
+  }
+
+  const form = await request.formData()
+  const ip = request.headers.get("CF-Connecting-IP") || ""
+
+  if (url.pathname === "/admin/login") {
+    if (env.RATE_LIMIT && ip) {
+      const key = `admin-login:${ip}`
+      const used = Number((await env.RATE_LIMIT.get(key)) || "0")
+      if (used >= 10) {
+        return new Response(loginPage("Too many attempts. Try again later."), {
+          status: 429,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        })
+      }
+      await env.RATE_LIMIT.put(key, String(used + 1), { expirationTtl: 3600 })
+    }
+
+    if (!passwordMatches(String(form.get("password") ?? ""), env.ADMIN_PASSWORD)) {
+      return new Response(loginPage("Wrong password."), {
+        status: 401,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      })
+    }
+
+    const session = await issueSession(env)
+    return new Response(null, {
+      status: 303,
+      headers: {
+        Location: "/admin",
+        "Set-Cookie": `${ADMIN_COOKIE}=${session.token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${ADMIN_SESSION_TTL_SECONDS}`,
+      },
+    })
+  }
+
+  if (!signedIn) return new Response("Sign in first.", { status: 403 })
+
+  if (url.pathname === "/admin/logout") {
+    return new Response(null, {
+      status: 303,
+      headers: {
+        Location: "/admin",
+        "Set-Cookie": `${ADMIN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
+      },
+    })
+  }
+
+  if (url.pathname === "/admin/delete") {
+    const expires = cookies[ADMIN_COOKIE].split(".")[0]
+    const expected = await adminSign(env, "csrf", expires)
+    if (!passwordMatches(String(form.get("csrf") ?? ""), expected)) {
+      return new Response("Bad request.", { status: 400 })
+    }
+
+    const key = String(form.get("key") ?? "")
+    if (!STORED_KEY_PATTERN.test(key)) {
+      return new Response("Bad request.", { status: 400 })
+    }
+
+    const deleteUrl = await presignS3(env, { method: "DELETE", key, expires: 300 })
+    const deleted = await fetch(deleteUrl, { method: "DELETE" })
+    if (!deleted.ok && deleted.status !== 204) {
+      return new Response("Could not delete.", { status: 502 })
+    }
+
+    return new Response(null, { status: 303, headers: { Location: "/admin" } })
+  }
+
+  return new Response("Not found", { status: 404 })
+}
+
 export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get("Origin")
     const originAllowed = Boolean(origin && ALLOWED_ORIGINS.includes(origin))
+
+    // Admin page: HTML, cookie sessions, no CORS involvement.
+    if (request.url.includes("/admin")) {
+      return handleAdmin(request, env, origin)
+    }
 
     if (request.method === "OPTIONS") {
       if (!originAllowed) {
