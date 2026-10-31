@@ -62,7 +62,7 @@ The old `master` branch was renamed to `main`; the remote `master` no longer exi
 ### Portfolio (`/`)
 
 - Full-screen loading screen with animated progress and a short fade.
-- Fixed navigation with active-section tracking and mobile menu.
+- Fixed navigation with active-section tracking, a mobile menu, and a content-driven resume download.
 - Hero section with a cycling typewriter, CSS entrance animations, and scroll-to-section actions.
 - About section with six skill groups and gradient background elements.
 - Projects section with six featured project cards and image previews.

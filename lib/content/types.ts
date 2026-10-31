@@ -91,6 +91,14 @@ export interface PersonalInfo {
   tagline: string;
   aboutDescription: string;
   contactAvailability: string;
+  /**
+   * Resume link used by the navigation download button.
+   * Omit it (or set it to an empty string or "#") to hide the button.
+   * Root-relative and relative URLs download; cross-origin URLs open in a new tab.
+   */
+  resumeUrl?: string;
+  /** Optional file name suggested when the resume is downloaded. */
+  resumeFileName?: string;
 }
 
 export interface SectionContent {
@@ -130,6 +138,8 @@ export interface ButtonTexts {
   sendMessage: string;
   code: string;
   liveDemo: string;
+  /** Optional resume button label; falls back to "Download Resume". */
+  downloadResume?: string;
 }
 
 export interface FooterContent {
