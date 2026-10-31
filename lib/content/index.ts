@@ -158,6 +158,11 @@ export const skills: Skill[] = [
 // =============================================================================
 // PROJECTS PORTFOLIO
 // =============================================================================
+// Per-project action visibility (both flags are optional and default to true):
+//   showCode: false      hides the "Code" button for that project.
+//   showLiveDemo: false  hides the "Live Demo" button for that project.
+// Hiding one keeps the other; hiding both removes the action row entirely.
+// Example: { ..., showCode: false } renders only the Live Demo button.
 export const projects: Project[] = [
   {
     title: "Sendout.ai - SaaS Platform",

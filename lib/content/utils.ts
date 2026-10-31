@@ -102,6 +102,15 @@ export const getFeaturedProjects = (limit?: number) => {
 };
 
 /**
+ * Resolve which actions should be rendered for a project.
+ * Omitted flags default to `true`, so existing content keeps both actions.
+ */
+export const getProjectActionVisibility = (project: Project) => ({
+  showCode: project.showCode !== false,
+  showLiveDemo: project.showLiveDemo !== false,
+});
+
+/**
  * Get skills by category (if you want to group them later)
  */
 export const getSkillsByCategory = () => {
@@ -269,6 +278,7 @@ export const contentUtils = {
   getTagline,
   getAboutDescription,
   getFeaturedProjects,
+  getProjectActionVisibility,
   getSkillsByCategory,
   getSocialLinksForDisplay,
   getContactInfoForDisplay,
