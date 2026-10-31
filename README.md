@@ -300,7 +300,7 @@ There is no contact endpoint. The contact form uses `mailto:info@yashcodes.com`.
 
 ```bash
 NEXT_TELEMETRY_DISABLED=1 \
-NEXT_PUBLIC_BG_MODE=random \
+NEXT_PUBLIC_BG_MODE=neural \
 NEXT_PUBLIC_ENABLE_LOGS=false \
 pnpm build
 ```

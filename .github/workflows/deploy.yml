@@ -16,7 +16,7 @@ concurrency:
 
 env:
   NEXT_TELEMETRY_DISABLED: "1"
-  NEXT_PUBLIC_BG_MODE: random
+  NEXT_PUBLIC_BG_MODE: neural
   NEXT_PUBLIC_DEFAULT_BG: neural
   NEXT_PUBLIC_ENABLE_LOGS: "false"
 
