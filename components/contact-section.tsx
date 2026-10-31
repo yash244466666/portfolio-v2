@@ -10,8 +10,13 @@ import { ContactFormCard, type ContactFormStatus } from "@/components/contact-se
 import { ContactInfoList } from "@/components/contact-section/contact-info-list"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
-import { sendContactMessage } from "@/lib/contact/send-contact"
 import {
+  requestUploadUrl,
+  sendContactMessage,
+  uploadFileToStorage,
+} from "@/lib/contact/send-contact"
+import {
+  MAX_ATTACHMENT_COUNT,
   readFileAsBase64,
   validateAttachmentFile,
 } from "@/lib/contact/attachment"
@@ -29,9 +34,10 @@ export default function ContactSection() {
   const [feedback, setFeedback] = useState("")
   const [turnstileToken, setTurnstileToken] = useState("")
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
-  const [attachment, setAttachment] = useState<File | null>(null)
+  const [attachments, setAttachments] = useState<File[]>([])
   const [attachmentError, setAttachmentError] = useState("")
   const [attachmentInputKey, setAttachmentInputKey] = useState(0)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [errorCode, setErrorCode] = useState("")
 
   const shouldSkipAnimation = useCallback(() => {
@@ -71,7 +77,7 @@ export default function ContactSection() {
       nameLength: formData.name.length,
       messageLength: formData.message.length,
       hasEmail: Boolean(formData.email),
-      hasAttachment: Boolean(attachment),
+      hasAttachment: attachments.length > 0,
     }),
     trackValues: () => ({
       isVisible,
@@ -92,7 +98,7 @@ export default function ContactSection() {
         nameLength: formData.name.length,
         messageLength: formData.message.length,
         hasEmail: Boolean(formData.email),
-        hasAttachment: Boolean(attachment),
+        hasAttachment: attachments.length > 0,
       },
       throttleMs: 1500,
     })
@@ -112,21 +118,73 @@ export default function ContactSection() {
     setStatus("sending")
     setFeedback("")
 
+    // Preferred path: upload every file straight to object storage, then send
+    // the keys. Falls back to one inline attachment when storage is absent.
     let attachmentPayload
-    if (attachment) {
-      try {
-        attachmentPayload = {
-          name: attachment.name,
-          type: attachment.type || "application/octet-stream",
-          content: await readFileAsBase64(attachment),
-          size: attachment.size,
+    const storedFiles: { key: string; name: string; size: number }[] = []
+
+    if (attachments.length > 0) {
+      setUploadProgress(0)
+
+      for (let index = 0; index < attachments.length; index += 1) {
+        const file = attachments[index]
+        const upload = await requestUploadUrl(
+          {
+            name: file.name,
+            size: file.size,
+            type: file.type || "application/octet-stream",
+            turnstileToken,
+          },
+          contactEndpoint
+        )
+
+        if (!upload) {
+          // Storage is not configured; only one small file can ride along.
+          if (attachments.length === 1) {
+            try {
+              attachmentPayload = {
+                name: file.name,
+                type: file.type || "application/octet-stream",
+                content: await readFileAsBase64(file),
+                size: file.size,
+              }
+            } catch {
+              setUploadProgress(null)
+              setStatus("error")
+              setErrorCode("upload-failed")
+              setFeedback(formContent.status.error)
+              return
+            }
+            break
+          }
+          setUploadProgress(null)
+          setStatus("error")
+          setErrorCode("upload-failed")
+          setFeedback(formContent.status.fileUploadFailed)
+          setTurnstileToken("")
+          setTurnstileResetKey((key) => key + 1)
+          return
         }
-      } catch {
-        // Reading the local file failed; nothing was sent.
-        setStatus("error")
-        setFeedback(formContent.status.error)
-        return
+
+        const uploaded = await uploadFileToStorage(upload, file, (fraction) => {
+          setUploadProgress((index + fraction) / attachments.length)
+        })
+
+        if (!uploaded) {
+          setUploadProgress(null)
+          setStatus("error")
+          setErrorCode("upload-failed")
+          setFeedback(formContent.status.fileUploadFailed)
+          setTurnstileToken("")
+          setTurnstileResetKey((key) => key + 1)
+          return
+        }
+
+        storedFiles.push({ key: upload.key, name: file.name, size: file.size })
+        setUploadProgress((index + 1) / attachments.length)
       }
+
+      setUploadProgress(null)
     }
 
     const result = await sendContactMessage(
@@ -137,6 +195,7 @@ export default function ContactSection() {
         turnstileToken,
         website: formData.website,
         attachment: attachmentPayload,
+        ...(storedFiles.length ? { files: storedFiles } : {}),
       },
       contactEndpoint
     )
@@ -144,14 +203,16 @@ export default function ContactSection() {
     if (result.ok) {
       setStatus("success")
       setFeedback(
-        result.confirmationSent === false
-          ? formContent.status.successNoConfirmation
-          : formContent.status.success
+        result.fileMode === "link"
+          ? formContent.status.attachmentAsLink
+          : result.confirmationSent === false
+            ? formContent.status.successNoConfirmation
+            : formContent.status.success
       )
       setFormData(EMPTY_FORM)
       setTurnstileToken("")
       setTurnstileResetKey((key) => key + 1)
-      setAttachment(null)
+      setAttachments([])
       setAttachmentError("")
       setAttachmentInputKey((key) => key + 1)
       setErrorCode("")
@@ -159,7 +220,7 @@ export default function ContactSection() {
         event: "form-success",
         detail: {
           confirmationSent: result.confirmationSent !== false,
-          hasAttachment: Boolean(attachmentPayload),
+          hasAttachment: Boolean(attachmentPayload) || storedFiles.length > 0,
           attachmentSent: result.attachmentSent === true,
           reference: result.reference ?? "",
         },
@@ -204,52 +265,54 @@ export default function ContactSection() {
   }
 
   const handleAttachmentSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null
+    const picked = Array.from(event.target.files ?? [])
+    if (picked.length === 0) return
 
-    if (!file) {
-      setAttachment(null)
-      setAttachmentError("")
-      return
-    }
-
-    const validation = validateAttachmentFile(file)
-    if (!validation.ok) {
-      setAttachment(null)
-      setAttachmentError(
-        validation.reason === "too-large"
-          ? formContent.status.fileTooLarge
-          : formContent.status.fileTypeUnsupported
-      )
-      // Remount the input so choosing the same file again still fires change.
-      setAttachmentInputKey((key) => key + 1)
-      logComponentEvent("ContactSection", {
-        event: "attachment-rejected",
-        detail: { reason: validation.reason },
-        throttleMs: 800,
-      })
-      return
-    }
-
-    setAttachment(file)
     setAttachmentError("")
-    if (status === "success" || status === "error") {
-      setStatus("idle")
-      setFeedback("")
-      setErrorCode("")
+
+    const accepted: File[] = []
+    let rejection = ""
+
+    for (const file of picked) {
+      if (attachments.length + accepted.length >= MAX_ATTACHMENT_COUNT) {
+        rejection = formContent.status.tooManyFiles
+        break
+      }
+      const validation = validateAttachmentFile(file)
+      if (!validation.ok) {
+        rejection =
+          validation.reason === "too-large"
+            ? formContent.status.fileTooLarge
+            : formContent.status.fileTypeUnsupported
+        continue
+      }
+      accepted.push(file)
     }
 
-    // Metadata only: never log the file name or its contents.
+    if (accepted.length > 0) {
+      setAttachments((previous) => [...previous, ...accepted])
+      if (status === "success" || status === "error") {
+        setStatus("idle")
+        setFeedback("")
+        setErrorCode("")
+      }
+    }
+    if (rejection) setAttachmentError(rejection)
+
+    // Remount the input so picking the same file again still fires change.
+    setAttachmentInputKey((key) => key + 1)
+
+    // Metadata only: never log file names or contents.
     logComponentEvent("ContactSection", {
       event: "attachment-selected",
-      detail: { sizeBytes: file.size },
+      detail: { count: accepted.length, rejected: Boolean(rejection) },
       throttleMs: 800,
     })
   }
 
-  const handleAttachmentClear = useCallback(() => {
-    setAttachment(null)
+  const handleAttachmentRemove = useCallback((index: number) => {
+    setAttachments((previous) => previous.filter((_, position) => position !== index))
     setAttachmentError("")
-    setAttachmentInputKey((key) => key + 1)
   }, [])
 
   const handleTurnstileTokenChange = useCallback((token: string) => {
@@ -279,11 +342,17 @@ export default function ContactSection() {
             labels={formContent.labels}
             placeholders={formContent.placeholders}
             attachmentLabels={formContent.attachment}
-            attachment={attachment ? { name: attachment.name, size: attachment.size } : null}
+            attachments={attachments.map((file) => ({ name: file.name, size: file.size }))}
             attachmentError={attachmentError}
             attachmentInputKey={attachmentInputKey}
             onAttachmentSelect={handleAttachmentSelect}
-            onAttachmentClear={handleAttachmentClear}
+            onAttachmentRemove={handleAttachmentRemove}
+            uploadProgress={uploadProgress}
+            uploadingLabel={
+              uploadProgress === null
+                ? ""
+                : `${formContent.status.uploading} ${Math.round(uploadProgress * 100)}%`
+            }
             submitLabel={buttonTexts.sendMessage}
             sendingLabel={formContent.status.sending}
             status={status}
@@ -306,7 +375,7 @@ export default function ContactSection() {
             fileNotSentNote={formContent.status.fileNotSent}
             showFileNotSentNote={
               status === "error" &&
-              Boolean(attachment) &&
+              attachments.length > 0 &&
               errorCode !== "attachment-rejected"
             }
             isVisible={isVisible}

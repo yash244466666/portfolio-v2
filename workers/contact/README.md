@@ -44,23 +44,25 @@ site does: the Worker then verifies it *before* reading the body, so an
 unauthenticated request cannot push megabytes through the Worker. The inline
 field is still accepted for older clients.
 
-`attachment` is optional and carries one file:
+## Files
 
-- `content` is base64, without a `data:` prefix. The Worker strips whitespace,
-  so wrapped base64 is fine.
-- 4 MB maximum decoded (`MAX_ATTACHMENT_BYTES`); the whole body is capped at
-  6 MB (`MAX_BODY_BYTES`).
-- Extensions: `pdf, doc, docx, odt, txt, csv, md, xls, xlsx, ppt, pptx, png,
-  jpg, jpeg, gif, webp`. The browser's MIME type is ignored. Archives are not
-  accepted: Gmail bounces a `.zip` with a 552 content block after Brevo has
-  already answered `201`, so the sender would see a success that never
-  arrives.
-- The file is attached to both emails: the owner notification and the
-  visitor confirmation, so the sender keeps a copy of what they sent. Each
-  submission with a file therefore costs two Brevo sends with a payload.
+Files are **not** attached to the emails. They follow a different path:
 
-Keep `lib/contact/attachment.ts` in sync with those limits, or a file will pass
-the client check and be rejected after the upload.
+1. `POST /upload-url` with `{ name, size, type }` and the `X-Turnstile-Token`
+   header. The Worker validates the size, applies the rate limit, and returns a
+   presigned `PUT` valid for 30 minutes.
+2. The browser `PUT`s the file straight to object storage. Nothing large passes
+   through a Cloudflare Worker, so neither the body limit nor the CPU budget
+   applies.
+3. The form posts `files: [{ key, name, size }]` (up to five). The Worker signs a
+   7-day `GET` for each and puts the links in both emails.
+
+Storage limits: **1 GB per file, 5 files per message, any extension**. That is
+the Worker's ceiling; the practical limit is the VPS disk and bandwidth.
+
+Without the `S3_*` variables the endpoint answers `501` and the form falls back
+to attaching one small file inline, which is why `attachment` still exists in
+the payload:
 
 ```json
 { "ok": true, "confirmationSent": true, "reference": "20261101", "attachmentSent": true }
@@ -72,7 +74,8 @@ search for in **Transactional → Logs** when a message does not arrive.
 
 Statuses: `200` success, `400` invalid payload or attachment, `403`
 CORS/Turnstile failure, `413` body over 6 MB, `415` attachment refused by the
-provider, `429` rate limited, `502` Brevo failure.
+provider, `429` rate limited, `501` storage not configured, `502` Brevo
+failure.
 
 Cloudflare's free plan allows 10 ms of CPU per invocation. Parsing a body near
 the 6 MB ceiling can approach that, so very large attachments may fail on the
@@ -138,3 +141,31 @@ curl -i -X POST -H "Content-Type: application/json" \
 
 A valid end-to-end test needs a real Turnstile token and sends two emails; run it
 only with an inbox you control.
+
+## Object storage
+
+Files live in **Garage** (S3-compatible) on vps-2, served at
+`https://files.yashcodes.com`. Setup notes:
+
+- `/opt/stacks/garage/docker-compose.yml` + `garage.toml`; S3 API bound to
+  `127.0.0.1:3900`, admin API `127.0.0.1:3903`.
+- Bucket `contact-uploads`, key `contact-uploader` with read/write on that
+  bucket only.
+- Caddy's `files.yashcodes.com` block proxies to `127.0.0.1:3900`, passes the
+  original `Host` so SigV4 signatures match, answers CORS preflights for the
+  site origins, caps request bodies at 2 GB, and forces
+  `Content-Disposition: attachment` on every download so an uploaded `.html`
+  can never render on that origin.
+
+Worker variables needed for this path (Settings → Variables and Secrets):
+
+| Name | Value |
+|---|---|
+| `S3_ENDPOINT` | `https://files.yashcodes.com` |
+| `S3_REGION` | `garage` |
+| `S3_BUCKET` | `contact-uploads` |
+| `S3_ACCESS_KEY` | Garage key id |
+| `S3_SECRET_KEY` | Garage secret |
+
+Links expire after 7 days (AWS's presigned ceiling). Objects are deleted after
+30 days by a best-effort prune that runs when a new upload URL is issued.

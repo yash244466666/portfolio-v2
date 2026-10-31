@@ -8,6 +8,102 @@ export interface ContactAttachmentInput {
   size: number
 }
 
+export interface PresignedUpload {
+  key: string
+  url: string
+  maxBytes: number
+  expiresIn: number
+}
+
+export interface UploadTicketInput {
+  name: string
+  size: number
+  type: string
+  turnstileToken: string
+}
+
+/**
+ * Ask the Worker for a presigned PUT. Returns `null` when object storage is not
+ * configured (501), which tells the caller to fall back to an email attachment.
+ */
+export async function requestUploadUrl(
+  input: UploadTicketInput,
+  endpoint: string | undefined
+): Promise<PresignedUpload | null> {
+  const base = normalizeContactEndpoint(endpoint)
+  if (!base) return null
+
+  const url = new URL("upload-url", base.endsWith("/") ? base : `${base}/`)
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Turnstile-Token": input.turnstileToken,
+      },
+      body: JSON.stringify({
+        name: input.name,
+        size: input.size,
+        type: input.type,
+        turnstileToken: input.turnstileToken,
+      }),
+    })
+
+    if (response.status === 501) return null
+    if (!response.ok) return null
+
+    const data = (await response.json()) as Partial<PresignedUpload> & { ok?: boolean }
+    if (data?.ok !== true || !data.key || !data.url) return null
+
+    return {
+      key: data.key,
+      url: data.url,
+      maxBytes: data.maxBytes ?? 0,
+      expiresIn: data.expiresIn ?? 0,
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * PUT the file straight to object storage. Never routed through the Worker, so
+ * neither its body limit nor its CPU budget applies.
+ *
+ * `XMLHttpRequest` rather than `fetch`: upload progress is only observable
+ * through XHR's `upload.onprogress`, and a 1 GB file needs a real progress bar.
+ */
+export function uploadFileToStorage(
+  upload: PresignedUpload,
+  file: File,
+  onProgress?: (fraction: number) => void
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    const request = new XMLHttpRequest()
+    request.open("PUT", upload.url, true)
+    request.setRequestHeader(
+      "Content-Type",
+      file.type || "application/octet-stream"
+    )
+
+    request.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable && onProgress) {
+        onProgress(event.loaded / event.total)
+      }
+    })
+
+    request.addEventListener("load", () => {
+      onProgress?.(1)
+      resolve(request.status >= 200 && request.status < 300)
+    })
+    request.addEventListener("error", () => resolve(false))
+    request.addEventListener("abort", () => resolve(false))
+
+    request.send(file)
+  })
+}
+
 export interface ContactMessageInput {
   name: string
   email: string
@@ -17,6 +113,10 @@ export interface ContactMessageInput {
   website?: string
   /** Optional single file forwarded to the owner by email. */
   attachment?: ContactAttachmentInput
+  /** Object-storage key from `requestUploadUrl`; preferred over `attachment`. */
+  fileKey?: string
+  fileName?: string
+  fileSize?: number
 }
 
 export interface ContactSendResult {
@@ -27,6 +127,8 @@ export interface ContactSendResult {
   reference?: string
   /** Whether the file was actually forwarded with the message. */
   attachmentSent?: boolean
+  /** `link` when the file was stored and shared by URL, `attached` otherwise. */
+  fileMode?: "link" | "attached" | "none"
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
@@ -89,6 +191,13 @@ export async function sendContactMessage(
         message: input.message,
         turnstileToken: input.turnstileToken,
         website: input.website ?? "",
+        ...(input.fileKey
+          ? {
+              fileKey: input.fileKey,
+              fileName: input.fileName ?? "",
+              fileSize: input.fileSize ?? 0,
+            }
+          : {}),
         ...(input.attachment
           ? {
               attachment: {
@@ -111,6 +220,7 @@ export async function sendContactMessage(
       confirmationSent?: boolean
       reference?: string
       attachmentSent?: boolean
+      fileMode?: string
     } | null = null
     try {
       data = await response.json()
@@ -135,6 +245,10 @@ export async function sendContactMessage(
       confirmationSent: data.confirmationSent !== false,
       reference: typeof data.reference === "string" ? data.reference : undefined,
       attachmentSent: data.attachmentSent === true,
+      fileMode:
+        data.fileMode === "link" || data.fileMode === "attached"
+          ? data.fileMode
+          : "none",
     }
   } catch {
     return { ok: false, error: "network" }

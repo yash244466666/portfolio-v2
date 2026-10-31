@@ -217,14 +217,21 @@ const BRAND = {
  * inline styles only, table layout, no external images or fonts, and an
  * explicit dark color-scheme so Gmail and iOS Mail do not invert the palette.
  */
-function buildConfirmationHtml({ name, message, attachment }) {
+function buildConfirmationHtml({ name, message, attachment, files }) {
   const { font, background, surface, quoteSurface, border, foreground, body, muted, faint, accent, siteUrl, wordmark, resumeUrl, resumeLabel } = BRAND
 
   // `attachment.name` is already stripped of path segments and control
   // characters; escape it anyway, it is still visitor-supplied text.
   const attachmentDetail = attachment
     ? ` <span style="color:${muted};">Attached:</span> <strong style="color:${foreground};">${escapeHtml(attachment.name)}</strong> <span style="color:${faint};">(${formatBytes(attachment.size)})</span>`
-    : ""
+    : files && files.length
+      ? ` <span style="color:${muted};">Files:</span><br />${files
+          .map(
+            (file) =>
+              `<strong style="color:${foreground};">${escapeHtml(file.name)}</strong> <span style="color:${faint};">(${formatBytes(file.size)})</span> — <a href="${file.url}" style="color:${foreground};text-decoration:underline;">download</a><br />`
+          )
+          .join("")}<span style="color:${faint};">Links expire in ${files[0].days} days.</span>`
+      : ""
 
   const attachmentRow = attachmentDetail
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 0 0;background-color:${quoteSurface};border:1px solid ${border};border-radius:10px;">
@@ -307,10 +314,14 @@ ${attachmentRow}
 }
 
 /** Plain-text twin of the confirmation email. */
-function buildConfirmationText({ name, message, attachment }) {
+function buildConfirmationText({ name, message, attachment, files }) {
   const attachmentLine = attachment
     ? `\n\nAttached: ${attachment.name} (${formatBytes(attachment.size)})`
-    : ""
+    : files && files.length
+      ? `\n\nFiles:\n${files
+          .map((file) => `- ${file.name} (${formatBytes(file.size)}): ${file.url}`)
+          .join("\n")}\nThese links expire in ${files[0].days} days.`
+      : ""
 
   return `Hi ${name},
 
@@ -396,8 +407,214 @@ async function sendBrevo(apiKey, payload) {
   return response.json().catch(() => ({}))
 }
 
+/* =============================================================================
+   Object storage (S3-compatible, self-hosted Garage on vps-2)
+   =============================================================================
+   Files are uploaded straight from the browser with a presigned PUT, so no
+   large body ever passes through the Worker. The Worker only signs URLs and
+   puts them in the emails.
+
+   Worker secrets/vars required for this path:
+     S3_ENDPOINT    https://files.yashcodes.com
+     S3_REGION      garage
+     S3_BUCKET      contact-uploads
+     S3_ACCESS_KEY / S3_SECRET_KEY
+
+   Without them, `storageConfigured()` stays false and the form falls back to
+   attaching small files to the emails as before.
+   ========================================================================== */
+
+const STORAGE_MAX_BYTES = 1024 * 1024 * 1024
+const MAX_STORED_FILES = 5
+const UPLOAD_URL_TTL_SECONDS = 1800
+/** AWS caps presigned URL lifetime at 7 days; Garage follows the same rule. */
+const DOWNLOAD_URL_TTL_SECONDS = 7 * 24 * 60 * 60
+const STORAGE_PREFIX = "uploads/"
+const STORAGE_RETENTION_DAYS = 30
+
+function storageConfigured(env) {
+  return Boolean(
+    env.S3_ENDPOINT &&
+      env.S3_REGION &&
+      env.S3_BUCKET &&
+      env.S3_ACCESS_KEY &&
+      env.S3_SECRET_KEY
+  )
+}
+
+async function hmacSha256(key, data) {
+  const encoder = new TextEncoder()
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    typeof key === "string" ? encoder.encode(key) : key,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  )
+  return new Uint8Array(
+    await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(data))
+  )
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value)
+  )
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")
+}
+
+function toHex(bytes) {
+  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("")
+}
+
+/**
+ * AWS Signature Version 4, query-string form. The payload is
+ * `UNSIGNED-PAYLOAD`, which is what lets the browser stream the file without
+ * the Worker ever seeing its bytes.
+ */
+async function presignS3(env, { method, key, expires }) {
+  const endpoint = env.S3_ENDPOINT.replace(/\/$/, "")
+  const url = new URL(`${endpoint}/${env.S3_BUCKET}/${key}`)
+  const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "")
+  const dateStamp = amzDate.slice(0, 8)
+  const scope = `${dateStamp}/${env.S3_REGION}/s3/aws4_request`
+
+  const query = new URLSearchParams({
+    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+    "X-Amz-Credential": `${env.S3_ACCESS_KEY}/${scope}`,
+    "X-Amz-Date": amzDate,
+    "X-Amz-Expires": String(expires),
+    "X-Amz-SignedHeaders": "host",
+  })
+
+  const canonicalRequest = [
+    method,
+    url.pathname,
+    query.toString(),
+    `host:${url.host}\n`,
+    "host",
+    "UNSIGNED-PAYLOAD",
+  ].join("\n")
+
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    amzDate,
+    scope,
+    await sha256Hex(canonicalRequest),
+  ].join("\n")
+
+  const signingKey = await hmacSha256(
+    await hmacSha256(
+      await hmacSha256(await hmacSha256(`AWS4${env.S3_SECRET_KEY}`, dateStamp), env.S3_REGION),
+      "s3"
+    ),
+    "aws4_request"
+  )
+  const signature = toHex(await hmacSha256(signingKey, stringToSign))
+
+  query.append("X-Amz-Signature", signature)
+  return `${url.origin}${url.pathname}?${query.toString()}`
+}
+
+/** Delete objects older than the retention window. Best effort, never fatal. */
+async function pruneStoredFiles(env, ctx) {
+  const run = async () => {
+    try {
+      const listUrl = await presignS3(env, {
+        method: "GET",
+        key: `?list-type=2&prefix=${encodeURIComponent(STORAGE_PREFIX)}`,
+        expires: 300,
+      })
+      const response = await fetch(listUrl)
+      if (!response.ok) return
+      const xml = await response.text()
+      const cutoff = Date.now() - STORAGE_RETENTION_DAYS * 86400 * 1000
+
+      const entries = [...xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)]
+      for (const [, entry] of entries) {
+        const key = /<Key>([^<]+)<\/Key>/.exec(entry)?.[1]
+        const modified = /<LastModified>([^<]+)<\/LastModified>/.exec(entry)?.[1]
+        if (!key || !modified) continue
+        if (new Date(modified).getTime() > cutoff) continue
+        const deleteUrl = await presignS3(env, { method: "DELETE", key, expires: 300 })
+        await fetch(deleteUrl, { method: "DELETE" })
+      }
+    } catch {
+      // Cleanup is opportunistic; a failure must not affect the upload.
+    }
+  }
+
+  if (ctx?.waitUntil) ctx.waitUntil(run())
+  else await run()
+}
+
+function extensionOf(fileName) {
+  const trimmed = String(fileName || "").trim().toLowerCase()
+  const dot = trimmed.lastIndexOf(".")
+  return dot === -1 ? "" : trimmed.slice(dot + 1)
+}
+
+/** `POST /upload-url` — validate a file and hand back a presigned PUT. */
+async function handleUploadUrl(request, env, ctx, origin) {
+  if (!storageConfigured(env)) {
+    return json(
+      { ok: false, error: "storage-unavailable" },
+      501,
+      origin
+    )
+  }
+
+  let data
+  try {
+    data = await request.json()
+  } catch {
+    return json({ ok: false, error: "Invalid JSON" }, 400, origin)
+  }
+
+  const name = typeof data?.name === "string" ? data.name.trim() : ""
+  const size = Number(data?.size)
+  const extension = extensionOf(name)
+
+  if (!name || !Number.isFinite(size) || size <= 0) {
+    return json({ ok: false, error: "Invalid file" }, 400, origin)
+  }
+  if (size > STORAGE_MAX_BYTES) {
+    return json(
+      { ok: false, error: "file-too-large", maxBytes: STORAGE_MAX_BYTES },
+      413,
+      origin
+    )
+  }
+  if (!extension) {
+    return json({ ok: false, error: "file-name-invalid" }, 400, origin)
+  }
+
+  const token = request.headers.get("X-Turnstile-Token") || ""
+  const ip = request.headers.get("CF-Connecting-IP") || ""
+  const blocked = await enforceGate(env, token, ip, origin)
+  if (blocked) return blocked
+
+  await pruneStoredFiles(env, ctx)
+
+  const key = `${STORAGE_PREFIX}${crypto.randomUUID()}.${extension}`
+  const url = await presignS3(env, {
+    method: "PUT",
+    key,
+    expires: UPLOAD_URL_TTL_SECONDS,
+  })
+
+  return json(
+    { ok: true, key, url, maxBytes: STORAGE_MAX_BYTES, expiresIn: UPLOAD_URL_TTL_SECONDS },
+    200,
+    origin
+  )
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get("Origin")
     const originAllowed = Boolean(origin && ALLOWED_ORIGINS.includes(origin))
 
@@ -406,6 +623,14 @@ export default {
         return new Response(null, { status: 403, headers: corsHeaders(null) })
       }
       return new Response(null, { status: 204, headers: corsHeaders(origin) })
+    }
+
+    // File uploads get their own presigned URL; everything else is the form.
+    if (request.url.includes("/upload-url")) {
+      if (!originAllowed && origin) {
+        return json({ ok: false, error: "Origin not allowed" }, 403, origin)
+      }
+      return handleUploadUrl(request, env, ctx, origin)
     }
 
     if (request.method !== "POST") {
@@ -476,27 +701,83 @@ export default {
       if (blocked) return blocked
     }
 
+    // Files arrive either as `files: [{ key, name, size }]` from direct uploads
+    // to object storage, or as one inline base64 `attachment` on the fallback
+    // path. Storage links are preferred: they carry no type or size ceiling.
+    const storedFiles = []
+
+    if (storageConfigured(env)) {
+      const rawFiles = Array.isArray(data.files) ? data.files : []
+      const legacyKey =
+        typeof data.fileKey === "string" &&
+        /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,8}$/.test(data.fileKey)
+          ? { key: data.fileKey, name: data.fileName, size: data.fileSize }
+          : null
+
+      const candidates = (rawFiles.length ? rawFiles : legacyKey ? [legacyKey] : []).slice(
+        0,
+        MAX_STORED_FILES
+      )
+
+      for (const candidate of candidates) {
+        const key = typeof candidate?.key === "string" ? candidate.key : ""
+        if (!/^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,8}$/.test(key)) {
+          return json({ ok: false, error: "Invalid file reference" }, 400, origin)
+        }
+        const size = Number(candidate?.size)
+        const fileName =
+          typeof candidate?.name === "string"
+            ? candidate.name.trim().slice(0, LIMITS.fileName)
+            : "attachment"
+
+        storedFiles.push({
+          name: fileName || "attachment",
+          size: Number.isFinite(size) && size > 0 ? size : 0,
+          url: await presignS3(env, {
+            method: "GET",
+            key,
+            expires: DOWNLOAD_URL_TTL_SECONDS,
+          }),
+          days: Math.round(DOWNLOAD_URL_TTL_SECONDS / 86400),
+        })
+      }
+    }
+
     const parsedAttachment = parseAttachment(data.attachment)
     if (!parsedAttachment.ok) {
       return json({ ok: false, error: parsedAttachment.error }, 400, origin)
     }
-    const attachment = parsedAttachment.attachment
+    const attachment = storedFiles.length ? null : parsedAttachment.attachment
 
-    // Archives are not accepted at all: Gmail bounces a .zip with a 552
-    // content block after Brevo has already answered 201, so the sender would
-    // see a success that never arrives. The allowlist stops them earlier.
+    // Archives are not accepted as attachments: Gmail bounces a .zip with a
+    // 552 content block after Brevo has already answered 201, so the sender
+    // would see a success that never arrives. Archives go through storage.
     const attachmentForEmail = attachment
 
     const safeName = escapeHtml(name)
     const safeEmail = escapeHtml(email)
     const safeMessage = escapeHtml(message).replace(/\n/g, "<br />")
 
-    const fileHtml = attachmentForEmail
-      ? `<p><strong>Attachment:</strong> ${escapeHtml(attachmentForEmail.name)} (${formatBytes(attachmentForEmail.size)})</p>`
+    const storedFilesHtml = storedFiles.length
+      ? `<p><strong>Files</strong> (links expire in ${storedFiles[0].days} days):</p><ul>${storedFiles
+          .map(
+            (file) =>
+              `<li>${escapeHtml(file.name)} (${formatBytes(file.size)}) — <a href="${file.url}">download</a></li>`
+          )
+          .join("")}</ul>`
       : ""
-    const attachmentText = attachmentForEmail
-      ? `\nAttachment: ${attachmentForEmail.name} (${formatBytes(attachmentForEmail.size)})`
-      : ""
+    const fileHtml = storedFilesHtml
+      ? storedFilesHtml
+      : attachmentForEmail
+        ? `<p><strong>Attachment:</strong> ${escapeHtml(attachmentForEmail.name)} (${formatBytes(attachmentForEmail.size)})</p>`
+        : ""
+    const attachmentText = storedFiles.length
+      ? `\nFiles:\n${storedFiles
+          .map((file) => `- ${file.name} (${formatBytes(file.size)}): ${file.url}`)
+          .join("\n")}\nLinks expire in ${storedFiles[0].days} days.`
+      : attachmentForEmail
+        ? `\nAttachment: ${attachmentForEmail.name} (${formatBytes(attachmentForEmail.size)})`
+        : ""
 
     const ownerHtml = `
       <h2>New portfolio message</h2>
@@ -511,11 +792,13 @@ export default {
       name: safeName,
       message: safeMessage,
       attachment: attachmentForEmail,
+      files: storedFiles,
     })
     const confirmationText = buildConfirmationText({
       name,
       message,
       attachment: attachmentForEmail,
+      files: storedFiles,
     })
 
     let ownerMessageId = ""
@@ -588,7 +871,9 @@ export default {
         reference: ownerMessageId
           ? ownerMessageId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8)
           : "",
-        attachmentSent: Boolean(attachment),
+        attachmentSent: Boolean(storedFiles.length || attachment),
+        fileCount: storedFiles.length,
+        fileMode: storedFiles.length ? "link" : attachmentForEmail ? "attached" : "none",
       },
       200,
       origin

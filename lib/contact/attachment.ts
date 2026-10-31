@@ -1,37 +1,22 @@
 /**
  * Client-side rules for the optional contact-form attachment.
  *
- * These mirror the Worker (`workers/contact/src/index.js`): keep the size
- * ceiling and the extension list in sync, or a file will pass here and be
- * rejected on the server after the visitor has waited through an upload.
+ * The file goes straight to object storage with a presigned URL, so these
+ * limits follow the Worker's storage rules (`workers/contact/src/index.js`)
+ * rather than the much narrower set an email attachment allows.
  */
 
-/** 4 MB decoded. Base64 adds ~33% on the wire. */
-export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024
+/** 1 GB per file. Storage-backed uploads have no email ceiling. */
+export const MAX_ATTACHMENT_BYTES = 1024 * 1024 * 1024
 
-export const ACCEPTED_ATTACHMENT_EXTENSIONS = [
-  "pdf",
-  "doc",
-  "docx",
-  "odt",
-  "txt",
-  "csv",
-  "md",
-  "xls",
-  "xlsx",
-  "ppt",
-  "pptx",
-  "png",
-  "jpg",
-  "jpeg",
-  "gif",
-  "webp",
-] as const
+/** How many files one message may carry. */
+export const MAX_ATTACHMENT_COUNT = 5
 
-/** `accept` attribute for the file input. */
-export const ATTACHMENT_ACCEPT = ACCEPTED_ATTACHMENT_EXTENSIONS.map(
-  (extension) => `.${extension}`
-).join(",")
+/**
+ * The picker accepts anything: files are uploaded to object storage, which has
+ * no extension list. An empty `accept` means "all files".
+ */
+export const ATTACHMENT_ACCEPT = ""
 
 export type AttachmentRejection = "too-large" | "unsupported"
 
@@ -45,19 +30,9 @@ function getExtension(fileName: string): string {
   return dot === -1 ? "" : trimmed.slice(dot + 1)
 }
 
-/**
- * Validate a picked file. The browser's `File.type` is advisory and often
- * empty on Linux desktops, so the extension is what decides the type.
- */
+/** Validate a picked file before any network call. */
 export function validateAttachmentFile(file: File): AttachmentValidation {
-  const extension = getExtension(file.name)
-  if (
-    !extension ||
-    !(ACCEPTED_ATTACHMENT_EXTENSIONS as readonly string[]).includes(extension)
-  ) {
-    return { ok: false, reason: "unsupported" }
-  }
-  if (file.size === 0) {
+  if (!getExtension(file.name) || file.size === 0) {
     return { ok: false, reason: "unsupported" }
   }
   if (file.size > MAX_ATTACHMENT_BYTES) {
@@ -69,7 +44,8 @@ export function validateAttachmentFile(file: File): AttachmentValidation {
 /**
  * Read a file as bare base64 (no `data:` prefix).
  *
- * Chunked so the spread operator never receives a multi-megabyte array.
+ * Only the fallback path needs this, when object storage is not configured and
+ * the file has to ride inside the email instead.
  */
 export async function readFileAsBase64(file: File): Promise<string> {
   const bytes = new Uint8Array(await file.arrayBuffer())
