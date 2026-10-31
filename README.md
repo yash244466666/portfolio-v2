@@ -46,10 +46,12 @@ The UI is animation-heavy and predominantly client-rendered. Reduced-motion beha
 | `develop` | Default development branch | `/opt/stacks/caddy/html/beta/` on vps-2 | https://beta.yashcodes.com |
 | `main` | Stable / production branch | `/opt/stacks/caddy/html/production/` on vps-2 | https://yashcodes.com |
 
-- `develop` is the default branch on GitHub. Day-to-day work is committed there.
-- `main` receives merges from `develop` when a release is ready.
-- Every push to `develop` or `main` runs the deployment workflow.
+- `develop` is the default branch on GitHub. Day-to-day work happens on feature branches and is merged with a pull request.
+- `main` receives release pull requests from `develop`.
+- Both branches are protected: direct pushes are blocked (including for administrators), a pull request is required, and the `Build static site` check must pass. Force pushes and branch deletion are disabled.
+- Every push to `develop` or `main` (including a PR merge) runs the deployment workflow.
 - Pull requests run the build and type-check only; they never deploy.
+- `main` merges are owner-only in practice because the repository owner is the only collaborator.
 
 The old `master` branch was renamed to `main`; the remote `master` no longer exists.
 
@@ -319,6 +321,23 @@ The workflow is `.github/workflows/deploy.yml`.
 - Push to `main` → build, then deploy production.
 - Pull request to `develop` or `main` → build and type-check only.
 - Manual run from **Actions → Build and deploy → Run workflow**.
+
+### Branch protection
+
+Both `develop` and `main` require:
+
+- A pull request before merging.
+- The `Build static site` status check (strict: the branch must be up to date).
+- No force pushes and no branch deletion.
+- Administrator bypass disabled, so direct pushes are rejected for everyone.
+
+Workflow: create a feature branch from `develop`, open a PR into `develop`, wait
+for `Build static site`, merge, then open a release PR from `develop` into
+`main`. `main` merges are owner-only in practice because the owner is the only
+collaborator. GitHub does not support per-user push restrictions on personal
+repositories; if collaborators are added, they would be able to merge PRs
+unless the repository moves to an organization or a stricter review flow is
+added.
 
 ### Build job
 
