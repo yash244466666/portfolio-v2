@@ -66,6 +66,18 @@ The Worker uses the optional `RATE_LIMIT` KV binding for 5 submissions per IP
 per hour. Bind a KV namespace with the variable name `RATE_LIMIT` in the Worker
 settings. Without the binding, rate limiting is skipped.
 
+## Email templates
+
+The visitor confirmation is rendered by `buildConfirmationHtml({ name, message })`
+and `buildConfirmationText({ name, message })` in `src/index.js`, with the brand
+palette in the `BRAND` constant above them.
+
+They are written for email clients, not browsers: inline styles only, table
+layout, 600 px shell, no external images or web fonts, and an explicit dark
+`color-scheme`. Keep both builders in sync — every send carries the HTML and
+the plain-text twin. `name` and `message` arrive already HTML-escaped, and
+`message` keeps its `<br />` line breaks.
+
 ## Deploy
 
 The production Worker is deployed from this file through the dashboard's Quick
