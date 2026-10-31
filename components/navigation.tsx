@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { getPersonalInfo, getButtonTexts } from "@/lib/content/utils"
+import { getPersonalInfo } from "@/lib/content/utils"
 import { navigationItems } from "@/lib/content"
 import { useScrollThreshold } from "@/hooks/use-scroll-threshold"
 import { DesktopNavLinks } from "@/components/navigation/desktop-nav-links"
@@ -18,7 +18,6 @@ export default function Navigation() {
   const [activeSection, setActiveSection] = useState<string | null>(null)
 
   const personalInfo = getPersonalInfo()
-  const buttonTexts = getButtonTexts()
   const pathname = usePathname()
 
   useComponentInstrumentation("Navigation", {
@@ -106,10 +105,7 @@ export default function Navigation() {
           <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} activeSection={activeSection} />
 
           <div className="flex items-center space-x-4">
-            <NavigationActions
-              contactLabel={buttonTexts.getInTouch}
-              onContactClick={() => handleNavigate("contact")}
-            />
+            <NavigationActions />
             <NavigationToggle isOpen={isMobileMenuOpen} onToggle={toggleMobileMenu} />
           </div>
         </div>
@@ -118,8 +114,6 @@ export default function Navigation() {
           items={navigationItems}
           isOpen={isMobileMenuOpen}
           onNavigate={handleNavigate}
-          contactLabel={buttonTexts.getInTouch}
-          onContactClick={() => handleNavigate("contact")}
           activeSection={activeSection}
         />
       </div>

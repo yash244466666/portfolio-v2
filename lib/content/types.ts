@@ -132,7 +132,6 @@ export interface FormContent {
 }
 
 export interface ButtonTexts {
-  getInTouch: string;
   viewMyWork: string;
   letsTalk: string;
   sendMessage: string;

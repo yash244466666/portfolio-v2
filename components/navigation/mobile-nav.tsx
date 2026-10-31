@@ -3,19 +3,16 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { NavigationItem } from "@/lib/content"
-import { Button } from "@/components/ui/button"
 import { DownloadResumeButton } from "@/components/navigation/download-resume-button"
 
 interface MobileNavProps {
     items: NavigationItem[]
     isOpen: boolean
     onNavigate: (target: string) => void
-    contactLabel: string
-    onContactClick: () => void
     activeSection?: string | null
 }
 
-export function MobileNav({ items, isOpen, onNavigate, contactLabel, onContactClick, activeSection }: MobileNavProps) {
+export function MobileNav({ items, isOpen, onNavigate, activeSection }: MobileNavProps) {
     const pathname = usePathname()
 
     if (!isOpen) {
@@ -66,9 +63,6 @@ export function MobileNav({ items, isOpen, onNavigate, contactLabel, onContactCl
                     </button>
                 )
             })}
-            <Button onClick={onContactClick} className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground active:scale-[0.98] transition-transform">
-                {contactLabel}
-            </Button>
             <DownloadResumeButton className="w-full mt-2 min-h-11" />
         </div>
     )
