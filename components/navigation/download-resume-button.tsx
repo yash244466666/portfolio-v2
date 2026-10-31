@@ -45,7 +45,7 @@ export function DownloadResumeButton({ className }: DownloadResumeButtonProps) {
     }
 
     return (
-        <Button asChild variant="outline" className={cn(className)}>
+        <Button asChild className={cn(className)}>
             <a
                 href={resumeUrl}
                 {...(isExternal
