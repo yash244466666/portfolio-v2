@@ -1,6 +1,6 @@
-# Yash Sikdar — Portfolio & Browser Tools
+# MD. Mohi Minul Islam Yash — Portfolio & Browser Tools
 
-Personal portfolio site and a catalog of **87 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
+The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sikdar**) and a catalog of **87 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
 
 - **Production:** https://yashcodes.com
 - **Beta:** https://beta.yashcodes.com
@@ -515,4 +515,4 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 - Website: https://yashcodes.com
 - GitHub: https://github.com/yash244466666
 
-This is a personal project by Yash Sikdar.
+This is a personal project by MD. Mohi Minul Islam Yash.
