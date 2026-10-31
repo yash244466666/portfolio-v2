@@ -33,7 +33,7 @@ export default function CopyButton({ text, className, iconOnly }: CopyButtonProp
       className={`h-8 px-2 ${className || ""}`}
     >
       {copied ? (
-        <Check className="h-4 w-4 text-green-500 shrink-0" />
+        <Check className="h-4 w-4 text-green-700 shrink-0" />
       ) : (
         <Copy className="h-4 w-4 shrink-0 group-hover:scale-110 transition-transform duration-200" />
       )}

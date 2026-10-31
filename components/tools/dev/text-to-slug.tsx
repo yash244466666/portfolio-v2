@@ -93,7 +93,7 @@ export default function TextToSlug() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setLowercase(!lowercase)}
-              className={`w-10 h-5 rounded-full transition-colors ${lowercase ? "bg-primary" : "bg-muted"}`}
+              className={`w-10 h-5 rounded-full transition-colors ${lowercase ? "bg-primary" : "bg-muted-foreground"}`}
             >
               <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform mx-0.5 ${lowercase ? "translate-x-5" : ""}`} />
             </button>
@@ -103,7 +103,7 @@ export default function TextToSlug() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setRemoveStopWords(!removeStopWords)}
-              className={`w-10 h-5 rounded-full transition-colors ${removeStopWords ? "bg-primary" : "bg-muted"}`}
+              className={`w-10 h-5 rounded-full transition-colors ${removeStopWords ? "bg-primary" : "bg-muted-foreground"}`}
             >
               <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform mx-0.5 ${removeStopWords ? "translate-x-5" : ""}`} />
             </button>
