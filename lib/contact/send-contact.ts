@@ -27,8 +27,6 @@ export interface ContactSendResult {
   reference?: string
   /** Whether the file was actually forwarded with the message. */
   attachmentSent?: boolean
-  /** `link` when the file was hosted and shared by URL instead of attached. */
-  attachmentMode?: "attached" | "link" | "none"
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
@@ -104,17 +102,28 @@ export async function sendContactMessage(
       signal: controller.signal,
     })
 
-    if (!response.ok) {
-      return { ok: false, error: `http-${response.status}` }
-    }
-
-    const data = (await response.json()) as {
+    // The Worker answers failures with `{ ok: false, error }` too — read the
+    // body first, or a specific reason ("attachment-rejected") is lost and the
+    // visitor only ever sees the generic message.
+    let data: {
       ok?: boolean
       error?: string
       confirmationSent?: boolean
       reference?: string
       attachmentSent?: boolean
-      attachmentMode?: string
+    } | null = null
+    try {
+      data = await response.json()
+    } catch {
+      data = null
+    }
+
+    if (!response.ok && data?.ok !== false) {
+      return { ok: false, error: `http-${response.status}` }
+    }
+
+    if (!data) {
+      return { ok: false, error: `http-${response.status}` }
     }
 
     if (data.ok !== true) {
@@ -126,10 +135,6 @@ export async function sendContactMessage(
       confirmationSent: data.confirmationSent !== false,
       reference: typeof data.reference === "string" ? data.reference : undefined,
       attachmentSent: data.attachmentSent === true,
-      attachmentMode:
-        data.attachmentMode === "attached" || data.attachmentMode === "link"
-          ? data.attachmentMode
-          : "none",
     }
   } catch {
     return { ok: false, error: "network" }

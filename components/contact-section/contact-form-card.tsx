@@ -64,6 +64,8 @@ interface ContactFormCardProps {
     protectedByLabel: string
     /** Shown next to the fallback link when a file was selected but failed. */
     fileNotSentNote: string
+    /** False when the feedback already explains what happened to the file. */
+    showFileNotSentNote: boolean
     isVisible?: boolean
 }
 
@@ -94,6 +96,7 @@ export function ContactFormCard({
     honeypotLabel,
     protectedByLabel,
     fileNotSentNote,
+    showFileNotSentNote,
     isVisible = false,
 }: ContactFormCardProps) {
     const isSending = status === "sending"
@@ -278,7 +281,7 @@ export function ContactFormCard({
                         <>
                             {/* A mailto link cannot carry the file, so say so
                                 rather than implying the attachment travels. */}
-                            {attachment && (
+                            {showFileNotSentNote && (
                                 <p className="text-amber-400">{fileNotSentNote}</p>
                             )}
                             <a

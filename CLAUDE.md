@@ -452,7 +452,7 @@ Primary flow:
 - **lib/contact/attachment.ts** owns the client rules: a 4 MB ceiling, the Brevo extension allowlist, the `accept` attribute, chunked base64 reading, and the size formatter. Keep it in sync with the Worker.
 - The Worker verifies Turnstile, rate-limits through the `RATE_LIMIT` KV binding when it is configured (5 per IP per hour), and calls Brevo twice: the owner notification at `md.mohi.minul.islam.yash@gmail.com` (`Reply-To` = visitor) and the visitor confirmation (`Reply-To` = owner). Both carry the attachment when one is sent. Sender stays `info@yashcodes.com`; only the recipient is the Gmail address.
 - The confirmation is a branded dark template built by `buildConfirmationHtml` / `buildConfirmationText` in the Worker, with inline styles, table layout, and no external assets.
-- Archives (`.zip`) are never attached: Gmail bounces them with a 552 content block after Brevo has already answered `201`. They are stored in the optional `FILES` KV binding for 7 days and sent as a `/download/<token>` link, or refused with `415` when the binding is missing.
+- Archives (`.zip`) are not accepted at all: Gmail bounces them with a 552 content block after Brevo has already answered `201`, so a success would be a lie. The accepted list is documents, text (including `.md`), and images; the form's hint names them.
 - Success resets the fields, the attachment, and the Turnstile widget; failure keeps the fields and the file, shows a generic error, and offers a prefilled `mailto:info@yashcodes.com` fallback that states the file must be re-attached.
 
 Constraints:

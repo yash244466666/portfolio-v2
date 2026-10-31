@@ -50,8 +50,11 @@ field is still accepted for older clients.
   so wrapped base64 is fine.
 - 4 MB maximum decoded (`MAX_ATTACHMENT_BYTES`); the whole body is capped at
   6 MB (`MAX_BODY_BYTES`).
-- Extensions: `pdf, doc, docx, odt, txt, csv, xls, xlsx, ppt, pptx, zip, png,
-  jpg, jpeg, gif, webp`. The browser's MIME type is ignored.
+- Extensions: `pdf, doc, docx, odt, txt, csv, md, xls, xlsx, ppt, pptx, png,
+  jpg, jpeg, gif, webp`. The browser's MIME type is ignored. Archives are not
+  accepted: Gmail bounces a `.zip` with a 552 content block after Brevo has
+  already answered `201`, so the sender would see a success that never
+  arrives.
 - The file is attached to both emails: the owner notification and the
   visitor confirmation, so the sender keeps a copy of what they sent. Each
   submission with a file therefore costs two Brevo sends with a payload.
@@ -59,41 +62,17 @@ field is still accepted for older clients.
 Keep `lib/contact/attachment.ts` in sync with those limits, or a file will pass
 the client check and be rejected after the upload.
 
-### Archives
-
-Gmail bounces messages whose attachment trips its content scan:
-
-```
-552-5.7.0 This message was blocked because its content presents a potential security issue
-```
-
-Brevo has already returned `201` by then, so a `.zip` sent as an attachment
-looks successful and silently disappears. Archives are therefore **never
-attached**:
-
-- With a `FILES` KV binding, the file is stored for 7 days and both emails
-  carry a `https://<worker>/download/<token>` link instead.
-- Without the binding, the request is refused with `415` and
-  `error: "attachment-rejected"` rather than reporting a false success.
-
-`GET /download/<token>` streams the stored file as
-`application/octet-stream` with an attachment disposition. The stored type is
-never echoed back, so nothing can render inline. Unknown or expired tokens
-return `404`.
-
 ```json
-{ "ok": true, "confirmationSent": true, "reference": "20261101", "attachmentSent": true, "attachmentMode": "link" }
+{ "ok": true, "confirmationSent": true, "reference": "20261101", "attachmentSent": true }
 { "ok": false, "error": "Invalid message" }
 ```
 
 `reference` is the first eight characters of Brevo's `messageId` — the value to
 search for in **Transactional → Logs** when a message does not arrive.
-`attachmentMode` is `attached`, `link`, or `none`.
 
 Statuses: `200` success, `400` invalid payload or attachment, `403`
 CORS/Turnstile failure, `413` body over 6 MB, `415` attachment refused by the
-provider or an archive without storage, `429` rate limited, `502` Brevo
-failure.
+provider, `429` rate limited, `502` Brevo failure.
 
 Cloudflare's free plan allows 10 ms of CPU per invocation. Parsing a body near
 the 6 MB ceiling can approach that, so very large attachments may fail on the
@@ -119,10 +98,6 @@ The Worker uses the optional `RATE_LIMIT` KV binding for 5 submissions per IP
 per hour. Bind a KV namespace with the variable name `RATE_LIMIT` in the Worker
 settings. Without the binding, rate limiting is skipped.
 
-The optional `FILES` KV binding hosts archive attachments for seven days and
-serves them from `/download/<token>`. Bind a second namespace as `FILES`;
-without it, archive uploads are refused instead of silently bouncing at Gmail.
-Files are written with `expirationTtl`, so KV deletes them automatically.
 
 ## Email templates
 
