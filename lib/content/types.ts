@@ -129,6 +129,28 @@ export interface FormContent {
     email: string;
     message: string;
   };
+  status: {
+    /** Button/status copy shown while the request is in flight. */
+    sending: string;
+    /** Success copy when both emails were sent. */
+    success: string;
+    /** Success copy when the owner email was sent but the confirmation failed. */
+    successNoConfirmation: string;
+    /** Generic failure copy; the form also offers a mailto fallback. */
+    error: string;
+    /** Shown when the Turnstile token is missing. */
+    verificationRequired: string;
+    /** Shown when the Turnstile script cannot load. */
+    verificationUnavailable: string;
+    /** Shown when the public endpoint/site key are missing at build time. */
+    notConfigured: string;
+    /** Link text for the mailto fallback. */
+    fallback: string;
+    /** Privacy note shown near the form. */
+    privacy: string;
+  };
+  /** Label for the hidden honeypot input. */
+  honeypotLabel: string;
 }
 
 export interface ButtonTexts {

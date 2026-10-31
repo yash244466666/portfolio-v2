@@ -214,7 +214,7 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
           {onReset && (
             <button
               onClick={onReset}
-              className="tool-header__reset shrink-0 flex items-center justify-center gap-2 h-10 w-10 sm:w-auto sm:px-4 rounded-xl bg-background/40 backdrop-blur-xl border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
+              className="tool-header__reset shrink-0 flex items-center justify-center gap-2 h-10 w-10 sm:w-auto sm:px-4 rounded-xl bg-background/35 backdrop-blur-xl border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
               aria-label="Reset tool state"
             >
               <RotateCcw className="h-4 w-4" />
@@ -225,7 +225,7 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
           <button
             onClick={captureScreenshot}
             disabled={isCapturing}
-            className={`tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-3 sm:px-4 rounded-xl backdrop-blur-xl border border-border/50 text-sm font-medium text-foreground hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${isSuccess || isError ? "bg-background/80 hover:bg-background/80" : "bg-background/40 hover:bg-muted/50"}`}
+            className={`tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-3 sm:px-4 rounded-xl backdrop-blur-xl border border-border/50 text-sm font-medium text-foreground hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${isSuccess || isError ? "bg-background/80 hover:bg-background/80" : "bg-background/35 hover:bg-muted/50"}`}
             aria-label={
               isCapturing
                 ? "Capturing screenshot"

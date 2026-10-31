@@ -35,7 +35,7 @@ This repository contains one application with two public routes:
 - **`/`** — an animated, dark-themed single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
 - **`/tools/`** — a searchable catalog of 87 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, and lazy-loaded implementations.
 
-The frontend is designed to be exported as static files. There is **no server runtime, API route, or backend in this repository**. The contact form opens the visitor's email client with a prefilled `mailto:` message.
+The frontend is designed to be exported as static files. There is **no Next.js server runtime or API route**. The contact form POSTs to a separate Cloudflare Worker (`workers/contact`) that sends owner and visitor emails through Brevo; a prefilled `mailto:` link is the fallback.
 
 The UI is animation-heavy and predominantly client-rendered. Reduced-motion behavior, keyboard navigation, mobile layouts, and static-export compatibility are first-class requirements.
 
@@ -66,7 +66,7 @@ The old `master` branch was renamed to `main`; the remote `master` no longer exi
 - Hero section with a cycling typewriter, CSS entrance animations, and scroll-to-section actions.
 - About section with six skill groups and gradient background elements.
 - Projects section with six featured project cards and image previews.
-- Contact section with a `mailto:` form and contact detail cards.
+- Contact section with a Worker-backed form (Turnstile, honeypot, sending/success/error states, `mailto:` fallback) and contact detail cards.
 - Footer with the computed current year.
 - Back-to-top control.
 - Custom cursor code exists but is intentionally disabled in `app/page.tsx`.
@@ -171,9 +171,10 @@ Adding a tool requires:
 
 Some tools call external services:
 
-- **Currency Converter** — Frankfurter exchange-rate API; caches rates.
+- **Currency Converter** — open.er-api.com exchange-rate API; caches rates in a versioned 24-hour cache.
 - **DNS Lookup** — Cloudflare DNS-over-HTTPS.
 - **YouTube Downloader** — sends the supplied URL to the Cobalt website and loads YouTube thumbnails.
+- **Contact form** — posts to the Cloudflare Worker in `workers/contact`, which verifies Turnstile and sends owner/visitor emails through Brevo.
 
 The tools-page description saying everything runs locally is not universally accurate; use precise wording when editing it.
 
@@ -216,11 +217,16 @@ portfolio-v2/
 │   └── ui/
 ├── hooks/
 ├── lib/
+│   ├── contact/
 │   ├── content/
 │   ├── tools/
 │   ├── instrumentation.ts
 │   ├── react-telemetry.ts
 │   └── utils.ts
+├── workers/
+│   └── contact/
+│       ├── src/index.js
+│       └── README.md
 ├── public/
 │   ├── project images, favicons, placeholders
 │   └── pdf.worker.min.mjs
@@ -284,8 +290,10 @@ All `NEXT_PUBLIC_*` variables are **public** and inlined at build time. Never pu
 | `NEXT_PUBLIC_DEFAULT_BG` | Background ID | Initial background for switcher mode and legacy lock |
 | `NEXT_PUBLIC_BG_SWITCHER` | `false` | Legacy lock, used only when `NEXT_PUBLIC_BG_MODE` is unset |
 | `NEXT_PUBLIC_ENABLE_LOGS` | `true` / `false` | Enable telemetry by default |
+| `NEXT_PUBLIC_CONTACT_ENDPOINT` | Worker URL (bare host accepted) | Public Cloudflare Worker endpoint; unset = `mailto:` fallback only |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Turnstile site key | Public spam-check key; unset = `mailto:` fallback only |
 
-There is no contact endpoint. The contact form uses `mailto:info@yashcodes.com`.
+The contact endpoint is the external Cloudflare Worker. `BREVO_API_KEY` and `TURNSTILE_SECRET_KEY` live only on that Worker; the form falls back to `mailto:info@yashcodes.com` when the public endpoint or site key is unset or the request fails.
 
 ## Build and static export
 
@@ -302,6 +310,8 @@ There is no contact endpoint. The contact form uses `mailto:info@yashcodes.com`.
 NEXT_TELEMETRY_DISABLED=1 \
 NEXT_PUBLIC_BG_MODE=neural \
 NEXT_PUBLIC_ENABLE_LOGS=false \
+NEXT_PUBLIC_CONTACT_ENDPOINT=https://portfolio.fancy-smoke-21db.workers.dev \
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-turnstile-site-key \
 pnpm build
 ```
 
@@ -311,7 +321,7 @@ Because there is no server runtime after deployment:
 
 - Do not add route handlers, server actions, middleware-dependent features, or runtime-only Next image optimization without changing the hosting model.
 - Production is a static file server behind Caddy.
-- The site uses no service worker and no server-side contact endpoint.
+- The site uses no service worker; the contact form talks to the external Cloudflare Worker.
 
 ## CI/CD and deployment
 
@@ -455,7 +465,7 @@ window.__PORTFOLIO_TELEMETRY__.getEnabled()
 
 The localStorage key is `portfolio:telemetry:enabled`.
 
-Do not log contact message bodies, file contents, secrets, tokens, or other sensitive values.
+Do not log contact message bodies, email addresses, Turnstile tokens, file contents, secrets, or other sensitive values.
 
 ## Security and privacy notes
 
@@ -467,7 +477,7 @@ Do not log contact message bodies, file contents, secrets, tokens, or other sens
 - Keep deployment credentials in GitHub Actions secrets; never commit them.
 - Never put secrets in `NEXT_PUBLIC_*` variables.
 - Preserve `rel` attributes on external `target="_blank"` links.
-- The contact form opens the visitor's mail client; it does not submit to a server.
+- The contact form submits to the external Cloudflare Worker; secrets stay on the Worker, and telemetry/logs must never include message bodies or email addresses.
 
 The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo and no docker access. Rotate the key if it is exposed or if the repository's secret access changes.
 
@@ -489,8 +499,8 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 6. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
 7. Dynamic tool import failures become a generic unavailable state, which can obscure the original loading error.
 8. Historical planning and bug documents contain obsolete architecture claims.
-9. The contact form is `mailto:`-only and depends on the visitor having a configured mail client; it provides no delivery confirmation.
-10. The site has no analytics and no server-side form handling.
+9. The contact Worker's live Brevo delivery, secrets, and KV rate limiting still need end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
+10. The site has no analytics; contact submissions are handled by the external Worker.
 11. The build fetches DM Sans from Google Fonts through `next/font/google`. A transient fetch failure can fail the build; the workflow retries the build up to three times. Self-hosting the font with `next/font/local` is the durable fix.
 
 ## Conventions

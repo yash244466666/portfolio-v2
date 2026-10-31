@@ -372,6 +372,22 @@ export const formContent: FormContent = {
     email: "Email",
     message: "Message",
   },
+  status: {
+    sending: "Sending…",
+    success: "Message sent — check your inbox for a confirmation.",
+    successNoConfirmation:
+      "Message sent. The confirmation email could not be delivered, but your message reached me.",
+    error: "Your message could not be sent. Please try again or email me directly.",
+    verificationRequired: "Please complete the verification check before sending.",
+    verificationUnavailable:
+      "Verification could not load. Refresh the page or email me directly.",
+    notConfigured:
+      "The contact form is not connected yet. Please email me directly.",
+    fallback: "Email me directly instead",
+    privacy:
+      "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
+  },
+  honeypotLabel: "Website",
 };
 
 // =============================================================================

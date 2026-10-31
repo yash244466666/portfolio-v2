@@ -17,7 +17,7 @@ export const tools: ToolDefinition[] = [
   { id: "timestamp-converter", label: "Timestamp Converter", description: "Convert between Unix timestamps and human-readable dates with a live clock.", icon: "Clock", category: "core", tags: ["timestamp", "date", "unix", "time"] },
   { id: "number-base-converter", label: "Number Base Converter", description: "Convert numbers between decimal, binary, octal, hex, and custom radix.", icon: "Hash", category: "core", tags: ["number", "base", "binary", "hex", "convert"] },
   { id: "hash-generator", label: "Hash Generator", description: "Generate SHA-1, SHA-256, SHA-512 hashes and compare checksums.", icon: "Shield", category: "core", tags: ["hash", "sha", "checksum", "security"] },
-  { id: "image-compressor", label: "Image Compressor", description: "Compress PNG and JPG images in-browser with adjustable quality and size.", icon: "Image", category: "core", tags: ["image", "compress", "optimize", "resize"] },
+  { id: "image-compressor", label: "Image Compressor", description: "Compress PNG, JPEG, WebP, and AVIF images in-browser at their original size, with optional resizing and format conversion.", icon: "Image", category: "core", tags: ["image", "compress", "optimize", "resize", "webp", "jpeg", "avif"] },
 
   // === Dev Utilities ===
   { id: "json-editor", label: "JSON Editor", description: "Edit, format, and explore JSON with a professional dual-panel editor featuring code view and interactive tree.", icon: "Braces", category: "dev", tags: ["json", "format", "validate", "minify", "editor", "tree"], wide: true },
