@@ -35,7 +35,7 @@ export function ContactFormCard({
 }: ContactFormCardProps) {
     return (
         <Card className={`p-6 sm:p-8 transition-all duration-1000 ${isVisible ? "animate-slide-in-left" : "opacity-0"}`}>
-            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">{title}</h3>
+            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6 text-center">{title}</h3>
 
             <form onSubmit={onSubmit} className="space-y-6">
                 <Input
@@ -45,7 +45,7 @@ export function ContactFormCard({
                     value={formData.name}
                     onChange={onChange}
                     required
-                    className="w-full"
+                    className="w-full [&_input]:text-center"
                 />
 
                 <Input
@@ -55,7 +55,7 @@ export function ContactFormCard({
                     value={formData.email}
                     onChange={onChange}
                     required
-                    className="w-full"
+                    className="w-full [&_input]:text-center"
                 />
 
                 <Textarea
@@ -65,7 +65,7 @@ export function ContactFormCard({
                     onChange={onChange}
                     required
                     rows={5}
-                    className="w-full resize-none"
+                    className="w-full resize-none text-center"
                 />
 
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3">
