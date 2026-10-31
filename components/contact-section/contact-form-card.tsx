@@ -9,6 +9,8 @@ import { TurnstileWidget } from "@/components/contact-section/turnstile-widget"
 
 export type ContactFormStatus = "idle" | "sending" | "success" | "error"
 
+const TURNSTILE_ATTRIBUTION_URL = "https://www.cloudflare.com/products/turnstile/"
+
 interface ContactFormCardProps {
     title: string
     formData: {
@@ -41,6 +43,7 @@ interface ContactFormCardProps {
     verificationUnavailable: string
     fallbackLabel: string
     honeypotLabel: string
+    protectedByLabel: string
     isVisible?: boolean
 }
 
@@ -63,6 +66,7 @@ export function ContactFormCard({
     verificationUnavailable,
     fallbackLabel,
     honeypotLabel,
+    protectedByLabel,
     isVisible = false,
 }: ContactFormCardProps) {
     const isSending = status === "sending"
@@ -141,12 +145,24 @@ export function ContactFormCard({
                 </div>
 
                 {siteKey ? (
-                    <TurnstileWidget
-                        siteKey={siteKey}
-                        onTokenChange={onTurnstileTokenChange}
-                        resetKey={turnstileResetKey}
-                        errorMessage={verificationUnavailable}
-                    />
+                    <div className="space-y-1.5">
+                        <TurnstileWidget
+                            siteKey={siteKey}
+                            onTokenChange={onTurnstileTokenChange}
+                            resetKey={turnstileResetKey}
+                            errorMessage={verificationUnavailable}
+                        />
+                        {/* The widget stays hidden unless a challenge is needed,
+                            so Cloudflare's attribution is carried here. */}
+                        <a
+                            href={TURNSTILE_ATTRIBUTION_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block rounded text-[11px] leading-relaxed text-muted-foreground/70 underline-offset-2 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                            {protectedByLabel}
+                        </a>
+                    </div>
                 ) : (
                     <p className="text-xs text-amber-400">{verificationUnavailable}</p>
                 )}

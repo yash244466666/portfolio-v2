@@ -148,6 +148,12 @@ export interface FormContent {
     fallback: string;
     /** Privacy note shown near the form. */
     privacy: string;
+    /**
+     * Cloudflare attribution shown next to the submit button. The Turnstile
+     * widget stays hidden unless a challenge is required, so the branding is
+     * carried by this line instead.
+     */
+    protectedBy: string;
   };
   /** Label for the hidden honeypot input. */
   honeypotLabel: string;

@@ -204,6 +204,7 @@ export default function ContactSection() {
             }
             fallbackLabel={formContent.status.fallback}
             honeypotLabel={formContent.honeypotLabel}
+            protectedByLabel={formContent.status.protectedBy}
             isVisible={isVisible}
           />
 
