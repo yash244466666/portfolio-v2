@@ -181,6 +181,8 @@ export interface FormContent {
     uploading: string;
     /** Shown while waiting for the Turnstile token. */
     verifying: string;
+    /** Shown when the upload rate limit is hit. */
+    tooManyUploads: string;
     /**
      * Cloudflare attribution shown next to the submit button. The Turnstile
      * widget stays hidden unless a challenge is required, so the branding is

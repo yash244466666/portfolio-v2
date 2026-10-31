@@ -136,37 +136,54 @@ export default function ContactSection() {
     if (attachments.length > 0) {
       setUploadProgress(0)
 
-      for (let index = 0; index < attachments.length; index += 1) {
-        const file = attachments[index]
-        const upload = await requestUploadUrl(
-          {
+      // One presign call for the whole message: a Turnstile token authorises a
+      // single request, so asking per file broke every file after the first.
+      const presign = await requestUploadUrl(
+        {
+          files: attachments.map((file) => ({
             name: file.name,
             size: file.size,
             type: file.type || "application/octet-stream",
-            turnstileToken: token,
-          },
-          contactEndpoint
+          })),
+          turnstileToken: token,
+        },
+        contactEndpoint
+      )
+
+      if (!presign.ok && presign.reason !== "unavailable") {
+        setUploadProgress(null)
+        setStatus("error")
+        setErrorCode("upload-failed")
+        setFeedback(
+          presign.reason === "rate-limited"
+            ? formContent.status.tooManyUploads
+            : presign.reason === "verification"
+              ? formContent.status.verificationRequired
+              : formContent.status.fileUploadFailed
         )
+        setTurnstileToken("")
+        setTurnstileResetKey((key) => key + 1)
+        return
+      }
 
-        if (!upload) {
-          // Storage is not configured; only one small file can ride along.
-          if (attachments.length === 1) {
-            try {
-              attachmentPayload = {
-                name: file.name,
-                type: file.type || "application/octet-stream",
-                content: await readFileAsBase64(file),
-                size: file.size,
-              }
-            } catch {
-              setUploadProgress(null)
-              setStatus("error")
-              setErrorCode("upload-failed")
-              setFeedback(formContent.status.error)
-              return
+      if (!presign.ok) {
+        // Storage is not configured; only one small file can ride along.
+        if (attachments.length === 1) {
+          try {
+            attachmentPayload = {
+              name: attachments[0].name,
+              type: attachments[0].type || "application/octet-stream",
+              content: await readFileAsBase64(attachments[0]),
+              size: attachments[0].size,
             }
-            break
+          } catch {
+            setUploadProgress(null)
+            setStatus("error")
+            setErrorCode("upload-failed")
+            setFeedback(formContent.status.error)
+            return
           }
+        } else {
           setUploadProgress(null)
           setStatus("error")
           setErrorCode("upload-failed")
@@ -175,28 +192,34 @@ export default function ContactSection() {
           setTurnstileResetKey((key) => key + 1)
           return
         }
+      } else {
+        for (let index = 0; index < attachments.length; index += 1) {
+          const file = attachments[index]
+          const upload = presign.uploads[index]
+          if (!upload) break
 
-        const uploaded = await uploadFileToStorage(upload, file, (fraction) => {
-          setUploadProgress((index + fraction) / attachments.length)
-        })
+          const uploaded = await uploadFileToStorage(upload, file, (fraction) => {
+            setUploadProgress((index + fraction) / attachments.length)
+          })
 
-        if (!uploaded) {
-          setUploadProgress(null)
-          setStatus("error")
-          setErrorCode("upload-failed")
-          setFeedback(formContent.status.fileUploadFailed)
-          setTurnstileToken("")
-          setTurnstileResetKey((key) => key + 1)
-          return
+          if (!uploaded) {
+            setUploadProgress(null)
+            setStatus("error")
+            setErrorCode("upload-failed")
+            setFeedback(formContent.status.fileUploadFailed)
+            setTurnstileToken("")
+            setTurnstileResetKey((key) => key + 1)
+            return
+          }
+
+          storedFiles.push({
+            key: upload.key,
+            name: file.name,
+            size: file.size,
+            ticket: upload.ticket,
+          })
+          setUploadProgress((index + 1) / attachments.length)
         }
-
-        storedFiles.push({
-          key: upload.key,
-          name: file.name,
-          size: file.size,
-          ticket: upload.ticket,
-        })
-        setUploadProgress((index + 1) / attachments.length)
       }
 
       setUploadProgress(null)
