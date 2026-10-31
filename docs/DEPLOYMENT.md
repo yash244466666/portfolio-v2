@@ -7,6 +7,10 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 | `develop` | beta | https://beta.yashcodes.com | `/opt/stacks/caddy/html/beta/` | `/srv/beta` |
 | `main` | production | https://yashcodes.com | `/opt/stacks/caddy/html/production/` | `/srv/production` |
 
+`main` is the GitHub default branch. `develop` is the beta/integration branch.
+When opening a PR for beta work, set the base to `develop` explicitly; GitHub
+defaults new PRs to `main`.
+
 ## Branch protection
 
 Both `develop` and `main` are protected on GitHub:
@@ -20,7 +24,7 @@ Both `develop` and `main` are protected on GitHub:
 Workflow:
 
 1. Create a feature branch from `develop`.
-2. Open a PR into `develop`; wait for `Build static site`.
+2. Open a PR into `develop` (set the base explicitly; the default is `main`); wait for `Build static site`.
 3. Merge the PR.
 4. Open a release PR from `develop` into `main`; wait for `Build static site`.
 5. Merge. The push to `main` triggers the production deploy.
