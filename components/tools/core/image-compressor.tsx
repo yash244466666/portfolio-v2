@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { AlertTriangle, CheckCircle2, Download, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -480,7 +480,8 @@ export default function ImageCompressor() {
                 disabled={losslessOutput}
                 onChange={(event) => setQuality(Number(event.target.value))}
                 aria-describedby="image-quality-hint"
-                className="min-h-[44px] w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="tool-slider min-h-[44px] w-full"
+                style={{ "--slider-progress": `${quality}%` } as CSSProperties}
               />
               <p id="image-quality-hint" className="mt-1 text-xs text-muted-foreground">
                 {losslessOutput
