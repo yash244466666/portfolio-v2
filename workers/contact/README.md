@@ -59,13 +59,40 @@ field is still accepted for older clients.
 Keep `lib/contact/attachment.ts` in sync with those limits, or a file will pass
 the client check and be rejected after the upload.
 
+### Archives
+
+Gmail bounces messages whose attachment trips its content scan:
+
+```
+552-5.7.0 This message was blocked because its content presents a potential security issue
+```
+
+Brevo has already returned `201` by then, so a `.zip` sent as an attachment
+looks successful and silently disappears. Archives are therefore **never
+attached**:
+
+- With a `FILES` KV binding, the file is stored for 7 days and both emails
+  carry a `https://<worker>/download/<token>` link instead.
+- Without the binding, the request is refused with `415` and
+  `error: "attachment-rejected"` rather than reporting a false success.
+
+`GET /download/<token>` streams the stored file as
+`application/octet-stream` with an attachment disposition. The stored type is
+never echoed back, so nothing can render inline. Unknown or expired tokens
+return `404`.
+
 ```json
-{ "ok": true, "confirmationSent": true }
+{ "ok": true, "confirmationSent": true, "reference": "20261101", "attachmentSent": true, "attachmentMode": "link" }
 { "ok": false, "error": "Invalid message" }
 ```
 
+`reference` is the first eight characters of Brevo's `messageId` — the value to
+search for in **Transactional → Logs** when a message does not arrive.
+`attachmentMode` is `attached`, `link`, or `none`.
+
 Statuses: `200` success, `400` invalid payload or attachment, `403`
-CORS/Turnstile failure, `413` body over 6 MB, `429` rate limited, `502` Brevo
+CORS/Turnstile failure, `413` body over 6 MB, `415` attachment refused by the
+provider or an archive without storage, `429` rate limited, `502` Brevo
 failure.
 
 Cloudflare's free plan allows 10 ms of CPU per invocation. Parsing a body near
@@ -91,6 +118,11 @@ Settings → Variables and Secrets**, or with `wrangler secret put`:
 The Worker uses the optional `RATE_LIMIT` KV binding for 5 submissions per IP
 per hour. Bind a KV namespace with the variable name `RATE_LIMIT` in the Worker
 settings. Without the binding, rate limiting is skipped.
+
+The optional `FILES` KV binding hosts archive attachments for seven days and
+serves them from `/download/<token>`. Bind a second namespace as `FILES`;
+without it, archive uploads are refused instead of silently bouncing at Gmail.
+Files are written with `expirationTtl`, so KV deletes them automatically.
 
 ## Email templates
 
