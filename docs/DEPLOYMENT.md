@@ -7,6 +7,30 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 | `develop` | beta | https://beta.yashcodes.com | `/opt/stacks/caddy/html/beta/` | `/srv/beta` |
 | `main` | production | https://yashcodes.com | `/opt/stacks/caddy/html/production/` | `/srv/production` |
 
+## Branch protection
+
+Both `develop` and `main` are protected on GitHub:
+
+- Pull request required before merging.
+- Required status check: `Build static site` (strict: the branch must be up to date).
+- Administrators are included; direct pushes are rejected.
+- Force pushes and branch deletion are disabled.
+- Approvals required: 0, so the owner can merge their own PR.
+
+Workflow:
+
+1. Create a feature branch from `develop`.
+2. Open a PR into `develop`; wait for `Build static site`.
+3. Merge the PR.
+4. Open a release PR from `develop` into `main`; wait for `Build static site`.
+5. Merge. The push to `main` triggers the production deploy.
+
+`main` merges are owner-only in practice because the owner is the only
+collaborator. GitHub does not support user/team push restrictions on personal
+repositories. If collaborators are added, they would be able to merge PRs
+unless the repository moves to an organization and the branch is restricted to
+an owner-only team, or a second-reviewer flow is added.
+
 ## Current status (2026-10-31)
 
 - **The deployment target is vps-2** (`140.238.208.16`). The `deploy` user, the
