@@ -1,19 +1,14 @@
 "use client"
 
 import Image from "next/image"
+import type { Project } from "@/lib/content"
+import { getProjectActionVisibility } from "@/lib/content/utils"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, Github } from "lucide-react"
 
 interface ProjectCardProps {
-    project: {
-        title: string
-        description: string
-        tech: string[]
-        image?: string | null
-        github: string
-        live: string
-    }
+    project: Project
     animationDelay?: number
     buttonTexts: {
         code: string
@@ -23,6 +18,9 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, animationDelay = 0, buttonTexts, isVisible = false }: ProjectCardProps) {
+    const { showCode, showLiveDemo } = getProjectActionVisibility(project)
+    const hasActions = showCode || showLiveDemo
+
     return (
         <Card
             className={`overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group backdrop-blur-sm bg-background/90 ${isVisible ? "animate-fade-in-up" : "opacity-0"
@@ -52,20 +50,26 @@ export function ProjectCard({ project, animationDelay = 0, buttonTexts, isVisibl
                     ))}
                 </div>
 
-                <div className="flex gap-3">
-                    <Button variant="outline" size="sm" asChild>
-                        <a href={project.github} target="_blank" rel="noopener noreferrer">
-                            <Github className="w-4 h-4 mr-2" />
-                            {buttonTexts.code}
-                        </a>
-                    </Button>
-                    <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
-                        <a href={project.live} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            {buttonTexts.liveDemo}
-                        </a>
-                    </Button>
-                </div>
+                {hasActions && (
+                    <div className="flex gap-3">
+                        {showCode && (
+                            <Button variant="outline" size="sm" asChild>
+                                <a href={project.github} target="_blank" rel="noopener noreferrer">
+                                    <Github className="w-4 h-4 mr-2" />
+                                    {buttonTexts.code}
+                                </a>
+                            </Button>
+                        )}
+                        {showLiveDemo && (
+                            <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
+                                <a href={project.live} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    {buttonTexts.liveDemo}
+                                </a>
+                            </Button>
+                        )}
+                    </div>
+                )}
             </div>
         </Card>
     )

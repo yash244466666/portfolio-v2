@@ -22,6 +22,16 @@ export interface Project {
   tech: string[];
   github: string;
   live: string;
+  /**
+   * Whether to render the "Code" action for this project.
+   * Defaults to `true` when omitted.
+   */
+  showCode?: boolean;
+  /**
+   * Whether to render the "Live Demo" action for this project.
+   * Defaults to `true` when omitted.
+   */
+  showLiveDemo?: boolean;
 }
 
 export interface Skill {
