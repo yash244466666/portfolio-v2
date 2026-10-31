@@ -130,6 +130,7 @@ Consequences:
 - No Next.js server runtime is available after deployment.
 - Do not add route handlers, server actions, middleware-dependent features, or runtime-only Next image optimization without changing the hosting model.
 - Deployment is handled by GitHub Actions: pushes to `develop` deploy to beta; pushes to `main` deploy to production. See **docs/DEPLOYMENT.md**.
+- `main` is the GitHub default branch; `develop` is the beta/integration branch. For beta work, open PRs against `develop` explicitly because GitHub defaults new PRs to `main`.
 - Both `develop` and `main` are protected: direct pushes are blocked (administrators included), a PR is required, and the `Build static site` check must pass. Work on feature branches and merge via PR. `main` merges are owner-only because the owner is the only collaborator.
 - A successful Next build does not prove type or lint correctness because both checks are skipped in build configuration.
 - The **start** script is not the normal production path for the exported site. Serve or deploy **out/** using the existing static host.

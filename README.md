@@ -43,11 +43,13 @@ The UI is animation-heavy and predominantly client-rendered. Reduced-motion beha
 
 | Branch | Role | Deploys to | URL |
 |---|---|---|---|
-| `develop` | Default development branch | `/opt/stacks/caddy/html/beta/` on vps-2 | https://beta.yashcodes.com |
-| `main` | Stable / production branch | `/opt/stacks/caddy/html/production/` on vps-2 | https://yashcodes.com |
+| `develop` | Beta / integration branch | `/opt/stacks/caddy/html/beta/` on vps-2 | https://beta.yashcodes.com |
+| `main` | Default and production branch | `/opt/stacks/caddy/html/production/` on vps-2 | https://yashcodes.com |
 
-- `develop` is the default branch on GitHub. Day-to-day work happens on feature branches and is merged with a pull request.
+- `main` is the GitHub default branch. `develop` is the beta/integration branch.
+- Day-to-day work happens on feature branches and is merged into `develop` with a pull request.
 - `main` receives release pull requests from `develop`.
+- Because `main` is the default, set the PR base to `develop` explicitly for beta work; GitHub defaults new PRs to `main`.
 - Both branches are protected: direct pushes are blocked (including for administrators), a pull request is required, and the `Build static site` check must pass. Force pushes and branch deletion are disabled.
 - Every push to `develop` or `main` (including a PR merge) runs the deployment workflow.
 - Pull requests run the build and type-check only; they never deploy.
@@ -331,9 +333,10 @@ Both `develop` and `main` require:
 - No force pushes and no branch deletion.
 - Administrator bypass disabled, so direct pushes are rejected for everyone.
 
-Workflow: create a feature branch from `develop`, open a PR into `develop`, wait
-for `Build static site`, merge, then open a release PR from `develop` into
-`main`. `main` merges are owner-only in practice because the owner is the only
+Workflow: create a feature branch from `develop`, open a PR into `develop`
+(set the base explicitly; GitHub defaults new PRs to `main`), wait for
+`Build static site`, merge, then open a release PR from `develop` into `main`.
+`main` merges are owner-only in practice because the owner is the only
 collaborator. GitHub does not support per-user push restrictions on personal
 repositories; if collaborators are added, they would be able to merge PRs
 unless the repository moves to an organization or a stricter review flow is
