@@ -143,6 +143,8 @@ export interface FormContent {
     remove: string;
     /** Line explaining where the file goes. */
     privacy: string;
+    /** Shown instead of the picker once the file limit is reached. */
+    limitReached: string;
   };
   status: {
     /** Button/status copy shown while the request is in flight. */

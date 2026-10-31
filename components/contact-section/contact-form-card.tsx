@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TurnstileWidget } from "@/components/contact-section/turnstile-widget"
-import { ATTACHMENT_ACCEPT, formatFileSize } from "@/lib/contact/attachment"
+import {
+    ATTACHMENT_ACCEPT,
+    MAX_ATTACHMENT_COUNT,
+    formatFileSize,
+} from "@/lib/contact/attachment"
 
 export type ContactFormStatus = "idle" | "sending" | "success" | "error"
 
@@ -38,6 +42,8 @@ interface ContactFormCardProps {
         hint: string
         remove: string
         privacy: string
+        /** Shown instead of the picker once the file limit is reached. */
+        limitReached: string
     }
     /** Files picked for this message; the order is the order shown. */
     attachments: { name: string; size: number }[]
@@ -190,7 +196,12 @@ export function ContactFormCard({
                         className="sr-only"
                     />
 
-                    {attachments.length === 0 ? (
+                    {attachments.length >= MAX_ATTACHMENT_COUNT ? (
+                        <p className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border/40 bg-background/20 px-3 text-sm text-muted-foreground">
+                            <Paperclip className="h-4 w-4" aria-hidden="true" />
+                            {attachmentLabels.limitReached}
+                        </p>
+                    ) : attachments.length === 0 ? (
                         <label
                             htmlFor="contact-attachment"
                             className="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/30 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground focus-within:ring-2 focus-within:ring-primary"
@@ -220,6 +231,7 @@ export function ContactFormCard({
                                     </button>
                                 </li>
                             ))}
+                            {attachments.length < MAX_ATTACHMENT_COUNT && (
                             <li>
                                 <label
                                     htmlFor="contact-attachment"
@@ -229,6 +241,7 @@ export function ContactFormCard({
                                     {attachmentLabels.choose}
                                 </label>
                             </li>
+                            )}
                         </ul>
                     )}
 
