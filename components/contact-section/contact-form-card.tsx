@@ -1,13 +1,21 @@
 "use client"
 
 import type { ChangeEvent, FormEvent } from "react"
+import { Paperclip, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TurnstileWidget } from "@/components/contact-section/turnstile-widget"
+import {
+    ATTACHMENT_ACCEPT,
+    MAX_ATTACHMENT_COUNT,
+    formatFileSize,
+} from "@/lib/contact/attachment"
 
 export type ContactFormStatus = "idle" | "sending" | "success" | "error"
+
+const TURNSTILE_ATTRIBUTION_URL = "https://www.cloudflare.com/products/turnstile/"
 
 interface ContactFormCardProps {
     title: string
@@ -27,6 +35,28 @@ interface ContactFormCardProps {
         email: string
         message: string
     }
+    attachmentLabels: {
+        label: string
+        optional: string
+        choose: string
+        hint: string
+        remove: string
+        privacy: string
+        /** Shown instead of the picker once the file limit is reached. */
+        limitReached: string
+    }
+    /** Files picked for this message; the order is the order shown. */
+    attachments: { name: string; size: number }[]
+    /** Validation message for a rejected pick, empty when there is none. */
+    attachmentError: string
+    /** Bumped by the parent to clear the native file input after a send. */
+    attachmentInputKey: number
+    onAttachmentSelect: (event: ChangeEvent<HTMLInputElement>) => void
+    onAttachmentRemove: (index: number) => void
+    /** 0–1 while files upload, `null` when nothing is in flight. */
+    uploadProgress: number | null
+    /** Label shown while files upload, e.g. "Uploading… 42%". */
+    uploadingLabel: string
     submitLabel: string
     sendingLabel: string
     status: ContactFormStatus
@@ -36,11 +66,17 @@ interface ContactFormCardProps {
     contactEmail: string
     siteKey: string
     onTurnstileTokenChange: (token: string) => void
+    turnstileController?: { current: { execute: () => void } | null }
     turnstileResetKey: number
     privacyNote: string
     verificationUnavailable: string
     fallbackLabel: string
     honeypotLabel: string
+    protectedByLabel: string
+    /** Shown next to the fallback link when a file was selected but failed. */
+    fileNotSentNote: string
+    /** False when the feedback already explains what happened to the file. */
+    showFileNotSentNote: boolean
     isVisible?: boolean
 }
 
@@ -49,6 +85,14 @@ export function ContactFormCard({
     formData,
     labels,
     placeholders,
+    attachmentLabels,
+    attachments,
+    attachmentError,
+    attachmentInputKey,
+    onAttachmentSelect,
+    onAttachmentRemove,
+    uploadProgress,
+    uploadingLabel,
     submitLabel,
     sendingLabel,
     status,
@@ -58,11 +102,15 @@ export function ContactFormCard({
     contactEmail,
     siteKey,
     onTurnstileTokenChange,
+    turnstileController,
     turnstileResetKey,
     privacyNote,
     verificationUnavailable,
     fallbackLabel,
     honeypotLabel,
+    protectedByLabel,
+    fileNotSentNote,
+    showFileNotSentNote,
     isVisible = false,
 }: ContactFormCardProps) {
     const isSending = status === "sending"
@@ -126,6 +174,113 @@ export function ContactFormCard({
                     />
                 </div>
 
+                {/* Optional attachments. The native input is hidden; the label
+                    acts as the button so the control keeps its 44px target. */}
+                <div className="space-y-2">
+                    <span className="text-sm font-medium text-foreground">
+                        {attachmentLabels.label}
+                        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            {attachmentLabels.optional}
+                        </span>
+                    </span>
+
+                    <input
+                        key={attachmentInputKey}
+                        id="contact-attachment"
+                        name="attachment"
+                        type="file"
+                        multiple
+                        accept={ATTACHMENT_ACCEPT}
+                        onChange={onAttachmentSelect}
+                        aria-describedby="contact-attachment-hint"
+                        className="sr-only"
+                    />
+
+                    {attachments.length >= MAX_ATTACHMENT_COUNT ? (
+                        <p className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border/40 bg-background/20 px-3 text-sm text-muted-foreground">
+                            <Paperclip className="h-4 w-4" aria-hidden="true" />
+                            {attachmentLabels.limitReached}
+                        </p>
+                    ) : attachments.length === 0 ? (
+                        <label
+                            htmlFor="contact-attachment"
+                            className="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/30 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground focus-within:ring-2 focus-within:ring-primary"
+                        >
+                            <Paperclip className="h-4 w-4" aria-hidden="true" />
+                            {attachmentLabels.choose}
+                        </label>
+                    ) : (
+                        <ul className="space-y-2">
+                            {attachments.map((file, index) => (
+                                <li
+                                    key={`${file.name}-${index}`}
+                                    className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-foreground sm:px-4"
+                                >
+                                    <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                                    <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                                    <span className="shrink-0 text-xs text-muted-foreground">
+                                        {formatFileSize(file.size)}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => onAttachmentRemove(index)}
+                                        aria-label={`${attachmentLabels.remove} ${file.name}`}
+                                        className="inline-flex h-11 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <X className="h-4 w-4" aria-hidden="true" />
+                                    </button>
+                                </li>
+                            ))}
+                            {attachments.length < MAX_ATTACHMENT_COUNT && (
+                            <li>
+                                <label
+                                    htmlFor="contact-attachment"
+                                    className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-md px-1 text-sm text-primary underline-offset-4 hover:underline focus-within:outline-none focus-within:ring-2 focus-within:ring-primary"
+                                >
+                                    <Paperclip className="h-4 w-4" aria-hidden="true" />
+                                    {attachmentLabels.choose}
+                                </label>
+                            </li>
+                            )}
+                        </ul>
+                    )}
+
+                    {uploadProgress !== null && (
+                        <div className="space-y-1.5">
+                            <div
+                                role="progressbar"
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={Math.round(uploadProgress * 100)}
+                                aria-label={uploadingLabel}
+                                className="h-2 w-full overflow-hidden rounded-full bg-muted"
+                            >
+                                <div
+                                    className="h-full rounded-full bg-primary transition-[width] duration-200"
+                                    style={{ width: `${Math.round(uploadProgress * 100)}%` }}
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground" aria-live="polite">
+                                {uploadingLabel}
+                            </p>
+                        </div>
+                    )}
+
+                    <p id="contact-attachment-hint" className="text-xs text-muted-foreground">
+                        {attachmentLabels.hint}
+                    </p>
+
+                    {attachmentError && (
+                        <p role="status" className="text-xs text-amber-400">
+                            {attachmentError}
+                        </p>
+                    )}
+
+                    {attachments.length > 0 && (
+                        <p className="text-xs text-muted-foreground">{attachmentLabels.privacy}</p>
+                    )}
+                </div>
+
                 {/* Honeypot: bots fill this; real visitors never see or tab to it. */}
                 <div className="sr-only" aria-hidden="true">
                     <label htmlFor="contact-website">{honeypotLabel}</label>
@@ -141,12 +296,25 @@ export function ContactFormCard({
                 </div>
 
                 {siteKey ? (
-                    <TurnstileWidget
-                        siteKey={siteKey}
-                        onTokenChange={onTurnstileTokenChange}
-                        resetKey={turnstileResetKey}
-                        errorMessage={verificationUnavailable}
-                    />
+                    <div className="space-y-1.5">
+                        <TurnstileWidget
+                            siteKey={siteKey}
+                            onTokenChange={onTurnstileTokenChange}
+                            resetKey={turnstileResetKey}
+                            controller={turnstileController}
+                            errorMessage={verificationUnavailable}
+                        />
+                        {/* The widget stays hidden unless a challenge is needed,
+                            so Cloudflare's attribution is carried here. */}
+                        <a
+                            href={TURNSTILE_ATTRIBUTION_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block rounded text-[11px] leading-relaxed text-muted-foreground/70 underline-offset-2 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                            {protectedByLabel}
+                        </a>
+                    </div>
                 ) : (
                     <p className="text-xs text-amber-400">{verificationUnavailable}</p>
                 )}
@@ -166,12 +334,19 @@ export function ContactFormCard({
                         </p>
                     )}
                     {status === "error" && (
-                        <a
-                            href={mailtoHref}
-                            className="inline-block rounded text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        >
-                            {fallbackLabel}
-                        </a>
+                        <>
+                            {/* A mailto link cannot carry the file, so say so
+                                rather than implying the attachment travels. */}
+                            {showFileNotSentNote && (
+                                <p className="text-amber-400">{fileNotSentNote}</p>
+                            )}
+                            <a
+                                href={mailtoHref}
+                                className="inline-block rounded text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                                {fallbackLabel}
+                            </a>
+                        </>
                     )}
                 </div>
 

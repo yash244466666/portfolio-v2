@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { getSectionContent, getContactInfo, getFormContent, getButtonTexts } from "@/lib/content/utils"
 import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import { ContactSectionHeader } from "@/components/contact-section/contact-section-header"
@@ -10,7 +10,16 @@ import { ContactFormCard, type ContactFormStatus } from "@/components/contact-se
 import { ContactInfoList } from "@/components/contact-section/contact-info-list"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
-import { sendContactMessage } from "@/lib/contact/send-contact"
+import {
+  requestUploadUrl,
+  sendContactMessage,
+  uploadFileToStorage,
+} from "@/lib/contact/send-contact"
+import {
+  MAX_ATTACHMENT_COUNT,
+  readFileAsBase64,
+  validateAttachmentFile,
+} from "@/lib/contact/attachment"
 
 const EMPTY_FORM = {
   name: "",
@@ -25,6 +34,13 @@ export default function ContactSection() {
   const [feedback, setFeedback] = useState("")
   const [turnstileToken, setTurnstileToken] = useState("")
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
+  const [attachments, setAttachments] = useState<File[]>([])
+  const [attachmentError, setAttachmentError] = useState("")
+  const [attachmentInputKey, setAttachmentInputKey] = useState(0)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
+  const turnstileController = useRef<{ execute: () => void } | null>(null)
+  const tokenWaiterRef = useRef<((token: string) => void) | null>(null)
+  const [errorCode, setErrorCode] = useState("")
 
   const shouldSkipAnimation = useCallback(() => {
     if (typeof window === "undefined") {
@@ -63,6 +79,7 @@ export default function ContactSection() {
       nameLength: formData.name.length,
       messageLength: formData.message.length,
       hasEmail: Boolean(formData.email),
+      hasAttachment: attachments.length > 0,
     }),
     trackValues: () => ({
       isVisible,
@@ -83,6 +100,7 @@ export default function ContactSection() {
         nameLength: formData.name.length,
         messageLength: formData.message.length,
         hasEmail: Boolean(formData.email),
+        hasAttachment: attachments.length > 0,
       },
       throttleMs: 1500,
     })
@@ -93,8 +111,16 @@ export default function ContactSection() {
       return
     }
 
-    if (!turnstileToken) {
+    let token = turnstileToken
+    if (!token) {
+      // Ask Cloudflare to run the challenge, then give it a moment.
+      turnstileController.current?.execute()
+      setFeedback(formContent.status.verifying)
+      token = await waitForTurnstileToken(12000)
+    }
+    if (!token) {
       setStatus("error")
+      setErrorCode("verification-required")
       setFeedback(formContent.status.verificationRequired)
       return
     }
@@ -102,13 +128,112 @@ export default function ContactSection() {
     setStatus("sending")
     setFeedback("")
 
+    // Preferred path: upload every file straight to object storage, then send
+    // the keys. Falls back to one inline attachment when storage is absent.
+    let attachmentPayload
+    const storedFiles: { key: string; name: string; size: number; ticket: string }[] = []
+
+    if (attachments.length > 0) {
+      setUploadProgress(0)
+
+      // One presign call for the whole message: a Turnstile token authorises a
+      // single request, so asking per file broke every file after the first.
+      const presign = await requestUploadUrl(
+        {
+          files: attachments.map((file) => ({
+            name: file.name,
+            size: file.size,
+            type: file.type || "application/octet-stream",
+          })),
+          turnstileToken: token,
+        },
+        contactEndpoint
+      )
+
+      if (!presign.ok && presign.reason !== "unavailable") {
+        setUploadProgress(null)
+        setStatus("error")
+        setErrorCode("upload-failed")
+        setFeedback(
+          presign.reason === "rate-limited"
+            ? formContent.status.tooManyUploads
+            : presign.reason === "verification"
+              ? formContent.status.verificationRequired
+              : formContent.status.fileUploadFailed
+        )
+        setTurnstileToken("")
+        setTurnstileResetKey((key) => key + 1)
+        return
+      }
+
+      if (!presign.ok) {
+        // Storage is not configured; only one small file can ride along.
+        if (attachments.length === 1) {
+          try {
+            attachmentPayload = {
+              name: attachments[0].name,
+              type: attachments[0].type || "application/octet-stream",
+              content: await readFileAsBase64(attachments[0]),
+              size: attachments[0].size,
+            }
+          } catch {
+            setUploadProgress(null)
+            setStatus("error")
+            setErrorCode("upload-failed")
+            setFeedback(formContent.status.error)
+            return
+          }
+        } else {
+          setUploadProgress(null)
+          setStatus("error")
+          setErrorCode("upload-failed")
+          setFeedback(formContent.status.fileUploadFailed)
+          setTurnstileToken("")
+          setTurnstileResetKey((key) => key + 1)
+          return
+        }
+      } else {
+        for (let index = 0; index < attachments.length; index += 1) {
+          const file = attachments[index]
+          const upload = presign.uploads[index]
+          if (!upload) break
+
+          const uploaded = await uploadFileToStorage(upload, file, (fraction) => {
+            setUploadProgress((index + fraction) / attachments.length)
+          })
+
+          if (!uploaded) {
+            setUploadProgress(null)
+            setStatus("error")
+            setErrorCode("upload-failed")
+            setFeedback(formContent.status.fileUploadFailed)
+            setTurnstileToken("")
+            setTurnstileResetKey((key) => key + 1)
+            return
+          }
+
+          storedFiles.push({
+            key: upload.key,
+            name: file.name,
+            size: file.size,
+            ticket: upload.ticket,
+          })
+          setUploadProgress((index + 1) / attachments.length)
+        }
+      }
+
+      setUploadProgress(null)
+    }
+
     const result = await sendContactMessage(
       {
         name: formData.name,
         email: formData.email,
         message: formData.message,
-        turnstileToken,
+        turnstileToken: token,
         website: formData.website,
+        attachment: attachmentPayload,
+        ...(storedFiles.length ? { files: storedFiles } : {}),
       },
       contactEndpoint
     )
@@ -116,23 +241,39 @@ export default function ContactSection() {
     if (result.ok) {
       setStatus("success")
       setFeedback(
-        result.confirmationSent === false
-          ? formContent.status.successNoConfirmation
-          : formContent.status.success
+        result.fileMode === "link"
+          ? formContent.status.attachmentAsLink
+          : result.confirmationSent === false
+            ? formContent.status.successNoConfirmation
+            : formContent.status.success
       )
       setFormData(EMPTY_FORM)
       setTurnstileToken("")
       setTurnstileResetKey((key) => key + 1)
+      setAttachments([])
+      setAttachmentError("")
+      setAttachmentInputKey((key) => key + 1)
+      setErrorCode("")
       logComponentEvent("ContactSection", {
         event: "form-success",
-        detail: { confirmationSent: result.confirmationSent !== false },
+        detail: {
+          confirmationSent: result.confirmationSent !== false,
+          hasAttachment: Boolean(attachmentPayload) || storedFiles.length > 0,
+          attachmentSent: result.attachmentSent === true,
+          reference: result.reference ?? "",
+        },
         throttleMs: 1500,
       })
       return
     }
 
     setStatus("error")
-    setFeedback(formContent.status.error)
+    setErrorCode(result.error ?? "unknown")
+    setFeedback(
+      result.error === "attachment-rejected"
+        ? formContent.status.attachmentRejected
+        : formContent.status.error
+    )
     setTurnstileToken("")
     setTurnstileResetKey((key) => key + 1)
     logComponentEvent("ContactSection", {
@@ -151,6 +292,7 @@ export default function ContactSection() {
     if (status === "success" || status === "error") {
       setStatus("idle")
       setFeedback("")
+      setErrorCode("")
     }
 
     logComponentEvent("ContactSection", {
@@ -160,9 +302,82 @@ export default function ContactSection() {
     })
   }
 
+  const handleAttachmentSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = Array.from(event.target.files ?? [])
+    if (picked.length === 0) return
+
+    setAttachmentError("")
+
+    const accepted: File[] = []
+    let rejection = ""
+
+    for (const file of picked) {
+      if (attachments.length + accepted.length >= MAX_ATTACHMENT_COUNT) {
+        rejection = formContent.status.tooManyFiles
+        break
+      }
+      const validation = validateAttachmentFile(file)
+      if (!validation.ok) {
+        rejection =
+          validation.reason === "too-large"
+            ? formContent.status.fileTooLarge
+            : formContent.status.fileTypeUnsupported
+        continue
+      }
+      accepted.push(file)
+    }
+
+    if (accepted.length > 0) {
+      setAttachments((previous) => [...previous, ...accepted])
+      if (status === "success" || status === "error") {
+        setStatus("idle")
+        setFeedback("")
+        setErrorCode("")
+      }
+    }
+    if (rejection) setAttachmentError(rejection)
+
+    // Remount the input so picking the same file again still fires change.
+    setAttachmentInputKey((key) => key + 1)
+
+    // Metadata only: never log file names or contents.
+    logComponentEvent("ContactSection", {
+      event: "attachment-selected",
+      detail: { count: accepted.length, rejected: Boolean(rejection) },
+      throttleMs: 800,
+    })
+  }
+
+  const handleAttachmentRemove = useCallback((index: number) => {
+    setAttachments((previous) => previous.filter((_, position) => position !== index))
+    setAttachmentError("")
+  }, [])
+
   const handleTurnstileTokenChange = useCallback((token: string) => {
     setTurnstileToken(token)
+    if (token && tokenWaiterRef.current) {
+      const resolve = tokenWaiterRef.current
+      tokenWaiterRef.current = null
+      resolve(token)
+    }
   }, [])
+
+  /**
+   * Wait for a token that is still on its way. The widget is
+   * `interaction-only`, so on a fresh page it may not have issued one by the
+   * time the visitor hits send.
+   */
+  const waitForTurnstileToken = (timeoutMs: number) =>
+    new Promise<string>((resolve) => {
+      const timer = setTimeout(() => {
+        tokenWaiterRef.current = null
+        resolve("")
+      }, timeoutMs)
+      tokenWaiterRef.current = (token) => {
+        clearTimeout(timer)
+        resolve(token)
+      }
+    })
 
   const contactItems = contactInfo.map((info) => ({
     type: info.type,
@@ -186,6 +401,18 @@ export default function ContactSection() {
             formData={formData}
             labels={formContent.labels}
             placeholders={formContent.placeholders}
+            attachmentLabels={formContent.attachment}
+            attachments={attachments.map((file) => ({ name: file.name, size: file.size }))}
+            attachmentError={attachmentError}
+            attachmentInputKey={attachmentInputKey}
+            onAttachmentSelect={handleAttachmentSelect}
+            onAttachmentRemove={handleAttachmentRemove}
+            uploadProgress={uploadProgress}
+            uploadingLabel={
+              uploadProgress === null
+                ? ""
+                : `${formContent.status.uploading} ${Math.round(uploadProgress * 100)}%`
+            }
             submitLabel={buttonTexts.sendMessage}
             sendingLabel={formContent.status.sending}
             status={status}
@@ -196,6 +423,7 @@ export default function ContactSection() {
             siteKey={turnstileSiteKey}
             onTurnstileTokenChange={handleTurnstileTokenChange}
             turnstileResetKey={turnstileResetKey}
+            turnstileController={turnstileController}
             privacyNote={formContent.status.privacy}
             verificationUnavailable={
               turnstileSiteKey
@@ -204,6 +432,13 @@ export default function ContactSection() {
             }
             fallbackLabel={formContent.status.fallback}
             honeypotLabel={formContent.honeypotLabel}
+            protectedByLabel={formContent.status.protectedBy}
+            fileNotSentNote={formContent.status.fileNotSent}
+            showFileNotSentNote={
+              status === "error" &&
+              attachments.length > 0 &&
+              errorCode !== "attachment-rejected"
+            }
             isVisible={isVisible}
           />
 

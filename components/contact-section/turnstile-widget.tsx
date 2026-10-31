@@ -6,6 +6,11 @@ interface TurnstileOptions {
   sitekey: string
   theme?: "light" | "dark" | "auto"
   size?: "normal" | "compact" | "flexible"
+  /**
+   * `interaction-only` keeps the widget out of the layout until a challenge is
+   * actually required, so most visitors never see the Cloudflare panel.
+   */
+  appearance?: "always" | "execute" | "interaction-only"
   callback?: (token: string) => void
   "expired-callback"?: () => void
   "error-callback"?: () => void
@@ -13,6 +18,7 @@ interface TurnstileOptions {
 
 interface TurnstileApi {
   render: (container: HTMLElement, options: TurnstileOptions) => string
+  execute: (widgetId?: string) => void
   reset: (widgetId?: string) => void
   remove: (widgetId?: string) => void
 }
@@ -75,18 +81,26 @@ interface TurnstileWidgetProps {
   onTokenChange: (token: string) => void
   resetKey?: number
   errorMessage: string
+  /**
+   * Filled with an `execute()` that forces Cloudflare to run the challenge now.
+   * `appearance: "interaction-only"` keeps the widget hidden, and a hidden
+   * widget does not always issue a token until it is asked to.
+   */
+  controller?: { current: { execute: () => void } | null }
 }
 
 /**
- * Cloudflare Turnstile widget. Renders invisibly until the challenge is needed
- * and calls `onTokenChange` with a single-use token. The token itself stays in
- * the parent's state and is never passed back down as a prop.
+ * Cloudflare Turnstile widget. Rendered with `appearance: "interaction-only"`,
+ * so it only takes up space when Cloudflare actually needs a challenge, and
+ * calls `onTokenChange` with a single-use token. The token itself stays in the
+ * parent's state and is never passed back down as a prop.
  */
 export function TurnstileWidget({
   siteKey,
   onTokenChange,
   resetKey = 0,
   errorMessage,
+  controller,
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
@@ -111,11 +125,28 @@ export function TurnstileWidget({
           sitekey: siteKey,
           theme: "dark",
           size: "flexible",
+          // Hidden until Cloudflare decides the visitor needs a challenge. The
+          // token is still issued through `callback` when none is required, so
+          // the submit flow is unchanged.
+          appearance: "interaction-only",
           callback: (token) => onTokenChangeRef.current(token),
           "expired-callback": () => onTokenChangeRef.current(""),
           "error-callback": () => onTokenChangeRef.current(""),
         })
         widgetIdRef.current = widgetId
+        if (controller) {
+          controller.current = {
+            execute: () => {
+              const id = widgetIdRef.current
+              if (!id) return
+              try {
+                window.turnstile?.execute(id)
+              } catch {
+                // Re-executing a running widget throws; the token is coming.
+              }
+            },
+          }
+        }
       })
       .catch(() => {
         if (!cancelled) setError(errorMessage)
@@ -133,7 +164,7 @@ export function TurnstileWidget({
       widgetIdRef.current = null
       onTokenChangeRef.current("")
     }
-  }, [errorMessage, siteKey])
+  }, [controller, errorMessage, siteKey])
 
   useEffect(() => {
     if (resetKey === 0) return
@@ -150,7 +181,9 @@ export function TurnstileWidget({
 
   return (
     <div className="space-y-2">
-      <div ref={containerRef} className="min-h-[65px]" />
+      {/* No reserved height: the widget stays out of the layout until a
+          challenge is rendered into this container. */}
+      <div ref={containerRef} />
       {error && (
         <p role="status" className="text-xs text-amber-400">
           {error}

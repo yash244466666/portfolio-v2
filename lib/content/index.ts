@@ -372,6 +372,16 @@ export const formContent: FormContent = {
     email: "Email",
     message: "Message",
   },
+  attachment: {
+    label: "Attachment",
+    optional: "optional",
+    choose: "Choose a file",
+    hint: "Any format · up to 100 MB per file · max 5 files.",
+    remove: "Remove",
+    limitReached: "5 files selected — that is the maximum.",
+    privacy:
+      "Your file is stored privately, shared by an expiring link, and deleted after 30 days.",
+  },
   status: {
     sending: "Sending…",
     success: "Message sent — check your inbox for a confirmation.",
@@ -386,6 +396,22 @@ export const formContent: FormContent = {
     fallback: "Email me directly instead",
     privacy:
       "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
+    protectedBy: "Protected by Cloudflare",
+    fileTooLarge: "That file is larger than 100 MB. Please choose a smaller one.",
+    fileTypeUnsupported: "That file has no extension, so its type cannot be detected.",
+    fileNotSent:
+      "The file was not delivered either — attach it manually if you email me directly.",
+    attachmentRejected:
+      "The mail provider refused that file. Try a PDF or an image, or email me directly.",
+    attachmentAsLink:
+      "Message sent — your file is attached to the email as a download link.",
+    fileUploadFailed:
+      "Your file could not be uploaded. Try again, or pick a smaller file.",
+    tooManyFiles: "You can attach up to 5 files per message.",
+    uploading: "Uploading…",
+    verifying: "Checking verification…",
+    tooManyUploads:
+      "Too many upload attempts from this network. Try again in an hour, or attach one smaller file.",
   },
   honeypotLabel: "Website",
 };
