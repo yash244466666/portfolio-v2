@@ -19,6 +19,10 @@ env:
   NEXT_PUBLIC_BG_MODE: neural
   NEXT_PUBLIC_DEFAULT_BG: neural
   NEXT_PUBLIC_ENABLE_LOGS: "false"
+  # Public contact configuration, stored as repository variables (not secrets).
+  # Unset variables build the mailto: fallback only.
+  NEXT_PUBLIC_CONTACT_ENDPOINT: ${{ vars.NEXT_PUBLIC_CONTACT_ENDPOINT }}
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
 
 jobs:
   build:

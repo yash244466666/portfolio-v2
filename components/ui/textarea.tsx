@@ -1,8 +1,20 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+  useComponentInstrumentation("Textarea", {
+    // Never report the typed value; hasValue is enough for telemetry.
+    propsSnapshot: () => ({
+      className,
+      hasValue: props.value !== undefined || props.defaultValue !== undefined,
+      rows: props.rows,
+      maxLength: props.maxLength,
+    }),
+    throttleMs: 2500,
+  })
+
   return (
     <textarea
       data-slot="textarea"
