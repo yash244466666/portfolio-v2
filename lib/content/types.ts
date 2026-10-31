@@ -171,6 +171,14 @@ export interface FormContent {
     fileNotSent: string;
     /** Shown when the mail provider refuses the attached file. */
     attachmentRejected: string;
+    /** Success copy when the file was stored and shared as a download link. */
+    attachmentAsLink: string;
+    /** Shown when the direct upload to storage failed. */
+    fileUploadFailed: string;
+    /** Shown when the visitor picks more files than allowed. */
+    tooManyFiles: string;
+    /** Progress label while files upload. */
+    uploading: string;
     /**
      * Cloudflare attribution shown next to the submit button. The Turnstile
      * widget stays hidden unless a challenge is required, so the branding is

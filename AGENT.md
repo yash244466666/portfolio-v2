@@ -449,10 +449,11 @@ Primary flow:
 - A hidden `website` honeypot must stay empty.
 - Turnstile renders with `appearance: "interaction-only"`, so the widget stays out of the layout unless Cloudflare needs a challenge; a small "Protected by Cloudflare" link carries the attribution instead.
 - **lib/contact/send-contact.ts** POSTs `{ name, email, message, turnstileToken, attachment, website }` to `NEXT_PUBLIC_CONTACT_ENDPOINT`, with the token also in `X-Turnstile-Token` so the Worker can verify it before parsing the body. The timeout is 15 seconds, or 30 with an attachment.
-- **lib/contact/attachment.ts** owns the client rules: a 4 MB ceiling, the Brevo extension allowlist, the `accept` attribute, chunked base64 reading, and the size formatter. Keep it in sync with the Worker.
+- **lib/contact/attachment.ts** owns the client rules: the 1 GB / 5 file ceilings, the `accept` attribute, chunked base64 reading for the fallback path, and the size formatter. **lib/contact/send-contact.ts** also holds the presign request and the XHR upload that reports progress.
 - The Worker verifies Turnstile, rate-limits through the `RATE_LIMIT` KV binding when it is configured (5 per IP per hour), and calls Brevo twice: the owner notification at `md.mohi.minul.islam.yash@gmail.com` (`Reply-To` = visitor) and the visitor confirmation (`Reply-To` = owner). Both carry the attachment when one is sent. Sender stays `info@yashcodes.com`; only the recipient is the Gmail address.
 - The confirmation is a branded dark template built by `buildConfirmationHtml` / `buildConfirmationText` in the Worker, with inline styles, table layout, and no external assets.
-- Archives (`.zip`) are not accepted at all: Gmail bounces them with a 552 content block after Brevo has already answered `201`, so a success would be a lie. The accepted list is documents, text (including `.md`), and images; the form's hint names them.
+- Files take a separate path from the emails: `POST /upload-url` returns a presigned PUT, the browser uploads straight to Garage (S3-compatible, vps-2, `files.yashcodes.com`), and the form posts the object keys. Both emails carry 7-day download links. Limits are 1 GB per file and 5 files; any extension.
+- Without the `S3_*` Worker variables that endpoint answers `501` and the form falls back to attaching one small file through Brevo, whose extension list excludes `.md` and whose recipients reject archives.
 - Success resets the fields, the attachment, and the Turnstile widget; failure keeps the fields and the file, shows a generic error, and offers a prefilled `mailto:info@yashcodes.com` fallback that states the file must be re-attached.
 
 Constraints:

@@ -39,14 +39,18 @@ interface ContactFormCardProps {
         remove: string
         privacy: string
     }
-    /** Selected file, or `null` when the visitor attached nothing. */
-    attachment: { name: string; size: number } | null
+    /** Files picked for this message; the order is the order shown. */
+    attachments: { name: string; size: number }[]
     /** Validation message for a rejected pick, empty when there is none. */
     attachmentError: string
     /** Bumped by the parent to clear the native file input after a send. */
     attachmentInputKey: number
     onAttachmentSelect: (event: ChangeEvent<HTMLInputElement>) => void
-    onAttachmentClear: () => void
+    onAttachmentRemove: (index: number) => void
+    /** 0–1 while files upload, `null` when nothing is in flight. */
+    uploadProgress: number | null
+    /** Label shown while files upload, e.g. "Uploading… 42%". */
+    uploadingLabel: string
     submitLabel: string
     sendingLabel: string
     status: ContactFormStatus
@@ -75,11 +79,13 @@ export function ContactFormCard({
     labels,
     placeholders,
     attachmentLabels,
-    attachment,
+    attachments,
     attachmentError,
     attachmentInputKey,
     onAttachmentSelect,
-    onAttachmentClear,
+    onAttachmentRemove,
+    uploadProgress,
+    uploadingLabel,
     submitLabel,
     sendingLabel,
     status,
@@ -160,48 +166,29 @@ export function ContactFormCard({
                     />
                 </div>
 
-                {/* Optional attachment. The native input is hidden; the label
+                {/* Optional attachments. The native input is hidden; the label
                     acts as the button so the control keeps its 44px target. */}
                 <div className="space-y-2">
-                    <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm font-medium text-foreground">
-                            {attachmentLabels.label}
-                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                                {attachmentLabels.optional}
-                            </span>
+                    <span className="text-sm font-medium text-foreground">
+                        {attachmentLabels.label}
+                        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            {attachmentLabels.optional}
                         </span>
-                        {attachment && (
-                            <button
-                                type="button"
-                                onClick={onAttachmentClear}
-                                className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-1 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                            >
-                                <X className="h-3.5 w-3.5" aria-hidden="true" />
-                                {attachmentLabels.remove}
-                            </button>
-                        )}
-                    </div>
+                    </span>
 
                     <input
                         key={attachmentInputKey}
                         id="contact-attachment"
                         name="attachment"
                         type="file"
+                        multiple
                         accept={ATTACHMENT_ACCEPT}
                         onChange={onAttachmentSelect}
                         aria-describedby="contact-attachment-hint"
                         className="sr-only"
                     />
 
-                    {attachment ? (
-                        <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-foreground sm:px-4">
-                            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                            <span className="min-w-0 flex-1 truncate">{attachment.name}</span>
-                            <span className="shrink-0 text-xs text-muted-foreground">
-                                {formatFileSize(attachment.size)}
-                            </span>
-                        </div>
-                    ) : (
+                    {attachments.length === 0 ? (
                         <label
                             htmlFor="contact-attachment"
                             className="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/30 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground focus-within:ring-2 focus-within:ring-primary"
@@ -209,6 +196,59 @@ export function ContactFormCard({
                             <Paperclip className="h-4 w-4" aria-hidden="true" />
                             {attachmentLabels.choose}
                         </label>
+                    ) : (
+                        <ul className="space-y-2">
+                            {attachments.map((file, index) => (
+                                <li
+                                    key={`${file.name}-${index}`}
+                                    className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-foreground sm:px-4"
+                                >
+                                    <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                                    <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                                    <span className="shrink-0 text-xs text-muted-foreground">
+                                        {formatFileSize(file.size)}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => onAttachmentRemove(index)}
+                                        aria-label={`${attachmentLabels.remove} ${file.name}`}
+                                        className="inline-flex h-11 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <X className="h-4 w-4" aria-hidden="true" />
+                                    </button>
+                                </li>
+                            ))}
+                            <li>
+                                <label
+                                    htmlFor="contact-attachment"
+                                    className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-md px-1 text-sm text-primary underline-offset-4 hover:underline focus-within:outline-none focus-within:ring-2 focus-within:ring-primary"
+                                >
+                                    <Paperclip className="h-4 w-4" aria-hidden="true" />
+                                    {attachmentLabels.choose}
+                                </label>
+                            </li>
+                        </ul>
+                    )}
+
+                    {uploadProgress !== null && (
+                        <div className="space-y-1.5">
+                            <div
+                                role="progressbar"
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-valuenow={Math.round(uploadProgress * 100)}
+                                aria-label={uploadingLabel}
+                                className="h-2 w-full overflow-hidden rounded-full bg-muted"
+                            >
+                                <div
+                                    className="h-full rounded-full bg-primary transition-[width] duration-200"
+                                    style={{ width: `${Math.round(uploadProgress * 100)}%` }}
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground" aria-live="polite">
+                                {uploadingLabel}
+                            </p>
+                        </div>
                     )}
 
                     <p id="contact-attachment-hint" className="text-xs text-muted-foreground">
@@ -221,7 +261,7 @@ export function ContactFormCard({
                         </p>
                     )}
 
-                    {attachment && (
+                    {attachments.length > 0 && (
                         <p className="text-xs text-muted-foreground">{attachmentLabels.privacy}</p>
                     )}
                 </div>

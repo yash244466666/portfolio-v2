@@ -377,10 +377,10 @@ export const formContent: FormContent = {
     optional: "optional",
     choose: "Choose a file",
     hint:
-      "PDF, DOC, DOCX, ODT, TXT, CSV, MD, XLS, XLSX, PPT, PPTX, PNG, JPG, GIF or WEBP — up to 4 MB.",
+      "Any document, image, text or archive up to 25 MB. Executables and scripts are not accepted.",
     remove: "Remove",
     privacy:
-      "Your file is sent with your message and is not stored on this site.",
+      "Your file is stored privately, shared by an expiring link, and deleted after 30 days.",
   },
   status: {
     sending: "Sending…",
@@ -397,13 +397,19 @@ export const formContent: FormContent = {
     privacy:
       "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
     protectedBy: "Protected by Cloudflare",
-    fileTooLarge: "That file is larger than 4 MB. Please choose a smaller one.",
+    fileTooLarge: "That file is larger than 25 MB. Please choose a smaller one.",
     fileTypeUnsupported:
-      "That file type is not accepted. Choose a PDF, Office document, text (.txt, .csv, .md) or image.",
+      "Executables and scripts are not accepted. Choose a document, image, text file or archive.",
     fileNotSent:
       "The file was not delivered either — attach it manually if you email me directly.",
     attachmentRejected:
       "The mail provider refused that file. Try a PDF or an image, or email me directly.",
+    attachmentAsLink:
+      "Message sent — your file is attached to the email as a download link.",
+    fileUploadFailed:
+      "Your file could not be uploaded. Try again, or pick a smaller file.",
+    tooManyFiles: "You can attach up to 5 files per message.",
+    uploading: "Uploading…",
   },
   honeypotLabel: "Website",
 };
