@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "includeCoAuthoredBy": false,
     "allow": [
       "Bash(mkdir -p ~/.claude/skills)",
       "Bash(curl -sL https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/SKILL.md -o /tmp/anthropics-frontend-design-skill.md)",
