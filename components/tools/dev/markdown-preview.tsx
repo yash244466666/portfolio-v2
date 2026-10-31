@@ -38,7 +38,7 @@ export default function MarkdownPreview() {
             <CopyButton text={html} />
           </div>
           <div
-            className="min-h-[400px] p-4 rounded-lg border border-border bg-background/30 prose prose-invert prose-sm max-w-none overflow-auto text-foreground [&_pre]:bg-muted/50 [&_pre]:p-3 [&_pre]:rounded-md [&_code]:text-primary [&_a]:text-primary [&_a]:underline"
+            className="min-h-[400px] p-4 rounded-lg border border-border bg-background/30 prose prose-sm max-w-none overflow-auto text-foreground [&_pre]:bg-muted/50 [&_pre]:p-3 [&_pre]:rounded-md [&_code]:text-primary [&_a]:text-primary [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: html }}
           />
         </div>
