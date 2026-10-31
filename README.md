@@ -327,7 +327,7 @@ The workflow is `.github/workflows/deploy.yml`.
 3. Set up Node 24 with pnpm caching.
 4. `pnpm install --frozen-lockfile`.
 5. `tsc --noEmit --incremental false`.
-6. `pnpm build`.
+6. `pnpm build`, retrying up to three times on failure (covers transient `next/font` fetches).
 7. Verify `out/index.html`, `out/_next`, and `out/tools/index.html`.
 8. Upload the `site` artifact.
 
@@ -372,7 +372,7 @@ The cutover was completed on 2026-10-31:
 3. Caddy issued Let's Encrypt certificates for both domains.
 4. `/` and `/tools/` return 200 on both sites.
 
-The previous vps-1 deployment remains as a fallback. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact configuration, one-time server setup, manual deploy commands, rollback, and verification.
+The previous vps-1 deployment (`/data/sites/beta`) remains as a **frozen** fallback — it no longer receives deploys and would need a manual sync plus re-pointing the `beta` A record. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact configuration, one-time server setup, manual deploy commands, rollback, and verification.
 
 ## Verification
 

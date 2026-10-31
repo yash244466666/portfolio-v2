@@ -421,8 +421,9 @@ Do not add external calls without clear user-facing disclosure, reasonable error
 
 **components/contact-section.tsx** is a client-only contact form. On submit it builds a `mailto:info@yashcodes.com` URL containing the sender's name, email, and message, then sets `window.location.href`. It does not call an API, upload files, or store submissions.
 
-- The form fields are name, email, and message.
-- The form uses `noValidate`; the visitor's email client is responsible for delivery.
+- The form fields are name, email, and message; all three are `required`.
+- The browser performs native validation before submit. When validation passes, the page sets `window.location.href` to the `mailto:` URL.
+- The visitor's email client is responsible for delivery.
 - There is no file upload, honeypot, rate limiting, presign, or backend validation in this repository.
 - If no mail client is configured, the browser may do nothing; the contact details are also listed in the contact section.
 - Do not claim that the form submits to a server or guarantees delivery.

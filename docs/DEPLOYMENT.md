@@ -25,8 +25,12 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 - **Backups:** the pre-cutover Caddyfile is
   `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; the staged file remains
   `/opt/stacks/caddy/Caddyfile.next`.
-- **vps-1 remains intact** with the previous build and Caddy configuration as
-  a rollback fallback.
+- **vps-1 still holds a pre-cutover copy** at `/data/sites/beta` (served by
+  its own Caddy block as a rollback fallback). ⚠️ It is **frozen** — GitHub
+  Actions now deploys only to vps-2, so vps-1 no longer receives updates.
+  Rolling back requires re-pointing the `beta` A record to `152.67.67.128`
+  *and* manually syncing the build there; do not assume the vps-1 copy is
+  current.
 - **History:** the first GitHub Actions attempts were blocked by a GitHub
   incident on 2026-10-30. One `main` build later failed on a transient Google
   Fonts fetch; the workflow now retries the build up to three times, and the
