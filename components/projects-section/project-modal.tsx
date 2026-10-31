@@ -52,11 +52,12 @@ export function ProjectModal({
             describedBy={descriptionId}
             closeLabel={modalContent.closeLabel}
             restoreFocusTo={trigger}
+            fullScreenOnMobile
             className="max-w-3xl"
         >
-            <div className="flex max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-border/70 bg-background shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
-                <div className="overflow-y-auto overscroll-contain">
-                    <div className="relative aspect-video w-full overflow-hidden bg-muted">
+            <div className="flex h-[100dvh] flex-col overflow-hidden bg-background sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl sm:border sm:border-border/70 sm:shadow-2xl">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                    <div className="relative aspect-video max-h-[30dvh] w-full overflow-hidden bg-muted [@media(min-width:640px)_and_(min-height:600px)]:max-h-none">
                         <Image
                             src={project.image || "/placeholder.svg"}
                             alt={project.title}
@@ -66,7 +67,7 @@ export function ProjectModal({
                         />
                     </div>
 
-                    <div className="space-y-6 p-5 sm:p-8">
+                    <div className="space-y-6 px-5 pt-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] sm:px-8 sm:pt-8 sm:pb-[calc(2rem_+_env(safe-area-inset-bottom))]">
                         <header className="space-y-3">
                             <h2
                                 id={titleId}

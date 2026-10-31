@@ -41,6 +41,8 @@ export interface DialogProps {
    * Defaults to whatever was focused before it opened.
    */
   restoreFocusTo?: HTMLElement | null
+  /** Render edge-to-edge with no outer padding below the `sm` breakpoint. */
+  fullScreenOnMobile?: boolean
   className?: string
   children?: React.ReactNode
 }
@@ -60,6 +62,7 @@ export function Dialog({
   describedBy,
   closeLabel,
   restoreFocusTo,
+  fullScreenOnMobile = false,
   className,
   children,
 }: DialogProps) {
@@ -160,7 +163,10 @@ export function Dialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6"
+      className={cn(
+        "fixed inset-0 z-[100] flex items-center justify-center sm:p-6",
+        fullScreenOnMobile ? "p-0 max-sm:w-screen" : "p-3"
+      )}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onOpenChangeRef.current(false)
@@ -187,7 +193,7 @@ export function Dialog({
           type="button"
           onClick={() => onOpenChangeRef.current(false)}
           aria-label={closeLabel}
-          className="absolute right-3 top-3 z-20 flex size-[44px] cursor-pointer items-center justify-center rounded-full bg-black/60 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/50"
+          className="absolute right-[calc(0.75rem_+_env(safe-area-inset-right))] top-[calc(0.75rem_+_env(safe-area-inset-top))] z-20 flex size-[44px] cursor-pointer items-center justify-center rounded-full bg-black/60 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/50"
         >
           <X className="size-5" aria-hidden="true" />
         </button>
