@@ -171,7 +171,7 @@ Adding a tool requires:
 
 Some tools call external services:
 
-- **Currency Converter** — Frankfurter exchange-rate API; caches rates.
+- **Currency Converter** — open.er-api.com exchange-rate API; caches rates in a versioned 24-hour cache.
 - **DNS Lookup** — Cloudflare DNS-over-HTTPS.
 - **YouTube Downloader** — sends the supplied URL to the Cobalt website and loads YouTube thumbnails.
 

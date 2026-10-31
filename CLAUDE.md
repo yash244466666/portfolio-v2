@@ -417,7 +417,7 @@ The statement in the tools-page description that everything runs locally is not 
 
 Known networked features include:
 
-- Currency Converter calls the Frankfurter exchange-rate API and caches results.
+- Currency Converter calls the open.er-api.com exchange-rate API and caches rates in a versioned 24-hour cache.
 - DNS Lookup calls Cloudflare's DNS-over-HTTPS API.
 - YouTube Downloader sends the supplied URL to the Cobalt website and loads YouTube thumbnail images.
 - The contact form opens the visitor's email client via `mailto:info@yashcodes.com`; it makes no network request from the site.
