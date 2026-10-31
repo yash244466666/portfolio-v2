@@ -95,7 +95,7 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  /* Darker than the root light theme: the panel is 40% translucent over the
+  /* Darker than the root light theme: the panel is 35% translucent over the
      dark page, so oklch(0.556) drops below WCAG AA there. */
   --muted-foreground: oklch(0.18 0 0);
   --accent: oklch(0.97 0 0);
