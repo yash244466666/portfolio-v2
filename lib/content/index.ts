@@ -386,6 +386,7 @@ export const formContent: FormContent = {
     fallback: "Email me directly instead",
     privacy:
       "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
+    protectedBy: "Protected by Cloudflare",
   },
   honeypotLabel: "Website",
 };
