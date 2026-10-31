@@ -410,6 +410,7 @@ export const formContent: FormContent = {
       "Your file could not be uploaded. Try again, or pick a smaller file.",
     tooManyFiles: "You can attach up to 5 files per message.",
     uploading: "Uploading…",
+    verifying: "Checking verification…",
   },
   honeypotLabel: "Website",
 };

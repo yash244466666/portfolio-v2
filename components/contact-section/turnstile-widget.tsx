@@ -18,6 +18,7 @@ interface TurnstileOptions {
 
 interface TurnstileApi {
   render: (container: HTMLElement, options: TurnstileOptions) => string
+  execute: (widgetId?: string) => void
   reset: (widgetId?: string) => void
   remove: (widgetId?: string) => void
 }
@@ -80,6 +81,12 @@ interface TurnstileWidgetProps {
   onTokenChange: (token: string) => void
   resetKey?: number
   errorMessage: string
+  /**
+   * Filled with an `execute()` that forces Cloudflare to run the challenge now.
+   * `appearance: "interaction-only"` keeps the widget hidden, and a hidden
+   * widget does not always issue a token until it is asked to.
+   */
+  controller?: { current: { execute: () => void } | null }
 }
 
 /**
@@ -93,6 +100,7 @@ export function TurnstileWidget({
   onTokenChange,
   resetKey = 0,
   errorMessage,
+  controller,
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
@@ -126,6 +134,19 @@ export function TurnstileWidget({
           "error-callback": () => onTokenChangeRef.current(""),
         })
         widgetIdRef.current = widgetId
+        if (controller) {
+          controller.current = {
+            execute: () => {
+              const id = widgetIdRef.current
+              if (!id) return
+              try {
+                window.turnstile?.execute(id)
+              } catch {
+                // Re-executing a running widget throws; the token is coming.
+              }
+            },
+          }
+        }
       })
       .catch(() => {
         if (!cancelled) setError(errorMessage)
@@ -143,7 +164,7 @@ export function TurnstileWidget({
       widgetIdRef.current = null
       onTokenChangeRef.current("")
     }
-  }, [errorMessage, siteKey])
+  }, [controller, errorMessage, siteKey])
 
   useEffect(() => {
     if (resetKey === 0) return

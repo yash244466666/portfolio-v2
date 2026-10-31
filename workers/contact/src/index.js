@@ -557,6 +557,39 @@ function extensionOf(fileName) {
   return dot === -1 ? "" : trimmed.slice(dot + 1)
 }
 
+/**
+ * Turnstile tokens are single-use: verifying one at presign time leaves nothing
+ * for the form submit. Presigning therefore mints a short-lived ticket bound to
+ * the object key, and the submit accepts valid tickets in place of a second
+ * token.
+ */
+const UPLOAD_TICKET_TTL_SECONDS = 60 * 60
+
+async function signUploadTicket(env, key) {
+  const expires = Math.floor(Date.now() / 1000) + UPLOAD_TICKET_TTL_SECONDS
+  const payload = `${key}:${expires}`
+  const secret = env.TURNSTILE_SECRET_KEY || "ticket"
+  return `${expires}.${toHex(await hmacSha256(secret, payload))}`
+}
+
+async function verifyUploadTicket(env, key, ticket) {
+  if (typeof ticket !== "string") return false
+  const [expiresRaw, signature] = ticket.split(".")
+  const expires = Number(expiresRaw)
+  if (!Number.isFinite(expires) || expires * 1000 < Date.now()) return false
+
+  const secret = env.TURNSTILE_SECRET_KEY || "ticket"
+  const expected = toHex(await hmacSha256(secret, `${key}:${expires}`))
+  if (expected.length !== (signature ?? "").length) return false
+
+  // Constant-time-ish comparison.
+  let diff = 0
+  for (let index = 0; index < expected.length; index += 1) {
+    diff |= expected.charCodeAt(index) ^ signature.charCodeAt(index)
+  }
+  return diff === 0
+}
+
 /** `POST /upload-url` — validate a file and hand back a presigned PUT. */
 async function handleUploadUrl(request, env, ctx, origin) {
   if (!storageConfigured(env)) {
@@ -607,7 +640,14 @@ async function handleUploadUrl(request, env, ctx, origin) {
   })
 
   return json(
-    { ok: true, key, url, maxBytes: STORAGE_MAX_BYTES, expiresIn: UPLOAD_URL_TTL_SECONDS },
+    {
+      ok: true,
+      key,
+      url,
+      ticket: await signUploadTicket(env, key),
+      maxBytes: STORAGE_MAX_BYTES,
+      expiresIn: UPLOAD_URL_TTL_SECONDS,
+    },
     200,
     origin
   )
@@ -654,11 +694,6 @@ export default {
     // legacy order further down.
     const ip = request.headers.get("CF-Connecting-IP") || ""
     const headerToken = request.headers.get("X-Turnstile-Token") || ""
-    if (headerToken) {
-      const blocked = await enforceGate(env, headerToken, ip, origin)
-      if (blocked) return blocked
-    }
-
     let data
     try {
       const body = await request.text()
@@ -694,10 +729,35 @@ export default {
       return json({ ok: false, error: "Invalid message" }, 400, origin)
     }
 
-    if (!headerToken) {
+    // A submission whose files all carry valid upload tickets was already
+    // verified at presign time, because a Turnstile token is single-use.
+    const submittedFiles = Array.isArray(data.files) ? data.files : []
+    const ticketsValid =
+      submittedFiles.length > 0 &&
+      (
+        await Promise.all(
+          submittedFiles.map((file) =>
+            verifyUploadTicket(
+              env,
+              typeof file?.key === "string" ? file.key : "",
+              file?.ticket
+            )
+          )
+        )
+      ).every(Boolean)
+
+    if (!ticketsValid) {
       const bodyToken =
         typeof data.turnstileToken === "string" ? data.turnstileToken : ""
-      const blocked = await enforceGate(env, bodyToken, ip, origin)
+      const gateToken = headerToken || bodyToken
+      if (!gateToken) {
+        return json(
+          { ok: false, error: "Missing captcha" },
+          400,
+          origin
+        )
+      }
+      const blocked = await enforceGate(env, gateToken, ip, origin)
       if (blocked) return blocked
     }
 

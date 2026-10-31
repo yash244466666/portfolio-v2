@@ -11,6 +11,8 @@ export interface ContactAttachmentInput {
 export interface PresignedUpload {
   key: string
   url: string
+  /** Short-lived proof that this key was authorised; reused at submit time. */
+  ticket: string
   maxBytes: number
   expiresIn: number
 }
@@ -59,6 +61,7 @@ export async function requestUploadUrl(
     return {
       key: data.key,
       url: data.url,
+      ticket: typeof data.ticket === "string" ? data.ticket : "",
       maxBytes: data.maxBytes ?? 0,
       expiresIn: data.expiresIn ?? 0,
     }
@@ -113,6 +116,8 @@ export interface ContactMessageInput {
   website?: string
   /** Optional single file forwarded to the owner by email. */
   attachment?: ContactAttachmentInput
+  /** Stored files from `requestUploadUrl`; preferred over `attachment`. */
+  files?: { key: string; name: string; size: number; ticket: string }[]
   /** Object-storage key from `requestUploadUrl`; preferred over `attachment`. */
   fileKey?: string
   fileName?: string
@@ -191,6 +196,7 @@ export async function sendContactMessage(
         message: input.message,
         turnstileToken: input.turnstileToken,
         website: input.website ?? "",
+        ...(input.files?.length ? { files: input.files } : {}),
         ...(input.fileKey
           ? {
               fileKey: input.fileKey,
