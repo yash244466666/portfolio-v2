@@ -327,7 +327,6 @@ export const navigationItems: NavigationItem[] = [
 ];
 
 export const buttonTexts: ButtonTexts = {
-  getInTouch: "Get In Touch",
   viewMyWork: "View My Work",
   letsTalk: "Let's Talk",
   sendMessage: "Send Message",
