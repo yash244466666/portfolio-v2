@@ -3,9 +3,13 @@
 Cloudflare Worker that accepts the portfolio contact form, verifies a Turnstile
 token, rate-limits by IP, and sends two emails through Brevo:
 
-1. an owner notification to `info@yashcodes.com` with `Reply-To` set to the
-   visitor, and
-2. a confirmation to the visitor with `Reply-To` set to the owner.
+1. an owner notification to `md.mohi.minul.islam.yash@gmail.com` with `Reply-To`
+   set to the visitor, and
+2. a confirmation to the visitor with `Reply-To` set to the owner address.
+
+Only the recipient is the owner's Gmail. The `From` address stays
+`info@yashcodes.com`, because Brevo can only send on behalf of the domain
+authenticated there (SPF/DKIM/DMARC).
 
 It is separate from the Next.js static export. The site only knows the Worker's
 public URL (`NEXT_PUBLIC_CONTACT_ENDPOINT`) and the Turnstile site key

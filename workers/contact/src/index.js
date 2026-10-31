@@ -24,7 +24,11 @@ const ALLOWED_ORIGINS = [
   "http://localhost:3000",
 ]
 
-const OWNER_EMAIL = "info@yashcodes.com"
+/**
+ * Where owner notifications are delivered. Any address works here — only the
+ * sender must sit on the domain authenticated in Brevo.
+ */
+const OWNER_EMAIL = "md.mohi.minul.islam.yash@gmail.com"
 const SENDER_EMAIL = "info@yashcodes.com"
 const SENDER_NAME = "Yash"
 
@@ -233,7 +237,9 @@ export default {
       await sendBrevo(env.BREVO_API_KEY, {
         sender: { email: SENDER_EMAIL, name: SENDER_NAME },
         to: [{ email, name }],
-        replyTo: { email: SENDER_EMAIL, name: SENDER_NAME },
+        // Replies from the visitor must reach the owner's inbox, not the
+        // no-reply sender address.
+        replyTo: { email: OWNER_EMAIL, name: SENDER_NAME },
         subject: "Thanks for contacting Yash",
         htmlContent: confirmationHtml,
         textContent: `Hi ${name},\n\nThanks for getting in touch. I received your message and will reply soon.\n\n${message}\n\n— Yash`,
