@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState, useEffect, type MouseEvent } from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { getPersonalInfo } from "@/lib/content/utils"
 import { navigationItems } from "@/lib/content"
@@ -78,6 +79,44 @@ export default function Navigation() {
     [scrollToSection],
   )
 
+  const handleLogoClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      setIsMobileMenuOpen(false)
+      logComponentEvent("Navigation", {
+        event: "navigate-home",
+        detail: { from: pathname },
+        throttleMs: 1200,
+      })
+
+      if (pathname !== "/") {
+        return
+      }
+
+      // Keep native behaviour for modified and non-primary clicks (new tab, etc.).
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return
+      }
+
+      // Already on the homepage: Link does not scroll by itself, so do it here.
+      event.preventDefault()
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      })
+    },
+    [pathname]
+  )
+
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen((prev) => {
       const next = !prev
@@ -100,7 +139,13 @@ export default function Navigation() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="font-bold text-xl text-foreground">{personalInfo.name}</div>
+          <Link
+            href="/"
+            onClick={handleLogoClick}
+            className="inline-flex items-center rounded-md font-bold text-xl text-foreground cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            {personalInfo.name}
+          </Link>
 
           <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} activeSection={activeSection} />
 
