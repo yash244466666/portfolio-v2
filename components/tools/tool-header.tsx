@@ -1,7 +1,7 @@
 "use client"
 
 import {
-  ChevronRight, Home, Check, Camera, Loader2, RotateCcw, Braces
+  ChevronRight, Home, Check, Camera, Loader2, RotateCcw, Braces, TriangleAlert
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import type { ToolDefinition } from "@/lib/content/tools/types"
@@ -19,7 +19,9 @@ interface ToolHeaderProps {
 export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick, onReset }: ToolHeaderProps) {
   const [isCapturing, setIsCapturing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isError, setIsError] = useState(false)
   const backButtonRef = useRef<HTMLButtonElement>(null)
+  const feedbackTimerRef = useRef<number | null>(null)
   const IconComponent = iconMap[tool.icon] || Braces
   const categories = getToolCategories()
   const categoryLabel = categories.find((c) => c.id === tool.category)?.label || tool.category
@@ -31,6 +33,15 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
       backButtonRef.current?.focus()
     })
     return () => cancelAnimationFrame(raf)
+  }, [])
+
+  // Clear the "Saved!" / "Capture failed" timer if the tool closes first.
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current !== null) {
+        window.clearTimeout(feedbackTimerRef.current)
+      }
+    }
   }, [])
 
   const getPageBackgroundColor = (): string => {
@@ -48,30 +59,78 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
     return `#${toHex(Number(match[1]))}${toHex(Number(match[2]))}${toHex(Number(match[3]))}`
   }
 
-  const captureScreenshot = async () => {
-    try {
-      setIsCapturing(true)
-      const element = document.getElementById("tool-capture-area")
-      if (!element) return
+  const showFeedback = (state: "success" | "error") => {
+    setIsSuccess(state === "success")
+    setIsError(state === "error")
+    if (feedbackTimerRef.current !== null) {
+      window.clearTimeout(feedbackTimerRef.current)
+    }
+    feedbackTimerRef.current = window.setTimeout(() => {
+      setIsSuccess(false)
+      setIsError(false)
+      feedbackTimerRef.current = null
+    }, state === "error" ? 3000 : 2000)
+  }
 
+  const captureScreenshot = async () => {
+    const element = document.getElementById("tool-capture-area")
+    if (!element) return
+
+    setIsCapturing(true)
+    setIsSuccess(false)
+    setIsError(false)
+
+    // Hide the transient spinner / "Saved!" state from the snapshot without
+    // reflowing the header: visibility keeps the action row's space.
+    // html-to-image reads each node's computed style separately, and the
+    // buttons transition `visibility` through `transition-all`, so the
+    // computed value would still be "visible" when the clone is taken. Hide
+    // every node in the action row and cancel its transition first.
+    const actions = element.querySelector<HTMLElement>(".tool-header__actions")
+    const actionNodes = actions
+      ? [actions, ...Array.from(actions.querySelectorAll<HTMLElement>("*"))]
+      : []
+    const previousStyles = actionNodes.map((node) => ({
+      visibility: node.style.visibility,
+      transition: node.style.transition,
+    }))
+    for (const node of actionNodes) {
+      node.style.transition = "none"
+      node.style.visibility = "hidden"
+    }
+
+    try {
       // Use html-to-image to bypass html2canvas CSS parsing bugs (like oklch support)
       const htmlToImage = await import("html-to-image")
 
       const image = await htmlToImage.toPng(element, {
         backgroundColor: rgbToHex(getPageBackgroundColor()),
         pixelRatio: 2, // High quality
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        // html-to-image clones the node with its computed styles, so a centered
+        // container re-centers inside the capture surface: the left offset shows
+        // up as blank space and the right edge gets clipped.
+        style: { margin: "0", maxWidth: "none" },
       })
 
       const link = document.createElement("a")
       link.href = image
       link.download = `${tool.id}-snapshot.png`
+      // Attach the link so the click is honoured in every browser.
+      document.body.appendChild(link)
       link.click()
+      link.remove()
 
-      setIsSuccess(true)
-      setTimeout(() => setIsSuccess(false), 2000)
+      showFeedback("success")
     } catch (error) {
       console.error("Failed to capture screenshot:", error)
+      showFeedback("error")
     } finally {
+      actionNodes.forEach((node, index) => {
+        node.style.visibility = previousStyles[index].visibility
+        node.style.transition = previousStyles[index].transition
+      })
       setIsCapturing(false)
     }
   }
@@ -167,12 +226,23 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
             onClick={captureScreenshot}
             disabled={isCapturing}
             className="tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-3 sm:px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-            aria-label="Take screenshot"
+            aria-label={
+              isCapturing
+                ? "Capturing screenshot"
+                : isError
+                  ? "Screenshot capture failed"
+                  : "Take screenshot"
+            }
           >
           {isCapturing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               <span className="hidden sm:inline">Capturing...</span>
+            </>
+          ) : isError ? (
+            <>
+              <TriangleAlert className="h-4 w-4 text-destructive" />
+              <span className="hidden sm:inline text-destructive">Capture failed</span>
             </>
           ) : isSuccess ? (
             <>
