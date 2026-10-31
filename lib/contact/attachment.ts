@@ -6,8 +6,8 @@
  * rather than the much narrower set an email attachment allows.
  */
 
-/** 1 GB per file. Storage-backed uploads have no email ceiling. */
-export const MAX_ATTACHMENT_BYTES = 1024 * 1024 * 1024
+/** 100 MB per file. */
+export const MAX_ATTACHMENT_BYTES = 100 * 1024 * 1024
 
 /** How many files one message may carry. */
 export const MAX_ATTACHMENT_COUNT = 5

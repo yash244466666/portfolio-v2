@@ -376,9 +376,9 @@ export const formContent: FormContent = {
     label: "Attachment",
     optional: "optional",
     choose: "Choose a file",
-    hint:
-      "Any document, image, text or archive up to 25 MB. Executables and scripts are not accepted.",
+    hint: "Any format · up to 100 MB per file · max 5 files.",
     remove: "Remove",
+    limitReached: "5 files selected — that is the maximum.",
     privacy:
       "Your file is stored privately, shared by an expiring link, and deleted after 30 days.",
   },
@@ -397,9 +397,8 @@ export const formContent: FormContent = {
     privacy:
       "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
     protectedBy: "Protected by Cloudflare",
-    fileTooLarge: "That file is larger than 25 MB. Please choose a smaller one.",
-    fileTypeUnsupported:
-      "Executables and scripts are not accepted. Choose a document, image, text file or archive.",
+    fileTooLarge: "That file is larger than 100 MB. Please choose a smaller one.",
+    fileTypeUnsupported: "That file has no extension, so its type cannot be detected.",
     fileNotSent:
       "The file was not delivered either — attach it manually if you email me directly.",
     attachmentRejected:

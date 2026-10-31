@@ -242,7 +242,7 @@ function buildConfirmationHtml({ name, message, attachment, files }) {
             (file) =>
               `<strong style="color:${foreground};">${escapeHtml(file.name)}</strong> <span style="color:${faint};">(${formatBytes(file.size)})</span> — <a href="${file.url}" style="color:${foreground};text-decoration:underline;">download</a><br />`
           )
-          .join("")}<span style="color:${faint};">Links expire in ${files[0].days} days.</span>`
+          .join("")}`
       : ""
 
   const attachmentRow = attachmentDetail
@@ -332,7 +332,7 @@ function buildConfirmationText({ name, message, attachment, files }) {
     : files && files.length
       ? `\n\nFiles:\n${files
           .map((file) => `- ${file.name} (${formatBytes(file.size)}): ${file.url}`)
-          .join("\n")}\nThese links expire in ${files[0].days} days.`
+          .join("\n")}`
       : ""
 
   return `Hi ${name},
@@ -436,12 +436,26 @@ async function sendBrevo(apiKey, payload) {
    attaching small files to the emails as before.
    ========================================================================== */
 
-const STORAGE_MAX_BYTES = 1024 * 1024 * 1024
+const STORAGE_MAX_BYTES = 100 * 1024 * 1024
 const MAX_STORED_FILES = 5
 const UPLOAD_URL_TTL_SECONDS = 1800
 /** AWS caps presigned URL lifetime at 7 days; Garage follows the same rule. */
 const DOWNLOAD_URL_TTL_SECONDS = 7 * 24 * 60 * 60
 const STORAGE_PREFIX = "uploads/"
+
+/** Keep the original file name in the object path; downloads use it. */
+function safeFileName(name) {
+  const base = String(name || "").split(/[\\/]/).pop() || "file"
+  return (
+    base
+      .replace(/[\u0000-\u001f\u007f"]/g, "")
+      .replace(/[^\w.\- ()]/g, "_")
+      .trim()
+      .slice(0, 100) || "file"
+  )
+}
+
+const STORED_KEY_PATTERN = /^uploads\/[0-9a-f-]{36}\/[^/]{1,120}$/
 const STORAGE_RETENTION_DAYS = 30
 
 function storageConfigured(env) {
@@ -672,7 +686,7 @@ async function handleUploadUrl(request, env, ctx, origin) {
 
   const uploads = []
   for (const plan of plans) {
-    const key = `${STORAGE_PREFIX}${crypto.randomUUID()}.${plan.extension}`
+    const key = `${STORAGE_PREFIX}${crypto.randomUUID()}/${safeFileName(plan.name)}`
     uploads.push({
       name: plan.name,
       key,
@@ -708,6 +722,25 @@ export default {
         return new Response(null, { status: 403, headers: corsHeaders(null) })
       }
       return new Response(null, { status: 204, headers: corsHeaders(origin) })
+    }
+
+    // Permanent download links: sign on demand so the emailed URL never
+    // expires, and let the redirect carry the object's real filename.
+    if (request.method === "GET") {
+      const path = new URL(request.url).pathname
+      if (path.startsWith("/file/")) {
+        const key = decodeURIComponent(path.slice("/file/".length))
+        if (!STORED_KEY_PATTERN.test(key) || !storageConfigured(env)) {
+          return new Response("Not found", { status: 404 })
+        }
+        const signed = await presignS3(env, {
+          method: "GET",
+          key,
+          expires: DOWNLOAD_URL_TTL_SECONDS,
+        })
+        return Response.redirect(signed, 302)
+      }
+      return new Response("Not found", { status: 404 })
     }
 
     // File uploads get their own presigned URL; everything else is the form.
@@ -815,7 +848,7 @@ export default {
       const rawFiles = Array.isArray(data.files) ? data.files : []
       const legacyKey =
         typeof data.fileKey === "string" &&
-        /^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,8}$/.test(data.fileKey)
+        STORED_KEY_PATTERN.test(data.fileKey)
           ? { key: data.fileKey, name: data.fileName, size: data.fileSize }
           : null
 
@@ -826,7 +859,7 @@ export default {
 
       for (const candidate of candidates) {
         const key = typeof candidate?.key === "string" ? candidate.key : ""
-        if (!/^uploads\/[0-9a-f-]{36}\.[a-z0-9]{1,8}$/.test(key)) {
+        if (!STORED_KEY_PATTERN.test(key)) {
           return json({ ok: false, error: "Invalid file reference" }, 400, origin)
         }
         const size = Number(candidate?.size)
@@ -838,12 +871,12 @@ export default {
         storedFiles.push({
           name: fileName || "attachment",
           size: Number.isFinite(size) && size > 0 ? size : 0,
-          url: await presignS3(env, {
-            method: "GET",
-            key,
-            expires: DOWNLOAD_URL_TTL_SECONDS,
-          }),
-          days: Math.round(DOWNLOAD_URL_TTL_SECONDS / 86400),
+          // Permanent link: the Worker mints a fresh signature when it is
+          // opened, so the emailed URL never expires.
+          url: `${new URL(request.url).origin}/file/${key
+            .split("/")
+            .map(encodeURIComponent)
+            .join("/")}`,
         })
       }
     }
@@ -864,7 +897,7 @@ export default {
     const safeMessage = escapeHtml(message).replace(/\n/g, "<br />")
 
     const storedFilesHtml = storedFiles.length
-      ? `<p><strong>Files</strong> (links expire in ${storedFiles[0].days} days):</p><ul>${storedFiles
+      ? `<p><strong>Files</strong>:</p><ul>${storedFiles
           .map(
             (file) =>
               `<li>${escapeHtml(file.name)} (${formatBytes(file.size)}) — <a href="${file.url}">download</a></li>`
@@ -879,7 +912,7 @@ export default {
     const attachmentText = storedFiles.length
       ? `\nFiles:\n${storedFiles
           .map((file) => `- ${file.name} (${formatBytes(file.size)}): ${file.url}`)
-          .join("\n")}\nLinks expire in ${storedFiles[0].days} days.`
+          .join("\n")}`
       : attachmentForEmail
         ? `\nAttachment: ${attachmentForEmail.name} (${formatBytes(attachmentForEmail.size)})`
         : ""
