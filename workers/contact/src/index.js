@@ -787,14 +787,24 @@ async function listStoredObjects(env) {
     query: `list-type=2&prefix=${encodeURIComponent(STORAGE_PREFIX)}&max-keys=1000`,
   })
   const response = await fetch(url)
-  if (!response.ok) return null
+  if (!response.ok) {
+    let body = ""
+    try {
+      body = (await response.text()).slice(0, 200)
+    } catch {
+      body = ""
+    }
+    return { error: `list ${response.status}: ${body}` }
+  }
   const xml = await response.text()
 
-  return [...xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)].map(([, entry]) => ({
-    key: /<Key>([^<]+)<\/Key>/.exec(entry)?.[1] ?? "",
-    size: Number(/<Size>(\d+)<\/Size>/.exec(entry)?.[1] ?? 0),
-    modified: /<LastModified>([^<]+)<\/LastModified>/.exec(entry)?.[1] ?? "",
-  }))
+  return {
+    files: [...xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)].map(([, entry]) => ({
+      key: /<Key>([^<]+)<\/Key>/.exec(entry)?.[1] ?? "",
+      size: Number(/<Size>(\d+)<\/Size>/.exec(entry)?.[1] ?? 0),
+      modified: /<LastModified>([^<]+)<\/LastModified>/.exec(entry)?.[1] ?? "",
+    })),
+  }
 }
 
 function htmlPage(body) {
@@ -833,13 +843,13 @@ function escapeAdmin(value) {
   return escapeHtml(String(value ?? ""))
 }
 
-function loginPage(message = "") {
+function loginPage(base, message = "") {
   return htmlPage(`
   <h1>Uploads</h1>
   <p class="sub">Sign in to manage the contact-form files.</p>
   <div class="card" style="max-width:420px">
     ${message ? `<p class="error">${escapeAdmin(message)}</p>` : ""}
-    <form method="POST" action="/admin/login">
+    <form method="POST" action="${base}/login">
       <label for="password" class="muted">Password</label>
       <input id="password" name="password" type="password" autocomplete="current-password" required />
       <div style="margin-top:14px"><button class="btn" type="submit">Sign in</button></div>
@@ -847,7 +857,7 @@ function loginPage(message = "") {
   </div>`)
 }
 
-function storagePage({ files, csrf, totalBytes }) {
+function storagePage({ files, csrf, totalBytes, base }) {
   const rows = files.length
     ? files
         .map((file) => {
@@ -859,7 +869,7 @@ function storagePage({ files, csrf, totalBytes }) {
       <td>
         <div class="row">
           <a class="btn btn-ghost" href="/file/${file.key.split("/").map(encodeURIComponent).join("/")}">Download</a>
-          <form class="inline" method="POST" action="/admin/delete">
+          <form class="inline" method="POST" action="${base}/delete">
             <input type="hidden" name="key" value="${escapeAdmin(file.key)}" />
             <input type="hidden" name="csrf" value="${escapeAdmin(csrf)}" />
             <button class="btn btn-danger" type="submit">Delete</button>
@@ -874,7 +884,7 @@ function storagePage({ files, csrf, totalBytes }) {
   return htmlPage(`
   <div class="row" style="justify-content:space-between;margin-bottom:6px">
     <h1 style="margin:0">Uploads</h1>
-    <form class="inline" method="POST" action="/admin/logout"><button class="btn btn-ghost" type="submit">Sign out</button></form>
+    <form class="inline" method="POST" action="${base}/logout"><button class="btn btn-ghost" type="submit">Sign out</button></form>
   </div>
   <p class="sub">${files.length} file${files.length === 1 ? "" : "s"} · ${formatBytes(totalBytes)} stored</p>
   <div class="card"><table>
@@ -889,19 +899,31 @@ async function handleAdmin(request, env, origin) {
   }
 
   const url = new URL(request.url)
+  // Served both at the Worker's /admin and, through Caddy, at
+  // yashcodes.com/manage. Links and form actions follow the prefix in use.
+  const base = url.pathname.startsWith("/manage") ? "/manage" : "/admin"
   const cookies = parseCookies(request.headers.get("Cookie"))
   const signedIn = await sessionValid(env, cookies[ADMIN_COOKIE])
 
   if (request.method === "GET") {
-    if (!signedIn) return new Response(loginPage(), { headers: { "Content-Type": "text/html; charset=utf-8" } })
-
-    const files = await listStoredObjects(env)
-    if (!files) {
-      return new Response("Storage is unavailable.", { status: 502 })
+    if (!signedIn) {
+      return new Response(loginPage(base), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      })
     }
+
+    const listing = await listStoredObjects(env)
+    if (listing.error) {
+      // Say what broke; "storage is unavailable" hid the status and body.
+      return new Response(
+        htmlPage(`<h1>Uploads</h1><p class="sub">Could not list the bucket.</p><div class="card"><pre style="white-space:pre-wrap;word-break:break-word;margin:0;color:#fca5a5;font-size:13px">${escapeAdmin(listing.error)}</pre></div>`),
+        { status: 502, headers: { "Content-Type": "text/html; charset=utf-8" } }
+      )
+    }
+    const files = listing.files
     const csrf = await adminSign(env, "csrf", cookies[ADMIN_COOKIE].split(".")[0])
     const totalBytes = files.reduce((sum, file) => sum + file.size, 0)
-    return new Response(storagePage({ files, csrf, totalBytes }), {
+    return new Response(storagePage({ files, csrf, totalBytes, base }), {
       headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
     })
   }
@@ -913,12 +935,12 @@ async function handleAdmin(request, env, origin) {
   const form = await request.formData()
   const ip = request.headers.get("CF-Connecting-IP") || ""
 
-  if (url.pathname === "/admin/login") {
+  if (url.pathname === `${base}/login`) {
     if (env.RATE_LIMIT && ip) {
       const key = `admin-login:${ip}`
       const used = Number((await env.RATE_LIMIT.get(key)) || "0")
       if (used >= 10) {
-        return new Response(loginPage("Too many attempts. Try again later."), {
+        return new Response(loginPage(base, "Too many attempts. Try again later."), {
           status: 429,
           headers: { "Content-Type": "text/html; charset=utf-8" },
         })
@@ -927,7 +949,7 @@ async function handleAdmin(request, env, origin) {
     }
 
     if (!passwordMatches(String(form.get("password") ?? ""), env.ADMIN_PASSWORD)) {
-      return new Response(loginPage("Wrong password."), {
+      return new Response(loginPage(base, "Wrong password."), {
         status: 401,
         headers: { "Content-Type": "text/html; charset=utf-8" },
       })
@@ -937,7 +959,7 @@ async function handleAdmin(request, env, origin) {
     return new Response(null, {
       status: 303,
       headers: {
-        Location: "/admin",
+        Location: base,
         "Set-Cookie": `${ADMIN_COOKIE}=${session.token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${ADMIN_SESSION_TTL_SECONDS}`,
       },
     })
@@ -945,17 +967,17 @@ async function handleAdmin(request, env, origin) {
 
   if (!signedIn) return new Response("Sign in first.", { status: 403 })
 
-  if (url.pathname === "/admin/logout") {
+  if (url.pathname === `${base}/logout`) {
     return new Response(null, {
       status: 303,
       headers: {
-        Location: "/admin",
+        Location: base,
         "Set-Cookie": `${ADMIN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
       },
     })
   }
 
-  if (url.pathname === "/admin/delete") {
+  if (url.pathname === `${base}/delete`) {
     const expires = cookies[ADMIN_COOKIE].split(".")[0]
     const expected = await adminSign(env, "csrf", expires)
     if (!passwordMatches(String(form.get("csrf") ?? ""), expected)) {
@@ -985,7 +1007,7 @@ export default {
     const originAllowed = Boolean(origin && ALLOWED_ORIGINS.includes(origin))
 
     // Admin page: HTML, cookie sessions, no CORS involvement.
-    if (request.url.includes("/admin")) {
+    if (request.url.includes("/admin") || request.url.includes("/manage")) {
       return handleAdmin(request, env, origin)
     }
 
