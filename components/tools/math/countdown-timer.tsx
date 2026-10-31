@@ -158,9 +158,9 @@ export default function CountdownTimer() {
               strokeDashoffset={strokeDashoffset}
               className={`transition-all duration-1000 ${
                 finished
-                  ? "text-red-700 animate-pulse"
+                  ? "text-red-900 animate-pulse"
                   : remaining <= 10 && remaining > 0
-                  ? "text-orange-700"
+                  ? "text-orange-900"
                   : "text-primary"
               }`}
             />

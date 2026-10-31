@@ -95,13 +95,13 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  /* Darker than the root light theme: the panel stays translucent over the
+  /* Darker than the root light theme: the panel is 70% translucent over the
      dark page, so oklch(0.556) drops below WCAG AA there. */
-  --muted-foreground: oklch(0.45 0 0);
+  --muted-foreground: oklch(0.35 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  /* Darker destructive red for text/alert contrast on the light surface. */
-  --destructive: oklch(44.4% 0.177 26.899);
+  /* Dark red for text/alert contrast on the translucent surface. */
+  --destructive: oklch(25.8% 0.092 26.042);
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -110,27 +110,27 @@
   --ring: oklch(0.145 0 0);
 
   /* Tool status colors were tuned for dark panels: the 300/400 stops are too
-     light as text on a white surface. Re-point them at darker Tailwind stops of
-     the same hue so status text also passes WCAG AA over its tinted background.
-     The 500 stops stay unchanged because they are also used as vivid fills. */
-  --color-red-300: oklch(39.6% 0.141 25.723);
-  --color-red-400: oklch(44.4% 0.177 26.899);
-  --color-orange-300: oklch(40.8% 0.123 38.172);
-  --color-orange-400: oklch(47% 0.157 37.304);
-  --color-amber-300: oklch(41.4% 0.112 45.904);
-  --color-amber-400: oklch(47.3% 0.137 46.201);
-  --color-yellow-300: oklch(42.1% 0.095 57.708);
-  --color-yellow-400: oklch(47.6% 0.114 61.907);
-  --color-green-300: oklch(39.3% 0.095 152.535);
-  --color-green-400: oklch(44.8% 0.119 151.328);
-  --color-emerald-300: oklch(37.8% 0.077 168.94);
-  --color-emerald-400: oklch(43.2% 0.095 166.913);
-  --color-cyan-300: oklch(39.8% 0.07 227.392);
-  --color-cyan-400: oklch(45% 0.085 224.283);
-  --color-blue-300: oklch(37.9% 0.146 265.522);
-  --color-blue-400: oklch(42.4% 0.199 265.638);
-  --color-purple-300: oklch(38.1% 0.176 304.987);
-  --color-purple-400: oklch(43.8% 0.218 303.724);
+     light as text on the translucent surface. Re-point them at Tailwind's 950
+     stop of the same hue so status text still passes WCAG AA over its tinted
+     background. The 500 stops stay unchanged because they are vivid fills. */
+  --color-red-300: oklch(25.8% 0.092 26.042);
+  --color-red-400: oklch(25.8% 0.092 26.042);
+  --color-orange-300: oklch(26.6% 0.079 36.259);
+  --color-orange-400: oklch(26.6% 0.079 36.259);
+  --color-amber-300: oklch(27.9% 0.077 45.635);
+  --color-amber-400: oklch(27.9% 0.077 45.635);
+  --color-yellow-300: oklch(28.6% 0.066 53.813);
+  --color-yellow-400: oklch(28.6% 0.066 53.813);
+  --color-green-300: oklch(26.6% 0.065 152.934);
+  --color-green-400: oklch(26.6% 0.065 152.934);
+  --color-emerald-300: oklch(26.2% 0.051 172.552);
+  --color-emerald-400: oklch(26.2% 0.051 172.552);
+  --color-cyan-300: oklch(30.2% 0.056 229.695);
+  --color-cyan-400: oklch(30.2% 0.056 229.695);
+  --color-blue-300: oklch(28.2% 0.091 267.935);
+  --color-blue-400: oklch(28.2% 0.091 267.935);
+  --color-purple-300: oklch(29.1% 0.149 302.717);
+  --color-purple-400: oklch(29.1% 0.149 302.717);
   --color-gray-300: oklch(37.3% 0.034 259.733);
   --color-gray-400: oklch(37.3% 0.034 259.733);
   --color-gray-500: oklch(37.3% 0.034 259.733);
