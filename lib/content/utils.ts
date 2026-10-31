@@ -9,6 +9,7 @@ import {
   contactInfo,
   skills,
   projects,
+  projectModalContent,
   sectionContent,
   buttonTexts,
   formContent,
@@ -45,6 +46,11 @@ export const getSkills = () => skills;
  * Get all projects
  */
 export const getProjects = () => projects;
+
+/**
+ * Get project detail modal copy (labels and accessible names)
+ */
+export const getProjectModalContent = () => projectModalContent;
 
 /**
  * Get section content by section name
@@ -166,6 +172,13 @@ export const getProjectsWithGitHub = () => {
 };
 
 /**
+ * Whether a project link is still a "#" placeholder (or missing).
+ * Placeholder links must never be rendered as working links.
+ */
+export const isPlaceholderLink = (url?: string | null): boolean =>
+  !url || url.trim() === "#";
+
+/**
  * Search skills by keyword
  */
 export const getSkillsByKeyword = (keyword: string) => {
@@ -267,6 +280,7 @@ export const contentUtils = {
   getContactInfo,
   getSkills,
   getProjects,
+  getProjectModalContent,
   getSectionContent,
   getButtonTexts,
   getFormContent,
@@ -287,6 +301,7 @@ export const contentUtils = {
   getProjectsByTech,
   getProjectsWithDemos,
   getProjectsWithGitHub,
+  isPlaceholderLink,
   getSkillsByKeyword,
 
   // Validation

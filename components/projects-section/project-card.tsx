@@ -1,29 +1,36 @@
 "use client"
 
 import Image from "next/image"
-import type { Project } from "@/lib/content"
-import { getProjectActionVisibility } from "@/lib/content/utils"
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ExternalLink, Github } from "lucide-react"
+import type { Project, ProjectModalContent } from "@/lib/content"
+import { ProjectActions } from "./project-actions"
 
 interface ProjectCardProps {
     project: Project
-    animationDelay?: number
     buttonTexts: {
         code: string
         liveDemo: string
     }
+    modalContent: ProjectModalContent
+    /** Opens the detail modal; the trigger element is used to restore focus. */
+    onSelect: (project: Project, trigger: HTMLElement | null) => void
+    animationDelay?: number
     isVisible?: boolean
 }
 
-export function ProjectCard({ project, animationDelay = 0, buttonTexts, isVisible = false }: ProjectCardProps) {
-    const { showCode, showLiveDemo } = getProjectActionVisibility(project)
-    const hasActions = showCode || showLiveDemo
+export function ProjectCard({
+    project,
+    buttonTexts,
+    modalContent,
+    onSelect,
+    animationDelay = 0,
+    isVisible = false,
+}: ProjectCardProps) {
+    const openLabel = modalContent.openLabelTemplate.split("{title}").join(project.title)
 
     return (
         <Card
-            className={`overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group backdrop-blur-sm bg-background/90 ${isVisible ? "animate-fade-in-up" : "opacity-0"
+            className={`relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group backdrop-blur-sm bg-background/90 ${isVisible ? "animate-fade-in-up" : "opacity-0"
                 }`}
             style={{ animationDelay: `${animationDelay}ms` }}
         >
@@ -35,7 +42,10 @@ export function ProjectCard({ project, animationDelay = 0, buttonTexts, isVisibl
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                />
             </div>
 
             <div className="p-6">
@@ -50,27 +60,23 @@ export function ProjectCard({ project, animationDelay = 0, buttonTexts, isVisibl
                     ))}
                 </div>
 
-                {hasActions && (
-                    <div className="flex gap-3">
-                        {showCode && (
-                            <Button variant="outline" size="sm" asChild>
-                                <a href={project.github} target="_blank" rel="noopener noreferrer">
-                                    <Github className="w-4 h-4 mr-2" />
-                                    {buttonTexts.code}
-                                </a>
-                            </Button>
-                        )}
-                        {showLiveDemo && (
-                            <Button size="sm" asChild className="bg-primary hover:bg-primary/90">
-                                <a href={project.live} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="w-4 h-4 mr-2" />
-                                    {buttonTexts.liveDemo}
-                                </a>
-                            </Button>
-                        )}
-                    </div>
-                )}
+                <ProjectActions
+                    project={project}
+                    buttonTexts={buttonTexts}
+                    unavailableLabel={modalContent.unavailableLabel}
+                    size="sm"
+                    className="relative z-20"
+                />
             </div>
+
+            {/* Full-card control: keeps the action links above it, so nothing nests. */}
+            <button
+                type="button"
+                onClick={(event) => onSelect(project, event.currentTarget)}
+                aria-label={openLabel}
+                aria-haspopup="dialog"
+                className="absolute inset-0 z-10 cursor-pointer rounded-xl bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+            />
         </Card>
     )
 }
