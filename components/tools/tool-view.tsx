@@ -66,7 +66,7 @@ export default function ToolView({ toolId, onBack, onHomeClick, onCategoryClick,
   if (!tool) {
     return (
       <div className="tool-view tool-view--not-found-wrapper min-h-screen w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-16 flex items-center justify-center">
-        <div className="tool-view__not-found max-w-4xl w-full bg-background/80 backdrop-blur-xl border border-border/50 rounded-3xl p-8 sm:p-12 shadow-2xl min-h-[400px] flex flex-col items-center justify-center text-center">
+        <div className="tool-view__not-found tool-surface-light max-w-4xl w-full bg-background/40 backdrop-blur-xl border border-border/50 rounded-3xl p-8 sm:p-12 shadow-2xl min-h-[400px] flex flex-col items-center justify-center text-center">
           <h2 className="tool-view__not-found-title text-2xl font-bold text-foreground mb-4">Tool Not Found</h2>
           <p className="tool-view__not-found-description text-muted-foreground mb-8">The tool you&apos;re looking for doesn&apos;t exist.</p>
           <button onClick={onBack} className="tool-view__not-found-back text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded">{backLabel}</button>
@@ -88,7 +88,7 @@ export default function ToolView({ toolId, onBack, onHomeClick, onCategoryClick,
           onReset={() => setResetKey(k => k + 1)}
         />
         <div className="tool-view__body mt-6 sm:mt-8 flex-1 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-          <div className="tool-view__body-inner h-full bg-background/70 backdrop-blur-xl border border-border/40 rounded-2xl p-4 sm:p-8 shadow-2xl">
+          <div className="tool-view__body-inner tool-surface-light h-full bg-background/40 backdrop-blur-xl border border-border/40 rounded-2xl p-4 sm:p-8 shadow-2xl">
             {ToolComponent ? (
               <Suspense fallback={<ToolFallback />}><ToolComponent key={resetKey} /></Suspense>
             ) : (

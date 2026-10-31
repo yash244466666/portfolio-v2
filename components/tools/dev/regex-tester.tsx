@@ -49,7 +49,7 @@ export default function RegexTester() {
       if (rest !== undefined) {
         return (
           <span key={i}>
-            <mark className="bg-emerald-500/30 text-emerald-300 rounded px-0.5">{highlighted}</mark>
+            <mark className="bg-emerald-500/20 text-emerald-300 rounded px-0.5">{highlighted}</mark>
             {rest}
           </span>
         )

@@ -169,6 +169,7 @@ Consequences:
 
     hooks/
       use-anime-scope.ts
+      use-body-scroll-lock.ts
       use-cycling-typewriter.ts
       use-custom-cursor.ts
       use-instrumentation.ts
@@ -213,8 +214,8 @@ Lifecycle:
 1. The first client render shows LoadingScreen.
 2. A mount effect enables the full client tree.
 3. AnimatedBackground loads dynamically with SSR disabled.
-4. LoadingScreen advances its percentage every 40 ms.
-5. At approximately 2.5 seconds it begins a 500 ms fade.
+4. LoadingScreen advances its percentage every 15 ms by 7 points, reaching 100% in about 0.22 seconds.
+5. At approximately 0.25 seconds it begins a 150 ms fade, so first-load content appears roughly 0.4 seconds after hydration (about 0.5–0.75 seconds from first paint).
 6. After completion, Navigation, HeroSection, AboutSection, ProjectsSection, ContactSection, Footer, and BackToTop render.
 7. Hero content becomes visible after a short delay and its typewriter cycles continuously.
 8. About, projects, and contact use IntersectionObserver-driven visibility.
@@ -277,6 +278,7 @@ It contains:
 - Personal identity and typewriter titles
 - Social links
 - Contact information
+- Optional resume download URL and suggested file name
 - Six skill groups
 - Six featured projects
 - Navigation items
@@ -289,6 +291,10 @@ It contains:
 Components normally access this data through **lib/content/utils.ts**. Prefer editing centralized content rather than embedding new portfolio copy in component markup.
 
 Known content gap: most project GitHub and live-demo values are still **#** placeholders. Ensure cards do not claim a working external link when the value is a placeholder.
+
+Each project may also define optional **longDescription**, **highlights**, **role**, and **year** fields used only by the project detail modal; missing fields are omitted from the modal, which falls back to **description**. Modal labels and accessible names live in **projectModalContent** in the same file.
+
+The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. A placeholder file ships at **public/resume.pdf**.
 
 ## 11. Tools route architecture
 
@@ -462,6 +468,7 @@ Do not log contact message bodies, file contents, secrets, tokens, or other sens
 - **use-sticky-offset.ts** — measures fixed navigation and tools toolbar heights.
 - **use-mobile.ts** — matchMedia-backed 768 px breakpoint.
 - **use-anime-scope.ts** — scoped anime.js lifecycle wrapper; currently unused by the home sections. The backgrounds use their own `createScope` calls.
+- **use-body-scroll-lock.ts** — locks page scrolling for overlays and restores the scroll offset; pairs with the `data-scroll-locked` root attribute in **app/globals.css**.
 - **use-instrumentation.ts** — component and frame telemetry helpers.
 - **use-custom-cursor.ts** — currently unused because the custom cursor is disabled.
 - **lib/utils.ts** — the cn class-merging helper.
@@ -495,6 +502,7 @@ Accessibility requirements:
 - Avoid hiding content behind opacity when motion is disabled.
 - Test keyboard navigation and Escape behavior in search.
 - Keep decorative icons and backgrounds hidden from assistive technology.
+- Preserve the project detail dialog's `role="dialog"` semantics, focus trap, Escape handling, and focus restoration to the card that opened it.
 - Never rely on hover alone.
 
 ## 17. Security rules

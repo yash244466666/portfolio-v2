@@ -82,7 +82,7 @@ The **build** job:
 5. Runs `./node_modules/.bin/tsc --noEmit --incremental false`.
 6. Runs `pnpm build` with:
    - `NEXT_TELEMETRY_DISABLED=1`
-   - `NEXT_PUBLIC_BG_MODE=random`
+   - `NEXT_PUBLIC_BG_MODE=neural`
    - `NEXT_PUBLIC_DEFAULT_BG=neural`
    - `NEXT_PUBLIC_ENABLE_LOGS=false`
 7. Retries the build up to three times. This covers transient
@@ -208,7 +208,7 @@ vps2.yashcodes.com {
 ```bash
 pnpm install --frozen-lockfile
 NEXT_TELEMETRY_DISABLED=1 \
-NEXT_PUBLIC_BG_MODE=random \
+NEXT_PUBLIC_BG_MODE=neural \
 NEXT_PUBLIC_ENABLE_LOGS=false \
 pnpm build
 

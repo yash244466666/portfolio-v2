@@ -9,6 +9,7 @@ import {
   contactInfo,
   skills,
   projects,
+  projectModalContent,
   sectionContent,
   buttonTexts,
   formContent,
@@ -45,6 +46,11 @@ export const getSkills = () => skills;
  * Get all projects
  */
 export const getProjects = () => projects;
+
+/**
+ * Get project detail modal copy (labels and accessible names)
+ */
+export const getProjectModalContent = () => projectModalContent;
 
 /**
  * Get section content by section name
@@ -102,6 +108,15 @@ export const getFeaturedProjects = (limit?: number) => {
 };
 
 /**
+ * Resolve which actions should be rendered for a project.
+ * Omitted flags default to `true`, so existing content keeps both actions.
+ */
+export const getProjectActionVisibility = (project: Project) => ({
+  showCode: project.showCode !== false,
+  showLiveDemo: project.showLiveDemo !== false,
+});
+
+/**
  * Get skills by category (if you want to group them later)
  */
 export const getSkillsByCategory = () => {
@@ -155,6 +170,13 @@ export const getProjectsWithDemos = () => {
 export const getProjectsWithGitHub = () => {
   return projects.filter((project) => project.github && project.github !== "#");
 };
+
+/**
+ * Whether a project link is still a "#" placeholder (or missing).
+ * Placeholder links must never be rendered as working links.
+ */
+export const isPlaceholderLink = (url?: string | null): boolean =>
+  !url || url.trim() === "#";
 
 /**
  * Search skills by keyword
@@ -258,6 +280,7 @@ export const contentUtils = {
   getContactInfo,
   getSkills,
   getProjects,
+  getProjectModalContent,
   getSectionContent,
   getButtonTexts,
   getFormContent,
@@ -269,6 +292,7 @@ export const contentUtils = {
   getTagline,
   getAboutDescription,
   getFeaturedProjects,
+  getProjectActionVisibility,
   getSkillsByCategory,
   getSocialLinksForDisplay,
   getContactInfoForDisplay,
@@ -277,6 +301,7 @@ export const contentUtils = {
   getProjectsByTech,
   getProjectsWithDemos,
   getProjectsWithGitHub,
+  isPlaceholderLink,
   getSkillsByKeyword,
 
   // Validation

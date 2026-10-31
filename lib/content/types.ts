@@ -22,6 +22,52 @@ export interface Project {
   tech: string[];
   github: string;
   live: string;
+  /**
+   * Whether to render the "Code" action for this project.
+   * Defaults to `true` when omitted.
+   */
+  showCode?: boolean;
+  /**
+   * Whether to render the "Live Demo" action for this project.
+   * Defaults to `true` when omitted.
+   */
+  showLiveDemo?: boolean;
+  /**
+   * Optional long-form copy shown in the project detail modal.
+   * The modal falls back to `description` when this is omitted.
+   */
+  longDescription?: string;
+  /**
+   * Optional bullet points listed under the modal's highlights heading.
+   * The highlights section is hidden when this is missing or empty.
+   */
+  highlights?: string[];
+  /** Optional role label shown in the modal meta row; hidden when omitted. */
+  role?: string;
+  /** Optional year label shown in the modal meta row; hidden when omitted. */
+  year?: string;
+}
+
+/**
+ * User-facing labels for the project detail modal.
+ * Kept here so all modal copy can be edited in one place.
+ */
+export interface ProjectModalContent {
+  /**
+   * Accessible label for the full-card button that opens the modal.
+   * `{title}` is replaced with the project title.
+   */
+  openLabelTemplate: string;
+  /** Accessible label for the modal close button. */
+  closeLabel: string;
+  /** Heading above the optional highlights list. */
+  highlightsHeading: string;
+  /** Label preceding the optional project role. */
+  roleLabel: string;
+  /** Label preceding the optional project year. */
+  yearLabel: string;
+  /** Hint appended to actions whose link is still a `#` placeholder. */
+  unavailableLabel: string;
 }
 
 export interface Skill {
@@ -45,6 +91,14 @@ export interface PersonalInfo {
   tagline: string;
   aboutDescription: string;
   contactAvailability: string;
+  /**
+   * Resume link used by the navigation download button.
+   * Omit it (or set it to an empty string or "#") to hide the button.
+   * Root-relative and relative URLs download; cross-origin URLs open in a new tab.
+   */
+  resumeUrl?: string;
+  /** Optional file name suggested when the resume is downloaded. */
+  resumeFileName?: string;
 }
 
 export interface SectionContent {
@@ -78,12 +132,13 @@ export interface FormContent {
 }
 
 export interface ButtonTexts {
-  getInTouch: string;
   viewMyWork: string;
   letsTalk: string;
   sendMessage: string;
   code: string;
   liveDemo: string;
+  /** Optional resume button label; falls back to "Download Resume". */
+  downloadResume?: string;
 }
 
 export interface FooterContent {
