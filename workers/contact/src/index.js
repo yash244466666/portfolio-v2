@@ -217,8 +217,18 @@ const BRAND = {
  * inline styles only, table layout, no external images or fonts, and an
  * explicit dark color-scheme so Gmail and iOS Mail do not invert the palette.
  */
-function buildConfirmationHtml({ name, message }) {
+function buildConfirmationHtml({ name, message, attachment }) {
   const { font, background, surface, quoteSurface, border, foreground, body, muted, faint, accent, siteUrl, wordmark, resumeUrl, resumeLabel } = BRAND
+
+  // `attachment.name` is already stripped of path segments and control
+  // characters; escape it anyway, it is still visitor-supplied text.
+  const attachmentRow = attachment
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 0 0;background-color:${quoteSurface};border:1px solid ${border};border-radius:10px;">
+<tr>
+<td style="padding:12px 16px;font-size:14px;line-height:1.6;color:${body};font-family:${font};word-break:break-word;"><span style="color:${muted};">Attached:</span> <strong style="color:${foreground};">${escapeHtml(attachment.name)}</strong> <span style="color:${faint};">(${formatBytes(attachment.size)})</span></td>
+</tr>
+</table>`
+    : ""
 
   return `<!doctype html>
 <html lang="en" dir="ltr">
@@ -259,6 +269,7 @@ function buildConfirmationHtml({ name, message }) {
 <td style="padding:16px 20px;font-size:15px;line-height:1.7;color:${body};font-family:${font};word-break:break-word;">${message}</td>
 </tr>
 </table>
+${attachmentRow}
 
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 0 0;">
 <tr>
@@ -292,13 +303,17 @@ function buildConfirmationHtml({ name, message }) {
 }
 
 /** Plain-text twin of the confirmation email. */
-function buildConfirmationText({ name, message }) {
+function buildConfirmationText({ name, message, attachment }) {
+  const attachmentLine = attachment
+    ? `\n\nAttached: ${attachment.name} (${formatBytes(attachment.size)})`
+    : ""
+
   return `Hi ${name},
 
 Thanks for getting in touch. Your message reached me and I will reply soon — usually within a day or two.
 
 Your message:
-${message}
+${message}${attachmentLine}
 
 Need to add something? Just reply to this email and it comes straight to me.
 
@@ -456,8 +471,9 @@ export default {
     const confirmationHtml = buildConfirmationHtml({
       name: safeName,
       message: safeMessage,
+      attachment,
     })
-    const confirmationText = buildConfirmationText({ name, message })
+    const confirmationText = buildConfirmationText({ name, message, attachment })
 
     try {
       await sendBrevo(env.BREVO_API_KEY, {
@@ -467,8 +483,6 @@ export default {
         subject: `New portfolio message from ${name}`,
         htmlContent: ownerHtml,
         textContent: `Name: ${name}\nEmail: ${email}${attachmentText}\n\n${message}`,
-        // The file goes to the owner only. Echoing it on the visitor
-        // confirmation would double Brevo usage and bounce more often.
         ...(attachment
           ? { attachment: [{ name: attachment.name, content: attachment.content }] }
           : {}),
@@ -488,6 +502,10 @@ export default {
         subject: "Thanks for contacting Yash",
         htmlContent: confirmationHtml,
         textContent: confirmationText,
+        // The visitor gets a copy of what they sent, including the file.
+        ...(attachment
+          ? { attachment: [{ name: attachment.name, content: attachment.content }] }
+          : {}),
       })
     } catch {
       confirmationSent = false

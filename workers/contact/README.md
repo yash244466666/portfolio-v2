@@ -52,8 +52,9 @@ field is still accepted for older clients.
   6 MB (`MAX_BODY_BYTES`).
 - Extensions: `pdf, doc, docx, odt, txt, csv, xls, xlsx, ppt, pptx, zip, png,
   jpg, jpeg, gif, webp`. The browser's MIME type is ignored.
-- The file is attached to the owner notification only. The visitor
-  confirmation never echoes it back.
+- The file is attached to both emails: the owner notification and the
+  visitor confirmation, so the sender keeps a copy of what they sent. Each
+  submission with a file therefore costs two Brevo sends with a payload.
 
 Keep `lib/contact/attachment.ts` in sync with those limits, or a file will pass
 the client check and be rejected after the upload.
