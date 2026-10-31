@@ -213,8 +213,8 @@ Lifecycle:
 1. The first client render shows LoadingScreen.
 2. A mount effect enables the full client tree.
 3. AnimatedBackground loads dynamically with SSR disabled.
-4. LoadingScreen advances its percentage every 40 ms.
-5. At approximately 2.5 seconds it begins a 500 ms fade.
+4. LoadingScreen advances its percentage every 15 ms by 7 points, reaching 100% in about 0.22 seconds.
+5. At approximately 0.25 seconds it begins a 150 ms fade, so first-load content appears roughly 0.4 seconds after hydration (about 0.5–0.75 seconds from first paint).
 6. After completion, Navigation, HeroSection, AboutSection, ProjectsSection, ContactSection, Footer, and BackToTop render.
 7. Hero content becomes visible after a short delay and its typewriter cycles continuously.
 8. About, projects, and contact use IntersectionObserver-driven visibility.
