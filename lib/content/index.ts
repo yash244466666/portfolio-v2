@@ -372,6 +372,15 @@ export const formContent: FormContent = {
     email: "Email",
     message: "Message",
   },
+  attachment: {
+    label: "Attachment",
+    optional: "optional",
+    choose: "Choose a file",
+    hint: "PDF, Office, text, ZIP or image — up to 4 MB.",
+    remove: "Remove",
+    privacy:
+      "Your file is forwarded by email only and is not stored on this site.",
+  },
   status: {
     sending: "Sending…",
     success: "Message sent — check your inbox for a confirmation.",
@@ -387,6 +396,11 @@ export const formContent: FormContent = {
     privacy:
       "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
     protectedBy: "Protected by Cloudflare",
+    fileTooLarge: "That file is larger than 4 MB. Please choose a smaller one.",
+    fileTypeUnsupported:
+      "That file type is not accepted. Choose a PDF, Office document, text, ZIP or image.",
+    fileNotSent:
+      "The file was not delivered either — attach it manually if you email me directly.",
   },
   honeypotLabel: "Website",
 };

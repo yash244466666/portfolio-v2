@@ -129,6 +129,21 @@ export interface FormContent {
     email: string;
     message: string;
   };
+  /** Optional file attachment field. */
+  attachment: {
+    /** Field label. */
+    label: string;
+    /** Suffix marking the field as optional. */
+    optional: string;
+    /** Button label that opens the file picker. */
+    choose: string;
+    /** Helper text listing accepted types and the size ceiling. */
+    hint: string;
+    /** Action that clears the selected file. */
+    remove: string;
+    /** Line explaining where the file goes. */
+    privacy: string;
+  };
   status: {
     /** Button/status copy shown while the request is in flight. */
     sending: string;
@@ -148,6 +163,12 @@ export interface FormContent {
     fallback: string;
     /** Privacy note shown near the form. */
     privacy: string;
+    /** Shown when the selected file exceeds the size limit. */
+    fileTooLarge: string;
+    /** Shown when the selected file's extension is not accepted. */
+    fileTypeUnsupported: string;
+    /** Shown when the send failed while a file was selected. */
+    fileNotSent: string;
     /**
      * Cloudflare attribution shown next to the submit button. The Turnstile
      * widget stays hidden unless a challenge is required, so the branding is

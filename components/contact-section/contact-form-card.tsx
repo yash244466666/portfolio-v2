@@ -1,11 +1,13 @@
 "use client"
 
 import type { ChangeEvent, FormEvent } from "react"
+import { Paperclip, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TurnstileWidget } from "@/components/contact-section/turnstile-widget"
+import { ATTACHMENT_ACCEPT, formatFileSize } from "@/lib/contact/attachment"
 
 export type ContactFormStatus = "idle" | "sending" | "success" | "error"
 
@@ -29,6 +31,22 @@ interface ContactFormCardProps {
         email: string
         message: string
     }
+    attachmentLabels: {
+        label: string
+        optional: string
+        choose: string
+        hint: string
+        remove: string
+        privacy: string
+    }
+    /** Selected file, or `null` when the visitor attached nothing. */
+    attachment: { name: string; size: number } | null
+    /** Validation message for a rejected pick, empty when there is none. */
+    attachmentError: string
+    /** Bumped by the parent to clear the native file input after a send. */
+    attachmentInputKey: number
+    onAttachmentSelect: (event: ChangeEvent<HTMLInputElement>) => void
+    onAttachmentClear: () => void
     submitLabel: string
     sendingLabel: string
     status: ContactFormStatus
@@ -44,6 +62,8 @@ interface ContactFormCardProps {
     fallbackLabel: string
     honeypotLabel: string
     protectedByLabel: string
+    /** Shown next to the fallback link when a file was selected but failed. */
+    fileNotSentNote: string
     isVisible?: boolean
 }
 
@@ -52,6 +72,12 @@ export function ContactFormCard({
     formData,
     labels,
     placeholders,
+    attachmentLabels,
+    attachment,
+    attachmentError,
+    attachmentInputKey,
+    onAttachmentSelect,
+    onAttachmentClear,
     submitLabel,
     sendingLabel,
     status,
@@ -67,6 +93,7 @@ export function ContactFormCard({
     fallbackLabel,
     honeypotLabel,
     protectedByLabel,
+    fileNotSentNote,
     isVisible = false,
 }: ContactFormCardProps) {
     const isSending = status === "sending"
@@ -130,6 +157,72 @@ export function ContactFormCard({
                     />
                 </div>
 
+                {/* Optional attachment. The native input is hidden; the label
+                    acts as the button so the control keeps its 44px target. */}
+                <div className="space-y-2">
+                    <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm font-medium text-foreground">
+                            {attachmentLabels.label}
+                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                                {attachmentLabels.optional}
+                            </span>
+                        </span>
+                        {attachment && (
+                            <button
+                                type="button"
+                                onClick={onAttachmentClear}
+                                className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-1 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                                {attachmentLabels.remove}
+                            </button>
+                        )}
+                    </div>
+
+                    <input
+                        key={attachmentInputKey}
+                        id="contact-attachment"
+                        name="attachment"
+                        type="file"
+                        accept={ATTACHMENT_ACCEPT}
+                        onChange={onAttachmentSelect}
+                        aria-describedby="contact-attachment-hint"
+                        className="sr-only"
+                    />
+
+                    {attachment ? (
+                        <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-foreground sm:px-4">
+                            <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                            <span className="min-w-0 flex-1 truncate">{attachment.name}</span>
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                                {formatFileSize(attachment.size)}
+                            </span>
+                        </div>
+                    ) : (
+                        <label
+                            htmlFor="contact-attachment"
+                            className="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-background/30 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground focus-within:ring-2 focus-within:ring-primary"
+                        >
+                            <Paperclip className="h-4 w-4" aria-hidden="true" />
+                            {attachmentLabels.choose}
+                        </label>
+                    )}
+
+                    <p id="contact-attachment-hint" className="text-xs text-muted-foreground">
+                        {attachmentLabels.hint}
+                    </p>
+
+                    {attachmentError && (
+                        <p role="status" className="text-xs text-amber-400">
+                            {attachmentError}
+                        </p>
+                    )}
+
+                    {attachment && (
+                        <p className="text-xs text-muted-foreground">{attachmentLabels.privacy}</p>
+                    )}
+                </div>
+
                 {/* Honeypot: bots fill this; real visitors never see or tab to it. */}
                 <div className="sr-only" aria-hidden="true">
                     <label htmlFor="contact-website">{honeypotLabel}</label>
@@ -182,12 +275,19 @@ export function ContactFormCard({
                         </p>
                     )}
                     {status === "error" && (
-                        <a
-                            href={mailtoHref}
-                            className="inline-block rounded text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        >
-                            {fallbackLabel}
-                        </a>
+                        <>
+                            {/* A mailto link cannot carry the file, so say so
+                                rather than implying the attachment travels. */}
+                            {attachment && (
+                                <p className="text-amber-400">{fileNotSentNote}</p>
+                            )}
+                            <a
+                                href={mailtoHref}
+                                className="inline-block rounded text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                                {fallbackLabel}
+                            </a>
+                        </>
                     )}
                 </div>
 

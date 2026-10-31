@@ -32,19 +32,44 @@ works as the endpoint. `OPTIONS` handles CORS preflight.
   "email": "visitor@example.com",
   "message": "Hello...",
   "turnstileToken": "...",
+  "attachment": { "name": "brief.pdf", "content": "<base64>" },
   "website": ""
 }
 ```
 
 `website` is the honeypot and must stay empty. Extra fields are ignored.
 
+`turnstileToken` may also be sent as the `X-Turnstile-Token` header, which the
+site does: the Worker then verifies it *before* reading the body, so an
+unauthenticated request cannot push megabytes through the Worker. The inline
+field is still accepted for older clients.
+
+`attachment` is optional and carries one file:
+
+- `content` is base64, without a `data:` prefix. The Worker strips whitespace,
+  so wrapped base64 is fine.
+- 4 MB maximum decoded (`MAX_ATTACHMENT_BYTES`); the whole body is capped at
+  6 MB (`MAX_BODY_BYTES`).
+- Extensions: `pdf, doc, docx, odt, txt, csv, xls, xlsx, ppt, pptx, zip, png,
+  jpg, jpeg, gif, webp`. The browser's MIME type is ignored.
+- The file is attached to the owner notification only. The visitor
+  confirmation never echoes it back.
+
+Keep `lib/contact/attachment.ts` in sync with those limits, or a file will pass
+the client check and be rejected after the upload.
+
 ```json
 { "ok": true, "confirmationSent": true }
 { "ok": false, "error": "Invalid message" }
 ```
 
-Statuses: `200` success, `400` invalid payload, `403` CORS/Turnstile failure,
-`413` body over 32KB, `429` rate limited, `502` Brevo failure.
+Statuses: `200` success, `400` invalid payload or attachment, `403`
+CORS/Turnstile failure, `413` body over 6 MB, `429` rate limited, `502` Brevo
+failure.
+
+Cloudflare's free plan allows 10 ms of CPU per invocation. Parsing a body near
+the 6 MB ceiling can approach that, so very large attachments may fail on the
+free plan; a paid plan raises the limit.
 
 ## CORS
 

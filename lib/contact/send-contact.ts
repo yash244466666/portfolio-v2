@@ -1,3 +1,13 @@
+export interface ContactAttachmentInput {
+  name: string
+  /** MIME type as reported by the browser; the Worker trusts the extension. */
+  type: string
+  /** Base64 payload, without a data-URL prefix. */
+  content: string
+  /** Decoded size in bytes, for client-side limits and messaging. */
+  size: number
+}
+
 export interface ContactMessageInput {
   name: string
   email: string
@@ -5,6 +15,8 @@ export interface ContactMessageInput {
   turnstileToken: string
   /** Honeypot field; must stay empty. */
   website?: string
+  /** Optional single file forwarded to the owner by email. */
+  attachment?: ContactAttachmentInput
 }
 
 export interface ContactSendResult {
@@ -14,6 +26,8 @@ export interface ContactSendResult {
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
+/** Uploading a file needs a longer budget than a text-only message. */
+const ATTACHMENT_TIMEOUT_MS = 30_000
 
 /**
  * Accept a full URL or a bare worker host. The deployed Worker accepts POST on
@@ -37,8 +51,12 @@ export function normalizeContactEndpoint(value: string | undefined): string | nu
 }
 
 /**
- * POST the contact payload to the Cloudflare Worker with a 15-second timeout.
- * Never throws; network, timeout, and non-2xx responses become `{ ok: false }`.
+ * POST the contact payload to the Cloudflare Worker.
+ *
+ * The Turnstile token travels in the `X-Turnstile-Token` header so the Worker
+ * can verify it before parsing the body; inline `turnstileToken` stays for
+ * older Workers. Never throws; network, timeout, and non-2xx responses become
+ * `{ ok: false }`.
  */
 export async function sendContactMessage(
   input: ContactMessageInput,
@@ -47,19 +65,35 @@ export async function sendContactMessage(
   const url = normalizeContactEndpoint(endpoint)
   if (!url) return { ok: false, error: "not-configured" }
 
+  const hasAttachment = Boolean(input.attachment)
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  const timeout = setTimeout(
+    () => controller.abort(),
+    hasAttachment ? ATTACHMENT_TIMEOUT_MS : REQUEST_TIMEOUT_MS
+  )
 
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Turnstile-Token": input.turnstileToken,
+      },
       body: JSON.stringify({
         name: input.name,
         email: input.email,
         message: input.message,
         turnstileToken: input.turnstileToken,
         website: input.website ?? "",
+        ...(input.attachment
+          ? {
+              attachment: {
+                name: input.attachment.name,
+                type: input.attachment.type,
+                content: input.attachment.content,
+              },
+            }
+          : {}),
       }),
       signal: controller.signal,
     })
