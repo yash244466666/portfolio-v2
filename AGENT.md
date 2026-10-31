@@ -13,7 +13,7 @@ The application has two public routes:
 - **/** — an animated single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
 - **/tools/** — a searchable catalog of 87 utilities with category navigation, cinematic desktop scrolling, mobile fallbacks, hash-addressable tool views, and lazy-loaded implementations.
 
-The frontend is a Next.js App Router application configured as a static export. The site is fully static: there is no server runtime, API route, or backend in this repository. The contact form opens the visitor's email client with a prefilled `mailto:` message.
+The frontend is a Next.js App Router application configured as a static export. The site is fully static: there is no Next.js server runtime or API route. The only backend is the separate Cloudflare Worker in **workers/contact**, which the contact form POSTs to; it sends an owner notification and a visitor confirmation through Brevo, with a prefilled `mailto:` link as the fallback.
 
 The UI is dark-themed, animation-heavy, and predominantly client-rendered. Preserve reduced-motion behavior, keyboard navigation, mobile layouts, and static-export compatibility when making changes.
 
@@ -32,7 +32,11 @@ Important source-of-truth files:
 - **lib/content/tools/index.ts** — tool categories and all tool definitions.
 - **components/tools/tools-page.tsx** — tools hash/history state.
 - **components/tools/tools-sections.tsx** — pinned horizontal desktop scrolling.
-- **components/contact-section.tsx** — frontend contact workflow.
+- **components/contact-section.tsx** — frontend contact workflow (statuses, honeypot, Turnstile, mailto fallback).
+- **lib/contact/send-contact.ts** — client POST helper with timeout and endpoint normalization.
+- **components/contact-section/turnstile-widget.tsx** — Cloudflare Turnstile loader and widget.
+- **workers/contact/src/index.js** — Cloudflare Worker that verifies Turnstile, rate-limits, and sends the Brevo emails.
+- **workers/contact/README.md** — Worker secrets, KV binding, CORS, and deploy notes.
 - **.github/workflows/deploy.yml** — CI/CD: build, type-check, and deploy the static export to the VPS.
 - **docs/DEPLOYMENT.md** — branch model, VPS paths, secrets, Caddy, DNS cutover, and rollback.
 
@@ -70,8 +74,9 @@ Historical documents such as **BUG-REPORT.md**, **ANIMATION-MIGRATION-PLAN.md**,
 - VPS-hosted static files served by Caddy in Docker
 - `rsync` over SSH from the workflow to the VPS
 - Branch mapping: `develop` → `/opt/stacks/caddy/html/beta` (beta.yashcodes.com); `main` → `/opt/stacks/caddy/html/production` (yashcodes.com)
+- The contact form is handled by a separate Cloudflare Worker in `workers/contact` that sends email through Brevo; it is deployed independently of the static site.
 
-There is no Three.js or React Three Fiber dependency in the current frontend. There is no server-side contact backend.
+There is no Three.js or React Three Fiber dependency in the current frontend. The contact backend is that external Worker, not a Next.js server route.
 
 ## 4. Package management and commands
 
@@ -110,10 +115,12 @@ Frontend variables are public and inlined at build time:
 - **NEXT_PUBLIC_DEFAULT_BG** selects the initial or legacy locked background.
 - **NEXT_PUBLIC_BG_SWITCHER=false** is a legacy lock mechanism used only when BG_MODE is not explicitly set.
 - **NEXT_PUBLIC_ENABLE_LOGS=true** enables telemetry by default.
+- **NEXT_PUBLIC_CONTACT_ENDPOINT** is the public Cloudflare Worker URL for the contact form; when unset, the form only offers the `mailto:` fallback.
+- **NEXT_PUBLIC_TURNSTILE_SITE_KEY** is the public Turnstile site key; when unset, the form only offers the `mailto:` fallback.
 
 Never put secrets in NEXT_PUBLIC variables.
 
-There is no private runtime configuration and no contact backend. The contact form uses `mailto:info@yashcodes.com`. Deployment credentials live only in GitHub Actions secrets (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`); never commit them or place them in `NEXT_PUBLIC_*` variables.
+There is no private Next.js runtime configuration. The contact form posts to the separate Cloudflare Worker; its `BREVO_API_KEY` and `TURNSTILE_SECRET_KEY` are Worker secrets, never frontend variables. Deployment credentials live only in GitHub Actions secrets (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`); never commit them or place them in `NEXT_PUBLIC_*` variables.
 
 ## 6. Rendering and deployment model
 
@@ -179,6 +186,7 @@ Consequences:
       use-sticky-offset.ts
 
     lib/
+      contact/
       content/
       tools/
       instrumentation.ts
@@ -191,6 +199,11 @@ Consequences:
 
     docs/
       DEPLOYMENT.md
+
+    workers/
+      contact/
+        src/index.js
+        README.md
 
     public/
       project images, favicons, placeholders, and pdf.worker.min.mjs
@@ -284,7 +297,7 @@ It contains:
 - Navigation items
 - Button text
 - Section copy
-- Contact-form labels and placeholders
+- Contact-form labels, placeholders, status messages, and privacy copy
 - Footer copy and computed current year
 - Site metadata
 
@@ -420,21 +433,31 @@ Known networked features include:
 - Currency Converter calls the open.er-api.com exchange-rate API and caches rates in a versioned 24-hour cache.
 - DNS Lookup calls Cloudflare's DNS-over-HTTPS API.
 - YouTube Downloader sends the supplied URL to the Cobalt website and loads YouTube thumbnail images.
-- The contact form opens the visitor's email client via `mailto:info@yashcodes.com`; it makes no network request from the site.
+- The contact form POSTs to the Cloudflare Worker at `NEXT_PUBLIC_CONTACT_ENDPOINT`; the Worker verifies Turnstile and sends two emails through Brevo. A prefilled `mailto:` fallback remains available on failure.
 - Fonts are integrated through next/font/google during the build process.
 
 Do not add external calls without clear user-facing disclosure, reasonable error handling, and privacy-conscious behavior. Update the tools-page claim so it remains truthful when working on content.
 
 ## 13. Contact form flow
 
-**components/contact-section.tsx** is a client-only contact form. On submit it builds a `mailto:info@yashcodes.com` URL containing the sender's name, email, and message, then sets `window.location.href`. It does not call an API, upload files, or store submissions.
+**components/contact-section.tsx** is a client-only contact form backed by the separate Worker in **workers/contact**.
 
-- The form fields are name, email, and message; all three are `required`.
-- The browser performs native validation before submit. When validation passes, the page sets `window.location.href` to the `mailto:` URL.
-- The visitor's email client is responsible for delivery.
-- There is no file upload, honeypot, rate limiting, presign, or backend validation in this repository.
-- If no mail client is configured, the browser may do nothing; the contact details are also listed in the contact section.
-- Do not claim that the form submits to a server or guarantees delivery.
+Primary flow:
+
+- The fields are name, email, and message; all three are `required`.
+- A hidden `website` honeypot must stay empty.
+- The Cloudflare Turnstile widget issues a token; the submit button is disabled while the request is in flight.
+- **lib/contact/send-contact.ts** POSTs `{ name, email, message, turnstileToken, website }` to `NEXT_PUBLIC_CONTACT_ENDPOINT` with a 15-second timeout.
+- The Worker verifies Turnstile, rate-limits through the `RATE_LIMIT` KV binding when it is configured (5 per IP per hour), and calls Brevo twice: the owner notification (`Reply-To` = visitor) and the visitor confirmation (`Reply-To` = owner).
+- Success resets the fields and the Turnstile widget; failure keeps the fields, shows a generic error, and offers a prefilled `mailto:info@yashcodes.com` fallback.
+
+Constraints:
+
+- No secrets in the browser; only the Worker URL and the Turnstile site key are public.
+- Do not log message bodies, email addresses, or Turnstile tokens in telemetry or console output.
+- Do not store submissions in localStorage or a database.
+- If `NEXT_PUBLIC_CONTACT_ENDPOINT` or `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is unset, the form falls back to `mailto:`.
+- The Worker is not part of the Next.js build; keep it in `workers/contact` and out of Next imports.
 
 ## 14. Telemetry
 
@@ -458,7 +481,7 @@ Telemetry is off by default unless enabled by environment, saved localStorage st
 
 The localStorage key is **portfolio:telemetry:enabled**.
 
-Do not log contact message bodies, file contents, secrets, tokens, or other sensitive values.
+Do not log contact message bodies, email addresses, Turnstile tokens, file contents, secrets, or other sensitive values. The ContactSection snapshots report only lengths/booleans, and the `Textarea` primitive is manually instrumented so its value is never captured.
 
 ## 15. Hooks and shared utilities
 
@@ -515,7 +538,7 @@ Accessibility requirements:
 - Keep deployment credentials in GitHub Actions secrets; never commit them.
 - Do not log sensitive form content.
 - Preserve rel attributes on external target-blank links.
-- The contact form is `mailto:`-only; do not reintroduce a server endpoint without updating the deployment model and docs.
+- The contact form uses the external Cloudflare Worker. Keep Brevo/Turnstile secrets on the Worker, never in `NEXT_PUBLIC_*` or the repo, validate all Worker input, HTML-escape email content, and never log message bodies.
 
 Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy user (`deploy`) has no sudo and no docker access and can write only under `/opt/stacks/caddy/html/beta` and `/opt/stacks/caddy/html/production`. Never commit the deploy key, host keys, or any other credential.
 
@@ -536,7 +559,7 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 5. The frontend is heavily client-rendered, including many purely presentational components.
 6. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
 7. Dynamic tool import failures are converted into a generic unavailable state, which can obscure the original loading error.
-8. The contact form is `mailto:`-only and depends on the visitor having a configured mail client; there is no delivery confirmation.
+8. The contact Worker's live Brevo delivery, Worker secrets, and KV rate limiting still need an end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
 9. Historical planning and bug documents contain obsolete architecture claims.
 10. Scratch scripts and empty legacy directories should not be assumed to participate in production.
 
@@ -593,11 +616,13 @@ Run the development server and verify:
 
 ### Contact checks
 
-The contact form only opens the visitor's email client:
+The contact form uses the Worker with a `mailto:` fallback:
 
-- Submitting with a valid name, email, and message builds a `mailto:info@yashcodes.com` link.
-- No network request is made by the site.
-- The visible contact details remain available if no mail client is configured.
+- With the public endpoint and Turnstile site key set, submitting valid fields POSTs the expected JSON and shows sending, success, and reset states.
+- A failure keeps the entered values, shows a generic error, and renders a working `mailto:info@yashcodes.com` fallback.
+- The Turnstile widget is present, the `website` honeypot is hidden, and `aria-live` announces the status.
+- Telemetry contains only lengths/booleans: never the name, email, message, or token.
+- With the endpoint/site key unset, the form offers the `mailto:` fallback.
 
 Do not send live email or deploy external changes without explicit user authorization.
 
@@ -626,7 +651,7 @@ Before handing off implementation work:
 4. Preserve desktop, mobile, keyboard, and reduced-motion behavior.
 5. Update centralized content or tool metadata rather than duplicating it.
 6. Validate direct hash navigation when touching tools.
-7. Validate the `mailto:` contact form when touching the contact section.
+7. Validate the contact form's Worker submission, fallback, labels, honeypot, Turnstile, and telemetry non-disclosure when touching the contact section.
 8. Run strict TypeScript independently from the Next build.
 9. Report skipped or blocked checks clearly.
 10. Check the final Git diff for unrelated or generated files.

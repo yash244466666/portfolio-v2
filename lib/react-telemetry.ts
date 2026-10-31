@@ -29,6 +29,7 @@ const manualNameOverrides = new Set<string>([
   "LoadingScreen",
   "MouseCursor",
   "Input",
+  "Textarea",
   "UIButton",
   "Card",
   "CardHeader",
