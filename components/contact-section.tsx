@@ -32,6 +32,7 @@ export default function ContactSection() {
   const [attachment, setAttachment] = useState<File | null>(null)
   const [attachmentError, setAttachmentError] = useState("")
   const [attachmentInputKey, setAttachmentInputKey] = useState(0)
+  const [errorCode, setErrorCode] = useState("")
 
   const shouldSkipAnimation = useCallback(() => {
     if (typeof window === "undefined") {
@@ -143,11 +144,9 @@ export default function ContactSection() {
     if (result.ok) {
       setStatus("success")
       setFeedback(
-        result.attachmentMode === "link"
-          ? formContent.status.attachmentAsLink
-          : result.confirmationSent === false
-            ? formContent.status.successNoConfirmation
-            : formContent.status.success
+        result.confirmationSent === false
+          ? formContent.status.successNoConfirmation
+          : formContent.status.success
       )
       setFormData(EMPTY_FORM)
       setTurnstileToken("")
@@ -155,6 +154,7 @@ export default function ContactSection() {
       setAttachment(null)
       setAttachmentError("")
       setAttachmentInputKey((key) => key + 1)
+      setErrorCode("")
       logComponentEvent("ContactSection", {
         event: "form-success",
         detail: {
@@ -169,6 +169,7 @@ export default function ContactSection() {
     }
 
     setStatus("error")
+    setErrorCode(result.error ?? "unknown")
     setFeedback(
       result.error === "attachment-rejected"
         ? formContent.status.attachmentRejected
@@ -192,6 +193,7 @@ export default function ContactSection() {
     if (status === "success" || status === "error") {
       setStatus("idle")
       setFeedback("")
+      setErrorCode("")
     }
 
     logComponentEvent("ContactSection", {
@@ -233,6 +235,7 @@ export default function ContactSection() {
     if (status === "success" || status === "error") {
       setStatus("idle")
       setFeedback("")
+      setErrorCode("")
     }
 
     // Metadata only: never log the file name or its contents.
@@ -301,6 +304,11 @@ export default function ContactSection() {
             honeypotLabel={formContent.honeypotLabel}
             protectedByLabel={formContent.status.protectedBy}
             fileNotSentNote={formContent.status.fileNotSent}
+            showFileNotSentNote={
+              status === "error" &&
+              Boolean(attachment) &&
+              errorCode !== "attachment-rejected"
+            }
             isVisible={isVisible}
           />
 

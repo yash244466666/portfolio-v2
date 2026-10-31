@@ -56,7 +56,7 @@ const ALLOWED_ATTACHMENT_EXTENSIONS = [
   "xlsx",
   "ppt",
   "pptx",
-  "zip",
+  "md",
   "png",
   "jpg",
   "jpeg",
@@ -160,95 +160,6 @@ function formatBytes(bytes) {
 }
 
 /**
- * Extensions Gmail reliably rejects as email attachments with a 552 "content
- * presents a potential security issue" bounce. Brevo has already accepted the
- * send at that point, so the failure is invisible unless the file travels as a
- * link instead.
- */
-const ARCHIVE_EXTENSIONS = ["zip"]
-
-/** How long a link-hosted file stays downloadable. */
-const FILE_TTL_SECONDS = 7 * 24 * 60 * 60
-
-function makeFileToken() {
-  const bytes = new Uint8Array(16)
-  crypto.getRandomValues(bytes)
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")
-}
-
-/**
- * Stash the file in the optional `FILES` KV namespace and return a link.
- * Returns `null` when no binding is configured, so the caller can fall back
- * to attaching the file.
- */
-async function storeFile(env, request, attachment) {
-  if (!env.FILES) return null
-
-  const token = makeFileToken()
-  await env.FILES.put(
-    `file:${token}`,
-    JSON.stringify({ name: attachment.name, content: attachment.content }),
-    { expirationTtl: FILE_TTL_SECONDS }
-  )
-
-  return {
-    name: attachment.name,
-    size: attachment.size,
-    url: `${new URL(request.url).origin}/download/${token}`,
-    days: Math.round(FILE_TTL_SECONDS / 86400),
-  }
-}
-
-function base64ToBytes(content) {
-  const binary = atob(content)
-  const bytes = new Uint8Array(binary.length)
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index)
-  }
-  return bytes
-}
-
-/**
- * Serve a stored file. Always `application/octet-stream` with an attachment
- * disposition: the stored type is visitor-supplied and must never render
- * inline in the browser.
- */
-async function serveFile(env, token) {
-  const notFound = () =>
-    new Response("This file has expired or does not exist.", {
-      status: 404,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    })
-
-  if (!env.FILES || !/^[a-f0-9]{32}$/.test(token)) return notFound()
-
-  const raw = await env.FILES.get(`file:${token}`)
-  if (!raw) return notFound()
-
-  let stored
-  try {
-    stored = JSON.parse(raw)
-  } catch {
-    return notFound()
-  }
-  if (!stored || typeof stored.content !== "string") return notFound()
-
-  const bytes = base64ToBytes(stored.content)
-  const fileName = String(stored.name || "attachment").replace(/[^\w.\- ]/g, "_")
-
-  return new Response(bytes, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
-      "Content-Length": String(bytes.length),
-      "Cache-Control": "private, no-store",
-      "X-Content-Type-Options": "nosniff",
-    },
-  })
-}
-
-/**
  * Turnstile + optional KV rate limit. Returns a `Response` when the request
  * must be rejected, or `null` when it may continue.
  */
@@ -306,16 +217,14 @@ const BRAND = {
  * inline styles only, table layout, no external images or fonts, and an
  * explicit dark color-scheme so Gmail and iOS Mail do not invert the palette.
  */
-function buildConfirmationHtml({ name, message, attachment, fileLink }) {
+function buildConfirmationHtml({ name, message, attachment }) {
   const { font, background, surface, quoteSurface, border, foreground, body, muted, faint, accent, siteUrl, wordmark, resumeUrl, resumeLabel } = BRAND
 
   // `attachment.name` is already stripped of path segments and control
   // characters; escape it anyway, it is still visitor-supplied text.
   const attachmentDetail = attachment
     ? ` <span style="color:${muted};">Attached:</span> <strong style="color:${foreground};">${escapeHtml(attachment.name)}</strong> <span style="color:${faint};">(${formatBytes(attachment.size)})</span>`
-    : fileLink
-      ? ` <span style="color:${muted};">File:</span> <strong style="color:${foreground};">${escapeHtml(fileLink.name)}</strong> <span style="color:${faint};">(${formatBytes(fileLink.size)})</span><br /><a href="${fileLink.url}" style="color:${foreground};text-decoration:underline;">Download your file</a> <span style="color:${faint};">— link expires in ${fileLink.days} days.</span>`
-      : ""
+    : ""
 
   const attachmentRow = attachmentDetail
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 0 0;background-color:${quoteSurface};border:1px solid ${border};border-radius:10px;">
@@ -398,12 +307,10 @@ ${attachmentRow}
 }
 
 /** Plain-text twin of the confirmation email. */
-function buildConfirmationText({ name, message, attachment, fileLink }) {
+function buildConfirmationText({ name, message, attachment }) {
   const attachmentLine = attachment
     ? `\n\nAttached: ${attachment.name} (${formatBytes(attachment.size)})`
-    : fileLink
-      ? `\n\nFile: ${fileLink.name} (${formatBytes(fileLink.size)})\nDownload your file: ${fileLink.url}\nThis link expires in ${fileLink.days} days.`
-      : ""
+    : ""
 
   return `Hi ${name},
 
@@ -501,16 +408,6 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) })
     }
 
-    // File links are opened top-level from an email, so they are a plain GET
-    // with no CORS involvement.
-    if (request.method === "GET") {
-      const path = new URL(request.url).pathname
-      if (path.startsWith("/download/")) {
-        return serveFile(env, path.slice("/download/".length))
-      }
-      return new Response("Not found", { status: 404 })
-    }
-
     if (request.method !== "POST") {
       return json({ ok: false, error: "Method not allowed" }, 405, origin)
     }
@@ -585,29 +482,10 @@ export default {
     }
     const attachment = parsedAttachment.attachment
 
-    // Gmail bounces messages whose attachments trip its content scan (552),
-    // archives included, and Brevo has already accepted the send by then — so
-    // the failure never surfaces. Archives therefore travel as a link when a
-    // FILES binding exists; everything else is still attached as before.
-    let attachmentForEmail = attachment
-    let fileLink = null
-    if (attachment && ARCHIVE_EXTENSIONS.includes(attachment.extension)) {
-      fileLink = await storeFile(env, request, attachment)
-      if (fileLink) {
-        attachmentForEmail = null
-      } else {
-        return json(
-          {
-            ok: false,
-            error: "attachment-rejected",
-            message:
-              "Archives cannot be sent as attachments. Upload a PDF or image instead.",
-          },
-          415,
-          origin
-        )
-      }
-    }
+    // Archives are not accepted at all: Gmail bounces a .zip with a 552
+    // content block after Brevo has already answered 201, so the sender would
+    // see a success that never arrives. The allowlist stops them earlier.
+    const attachmentForEmail = attachment
 
     const safeName = escapeHtml(name)
     const safeEmail = escapeHtml(email)
@@ -615,15 +493,10 @@ export default {
 
     const fileHtml = attachmentForEmail
       ? `<p><strong>Attachment:</strong> ${escapeHtml(attachmentForEmail.name)} (${formatBytes(attachmentForEmail.size)})</p>`
-      : fileLink
-        ? `<p><strong>File:</strong> ${escapeHtml(fileLink.name)} (${formatBytes(fileLink.size)})<br />
-      <a href="${fileLink.url}">${fileLink.url}</a> — expires in ${fileLink.days} days.</p>`
-        : ""
+      : ""
     const attachmentText = attachmentForEmail
       ? `\nAttachment: ${attachmentForEmail.name} (${formatBytes(attachmentForEmail.size)})`
-      : fileLink
-        ? `\nFile: ${fileLink.name} (${formatBytes(fileLink.size)})\nDownload: ${fileLink.url} (expires in ${fileLink.days} days)`
-        : ""
+      : ""
 
     const ownerHtml = `
       <h2>New portfolio message</h2>
@@ -638,13 +511,11 @@ export default {
       name: safeName,
       message: safeMessage,
       attachment: attachmentForEmail,
-      fileLink,
     })
     const confirmationText = buildConfirmationText({
       name,
       message,
       attachment: attachmentForEmail,
-      fileLink,
     })
 
     let ownerMessageId = ""
@@ -718,7 +589,6 @@ export default {
           ? ownerMessageId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8)
           : "",
         attachmentSent: Boolean(attachment),
-        attachmentMode: attachmentForEmail ? "attached" : fileLink ? "link" : "none",
       },
       200,
       origin
