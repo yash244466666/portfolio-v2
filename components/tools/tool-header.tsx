@@ -196,11 +196,11 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
             </p>
 
             {/* Tags */}
-            <div className="tool-header__tags flex flex-wrap gap-2">
+            <div className="tool-header__tags tool-surface-light flex flex-wrap gap-2">
               {tool.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="tool-header__tag px-2.5 py-1 rounded-md text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50"
+                  className="tool-header__tag px-2.5 py-1 rounded-md text-xs font-medium bg-background/50 backdrop-blur-sm text-muted-foreground border border-border/50"
                 >
                   #{tag}
                 </span>
@@ -210,11 +210,11 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
         </div>
 
         {/* Action Buttons */}
-        <div className="tool-header__actions flex items-center gap-2 self-end sm:self-auto">
+        <div className="tool-header__actions tool-surface-light flex items-center gap-2 self-end sm:self-auto">
           {onReset && (
             <button
               onClick={onReset}
-              className="tool-header__reset shrink-0 flex items-center justify-center gap-2 h-10 w-10 sm:w-auto sm:px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
+              className="tool-header__reset shrink-0 flex items-center justify-center gap-2 h-10 w-10 sm:w-auto sm:px-4 rounded-xl bg-background/40 backdrop-blur-xl border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border hover:text-destructive transition-all active:scale-95"
               aria-label="Reset tool state"
             >
               <RotateCcw className="h-4 w-4" />
@@ -225,7 +225,7 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
           <button
             onClick={captureScreenshot}
             disabled={isCapturing}
-            className="tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-3 sm:px-4 rounded-xl bg-background border border-border/50 text-sm font-medium text-foreground hover:bg-muted/50 hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            className={`tool-header__capture shrink-0 flex items-center justify-center gap-2 h-10 px-3 sm:px-4 rounded-xl backdrop-blur-xl border border-border/50 text-sm font-medium text-foreground hover:border-border transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${isSuccess || isError ? "bg-background/80 hover:bg-background/80" : "bg-background/40 hover:bg-muted/50"}`}
             aria-label={
               isCapturing
                 ? "Capturing screenshot"
@@ -246,8 +246,8 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
             </>
           ) : isSuccess ? (
             <>
-              <Check className="h-4 w-4 text-green-500" />
-              <span className="hidden sm:inline text-green-500">Saved!</span>
+              <Check className="h-4 w-4 text-green-900" />
+              <span className="hidden sm:inline text-green-900">Saved!</span>
             </>
           ) : (
             <>
