@@ -20,11 +20,11 @@ export function ContactInfoItem({ type, label, value, link, isVisible = false }:
     const IconComponent = iconMap[type as keyof typeof iconMap] ?? Mail
 
     return (
-        <div className={`flex items-center justify-center space-x-4 transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+        <div className={`flex items-center space-x-4 transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                 <IconComponent className="w-6 h-6 text-primary" />
             </div>
-            <div className="text-center">
+            <div>
                 <p className="font-medium text-foreground">{label}</p>
                 {link ? (
                     <a href={link} className="text-muted-foreground hover:text-primary transition-colors">
