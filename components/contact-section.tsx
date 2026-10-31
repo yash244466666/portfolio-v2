@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { getSectionContent, getContactInfo, getFormContent, getButtonTexts } from "@/lib/content/utils"
 import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import { ContactSectionHeader } from "@/components/contact-section/contact-section-header"
@@ -38,6 +38,8 @@ export default function ContactSection() {
   const [attachmentError, setAttachmentError] = useState("")
   const [attachmentInputKey, setAttachmentInputKey] = useState(0)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
+  const turnstileController = useRef<{ execute: () => void } | null>(null)
+  const tokenWaiterRef = useRef<((token: string) => void) | null>(null)
   const [errorCode, setErrorCode] = useState("")
 
   const shouldSkipAnimation = useCallback(() => {
@@ -109,8 +111,16 @@ export default function ContactSection() {
       return
     }
 
-    if (!turnstileToken) {
+    let token = turnstileToken
+    if (!token) {
+      // Ask Cloudflare to run the challenge, then give it a moment.
+      turnstileController.current?.execute()
+      setFeedback(formContent.status.verifying)
+      token = await waitForTurnstileToken(12000)
+    }
+    if (!token) {
       setStatus("error")
+      setErrorCode("verification-required")
       setFeedback(formContent.status.verificationRequired)
       return
     }
@@ -121,7 +131,7 @@ export default function ContactSection() {
     // Preferred path: upload every file straight to object storage, then send
     // the keys. Falls back to one inline attachment when storage is absent.
     let attachmentPayload
-    const storedFiles: { key: string; name: string; size: number }[] = []
+    const storedFiles: { key: string; name: string; size: number; ticket: string }[] = []
 
     if (attachments.length > 0) {
       setUploadProgress(0)
@@ -133,7 +143,7 @@ export default function ContactSection() {
             name: file.name,
             size: file.size,
             type: file.type || "application/octet-stream",
-            turnstileToken,
+            turnstileToken: token,
           },
           contactEndpoint
         )
@@ -180,7 +190,12 @@ export default function ContactSection() {
           return
         }
 
-        storedFiles.push({ key: upload.key, name: file.name, size: file.size })
+        storedFiles.push({
+          key: upload.key,
+          name: file.name,
+          size: file.size,
+          ticket: upload.ticket,
+        })
         setUploadProgress((index + 1) / attachments.length)
       }
 
@@ -192,7 +207,7 @@ export default function ContactSection() {
         name: formData.name,
         email: formData.email,
         message: formData.message,
-        turnstileToken,
+        turnstileToken: token,
         website: formData.website,
         attachment: attachmentPayload,
         ...(storedFiles.length ? { files: storedFiles } : {}),
@@ -317,7 +332,29 @@ export default function ContactSection() {
 
   const handleTurnstileTokenChange = useCallback((token: string) => {
     setTurnstileToken(token)
+    if (token && tokenWaiterRef.current) {
+      const resolve = tokenWaiterRef.current
+      tokenWaiterRef.current = null
+      resolve(token)
+    }
   }, [])
+
+  /**
+   * Wait for a token that is still on its way. The widget is
+   * `interaction-only`, so on a fresh page it may not have issued one by the
+   * time the visitor hits send.
+   */
+  const waitForTurnstileToken = (timeoutMs: number) =>
+    new Promise<string>((resolve) => {
+      const timer = setTimeout(() => {
+        tokenWaiterRef.current = null
+        resolve("")
+      }, timeoutMs)
+      tokenWaiterRef.current = (token) => {
+        clearTimeout(timer)
+        resolve(token)
+      }
+    })
 
   const contactItems = contactInfo.map((info) => ({
     type: info.type,
@@ -363,6 +400,7 @@ export default function ContactSection() {
             siteKey={turnstileSiteKey}
             onTurnstileTokenChange={handleTurnstileTokenChange}
             turnstileResetKey={turnstileResetKey}
+            turnstileController={turnstileController}
             privacyNote={formContent.status.privacy}
             verificationUnavailable={
               turnstileSiteKey

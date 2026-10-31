@@ -60,6 +60,7 @@ interface ContactFormCardProps {
     contactEmail: string
     siteKey: string
     onTurnstileTokenChange: (token: string) => void
+    turnstileController?: { current: { execute: () => void } | null }
     turnstileResetKey: number
     privacyNote: string
     verificationUnavailable: string
@@ -95,6 +96,7 @@ export function ContactFormCard({
     contactEmail,
     siteKey,
     onTurnstileTokenChange,
+    turnstileController,
     turnstileResetKey,
     privacyNote,
     verificationUnavailable,
@@ -286,6 +288,7 @@ export function ContactFormCard({
                             siteKey={siteKey}
                             onTokenChange={onTurnstileTokenChange}
                             resetKey={turnstileResetKey}
+                            controller={turnstileController}
                             errorMessage={verificationUnavailable}
                         />
                         {/* The widget stays hidden unless a challenge is needed,
