@@ -64,6 +64,13 @@ export const personalInfo: PersonalInfo = {
   // Contact Section
   contactAvailability:
     "I'm currently available for freelance work and new opportunities. Whether you have a project in mind or just want to chat about technology, I'd love to hear from you.",
+
+  // Navigation resume download
+  // Replace public/resume.pdf with the real document; no component changes needed.
+  // Omit resumeUrl (or set it to "" or "#") to hide the button.
+  // Root-relative/relative URLs download; absolute cross-origin URLs open in a new tab.
+  resumeUrl: "/resume.pdf",
+  resumeFileName: "MD-Mohi-Minul-Islam-Yash-Resume.pdf",
 };
 
 // =============================================================================
@@ -326,6 +333,7 @@ export const buttonTexts: ButtonTexts = {
   sendMessage: "Send Message",
   code: "Code",
   liveDemo: "Live Demo",
+  downloadResume: "Download Resume",
 };
 
 // =============================================================================

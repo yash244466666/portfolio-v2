@@ -278,6 +278,7 @@ It contains:
 - Personal identity and typewriter titles
 - Social links
 - Contact information
+- Optional resume download URL and suggested file name
 - Six skill groups
 - Six featured projects
 - Navigation items
@@ -292,6 +293,8 @@ Components normally access this data through **lib/content/utils.ts**. Prefer ed
 Known content gap: most project GitHub and live-demo values are still **#** placeholders. Ensure cards do not claim a working external link when the value is a placeholder.
 
 Each project may also define optional **longDescription**, **highlights**, **role**, and **year** fields used only by the project detail modal; missing fields are omitted from the modal, which falls back to **description**. Modal labels and accessible names live in **projectModalContent** in the same file.
+
+The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. A placeholder file ships at **public/resume.pdf**.
 
 ## 11. Tools route architecture
 
