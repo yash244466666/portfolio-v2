@@ -515,4 +515,4 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 - Website: https://yashcodes.com
 - GitHub: https://github.com/yash244466666
 
-This is a personal project by Yash Sikdar.
+This is a personal project by `MD. Mohi Minul Islam Yash` .
