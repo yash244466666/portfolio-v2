@@ -445,14 +445,14 @@ Do not add external calls without clear user-facing disclosure, reasonable error
 
 Primary flow:
 
-- The fields are name, email, message, and an optional single attachment; the first three are `required`.
+- The fields are name, email, message, and up to five optional files; the first three are `required`.
 - A hidden `website` honeypot must stay empty.
 - Turnstile renders with `appearance: "interaction-only"`, so the widget stays out of the layout unless Cloudflare needs a challenge; a small "Protected by Cloudflare" link carries the attribution instead.
 - **lib/contact/send-contact.ts** POSTs `{ name, email, message, turnstileToken, attachment, website }` to `NEXT_PUBLIC_CONTACT_ENDPOINT`, with the token also in `X-Turnstile-Token` so the Worker can verify it before parsing the body. The timeout is 15 seconds, or 30 with an attachment.
-- **lib/contact/attachment.ts** owns the client rules: the 1 GB / 5 file ceilings, the `accept` attribute, chunked base64 reading for the fallback path, and the size formatter. **lib/contact/send-contact.ts** also holds the presign request and the XHR upload that reports progress.
-- The Worker verifies Turnstile, rate-limits through the `RATE_LIMIT` KV binding when it is configured (5 per IP per hour), and calls Brevo twice: the owner notification at `md.mohi.minul.islam.yash@gmail.com` (`Reply-To` = visitor) and the visitor confirmation (`Reply-To` = owner). Both carry the attachment when one is sent. Sender stays `info@yashcodes.com`; only the recipient is the Gmail address.
+- **lib/contact/attachment.ts** owns the client rules: the 100 MB / 5 file ceilings, the `accept` attribute, chunked base64 reading for the fallback path, and the size formatter. **lib/contact/send-contact.ts** also holds the batch presign request and the XHR upload that reports progress.
+- The Worker verifies Turnstile (submissions 5/hour per IP, presigning 24/hour, both through the `RATE_LIMIT` KV when bound) and calls Brevo twice: the owner notification at `md.mohi.minul.islam.yash@gmail.com` (`Reply-To` = visitor) and the visitor confirmation (`Reply-To` = owner). Both carry the attachment when one is sent. Sender stays `info@yashcodes.com`; only the recipient is the Gmail address.
 - The confirmation is a branded dark template built by `buildConfirmationHtml` / `buildConfirmationText` in the Worker, with inline styles, table layout, and no external assets.
-- Files take a separate path from the emails: `POST /upload-url` returns a presigned PUT, the browser uploads straight to Garage (S3-compatible, vps-2, `files.yashcodes.com`), and the form posts the object keys. Both emails carry 7-day download links. Limits are 1 GB per file and 5 files; any extension.
+- Files take a separate path from the emails: `POST /upload-url` takes the whole message and returns one presigned PUT plus a signed upload ticket per file (a Turnstile token is single-use, so one call per message), the browser uploads straight to Garage (S3-compatible, vps-2, `files.yashcodes.com`), and the form posts the keys and tickets. Both emails list every file with a permanent link. Limits are 100 MB per file and 5 files; any extension.
 - Without the `S3_*` Worker variables that endpoint answers `501` and the form falls back to attaching one small file through Brevo, whose extension list excludes `.md` and whose recipients reject archives.
 - Success resets the fields, the attachment, and the Turnstile widget; failure keeps the fields and the file, shows a generic error, and offers a prefilled `mailto:info@yashcodes.com` fallback that states the file must be re-attached.
 
@@ -665,3 +665,15 @@ Before handing off implementation work:
 12. Run the CI-equivalent checks (`pnpm install --frozen-lockfile`, `tsc --noEmit`, `pnpm build`) before pushing.
 13. Update **README.md** and **docs/DEPLOYMENT.md** when branches, secrets, VPS paths, or deployment behavior change.
 14. Never push directly to `develop` or `main`; open a PR and wait for the `Build static site` check.
+
+## 13a. File storage and the admin page
+
+Uploads live in **Garage** (S3-compatible) on vps-2, served at **files.yashcodes.com**. The same host also serves the file manager:
+
+- `/contact-uploads/*` and the bare `/contact-uploads` go to Garage — every presigned URL starts with the bucket name, so the storage API keeps its paths.
+- `/manage` goes to the contact Worker, which renders a password-gated admin page (`ADMIN_PASSWORD` secret): list uploads with name, size and date, download, delete.
+- Everything else redirects to `/manage`.
+
+Object keys are `uploads/<uuid>/<original name>`, so a download saves under the visitor's filename. Emailed links point at `<worker>/file/<key>`, which re-signs and redirects, so they never expire; objects are pruned after 30 days.
+
+Filestash was evaluated and removed: its storage settings live in a multi-step Workflow wizard that could not be automated, and every build after `820c082f` rejected sessions issued against a config copied from vps-1. Do not reintroduce it without a clean, UI-driven setup.

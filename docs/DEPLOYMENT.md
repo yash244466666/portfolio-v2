@@ -444,3 +444,30 @@ the job or self-host the font with `next/font/local`.
 The A record still points elsewhere. Wait for DNS propagation, then reload
 Caddy. Do not add the site blocks before DNS points to vps-2, because repeated
 ACME failures can hit rate limits.
+
+## Services on vps-2
+
+Beyond the static sites, vps-2 runs the pieces that make the contact form work.
+
+| Service | Where | Notes |
+|---|---|---|
+| Caddy | `/opt/stacks/caddy`, Docker with host networking | Config `Caddyfile`; validate with `docker exec caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile` before reloading |
+| Garage (S3) | `/opt/stacks/garage`, Docker | S3 API `127.0.0.1:3900`, admin API `3903`; bucket `contact-uploads` |
+| Contact Worker | Cloudflare, **not** on the box | `workers/contact/src/index.js`, deployed by hand through Quick Edit |
+
+### Routing on `files.yashcodes.com`
+
+| Path | Target |
+|---|---|
+| `/contact-uploads`, `/contact-uploads/*` | Garage S3 API |
+| `/manage` | the Worker's password-gated file manager |
+| everything else | `302` → `/manage` |
+
+Presigned URLs always begin with the bucket name, which is why the storage API and the UI can share one host. Adding a bucket means adding its name to that matcher.
+
+### Access
+
+- `ssh oracle-2` (public IP) or `ssh oracle-2-tail` (Tailscale) — the public sshd refuses connections after bursts of rapid connects, so use the Tailscale alias when that happens.
+- vps-1 (`152.67.67.128`, alias `oracle-tail`) still runs the fallback copy of the site, its own Garage, Filestash at `s3.yashcodes.com`, and Seafile. It is not part of the current deployment path.
+
+Filestash was evaluated for the files host on vps-2 and removed: its storage settings live in a multi-step Workflow wizard, and images newer than `820c082f` rejected sessions created against a config copied from vps-1.
