@@ -172,9 +172,10 @@ Links expire after 7 days (AWS's presigned ceiling). Objects are deleted after
 
 ## Admin page
 
-`GET /admin` is a small management UI for the bucket: sign in, then list every
-stored upload with its name, size and date, download it again under its original
-name, or delete it.
+`GET /admin` — also reachable as `GET /manage`, which is what
+`https://files.yashcodes.com/manage` proxies to — is a small management UI for
+the bucket: sign in, then list every stored upload with its name, size and date,
+download it again under its original name, or delete it.
 
 - Requires the `ADMIN_PASSWORD` Worker secret. With it unset the page answers
   `503` and does nothing else.
@@ -188,3 +189,21 @@ name, or delete it.
 The page lives here because Garage 2.1 ships no web console and MinIO cannot be
 installed on vps-2 (Docker Hub no longer serves `minio/minio`, `dl.min.io`
 returns 410).
+
+## Host routing (files.yashcodes.com)
+
+Caddy on vps-2 splits that host by path:
+
+| Path | Target |
+|---|---|
+| `/contact-uploads` and `/contact-uploads/*` | Garage S3 API on `127.0.0.1:3900` |
+| `/manage` | this Worker's admin page |
+| everything else | `302` → `/manage` |
+
+Every presigned URL starts with the bucket name, which is what lets the storage
+API and the UI share one host. **Adding a second bucket means adding its name to
+that matcher**, or presigned URLs for it will be redirected to the UI.
+
+Filestash was evaluated for this host and removed — its storage configuration
+lives in a multi-step Workflow wizard, and builds newer than `820c082f` rejected
+sessions created against a config copied from vps-1.
