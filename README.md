@@ -1,6 +1,6 @@
 # MD. Mohi Minul Islam Yash — Portfolio & Browser Tools
 
-The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sikdar**) and a catalog of **87 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
+The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sikdar**) and a catalog of **88 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
 
 - **Production:** https://yashcodes.com
 - **Beta:** https://beta.yashcodes.com
@@ -33,7 +33,7 @@ The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sik
 This repository contains one application with two public routes:
 
 - **`/`** — an animated, dark-themed single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
-- **`/tools/`** — a searchable catalog of 87 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, and lazy-loaded implementations.
+- **`/tools/`** — a searchable catalog of 88 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, and lazy-loaded implementations.
 
 The frontend is designed to be exported as static files. There is **no Next.js server runtime or API route**. The contact form POSTs to a separate Cloudflare Worker (`workers/contact`) that sends owner and visitor emails through Brevo; a prefilled `mailto:` link is the fallback.
 
@@ -146,17 +146,17 @@ There is no Three.js or React Three Fiber dependency in the current frontend.
 
 ## Tools catalog
 
-The catalog defines **87 tools** in `lib/content/tools/index.ts`:
+The catalog defines **88 tools** in `lib/content/tools/index.ts`:
 
 | Category | Count |
 |---|---:|
 | Core | 7 |
-| Developer | 45 |
+| Developer | 46 |
 | Text | 17 |
 | Media | 3 |
 | Security | 5 |
 | Math and logic | 10 |
-| **Total** | **87** |
+| **Total** | **88** |
 
 Every catalog definition currently has a matching implementation under `components/tools/<category>/<tool-id>.tsx` or a directory entry such as the JSON editor.
 
@@ -173,10 +173,11 @@ Some tools call external services:
 
 - **Currency Converter** — open.er-api.com exchange-rate API; caches rates in a versioned 24-hour cache.
 - **DNS Lookup** — Cloudflare DNS-over-HTTPS.
+- **Internet Speed Test** — measures throughput against speed.cloudflare.com, resolves the operator and location via api.ipapi.is, and probes the public address through stun.cloudflare.com. Manual Start only; nothing is stored.
 - **YouTube Downloader** — sends the supplied URL to the Cobalt website and loads YouTube thumbnails.
 - **Contact form** — posts to the Cloudflare Worker in `workers/contact`, which verifies Turnstile and sends owner/visitor emails through Brevo.
 
-The tools-page description saying everything runs locally is not universally accurate; use precise wording when editing it.
+The tools-page description says most tools run on-device while networked tools disclose their service; keep that wording honest when editing it.
 
 ## Project structure
 
