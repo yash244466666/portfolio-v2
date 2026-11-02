@@ -314,16 +314,16 @@ The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo
 
 ### Catalog
 
-**lib/content/tools/index.ts** currently defines 87 tools:
+**lib/content/tools/index.ts** currently defines 88 tools:
 
 - Core: 7
-- Dev: 45
+- Dev: 46
 - Text: 17
 - Media: 3
 - Security: 5
 - Math and logic: 10
 
-All 87 definitions currently have matching implementations.
+All 88 definitions currently have matching implementations.
 
 A tool definition contains:
 
@@ -427,12 +427,13 @@ When adding a tool:
 
 ## 12. External network behavior
 
-The statement in the tools-page description that everything runs locally is not universally accurate.
+The tools-page description says most utilities run on the device. These tools still call external services, and each discloses that on its own page.
 
 Known networked features include:
 
 - Currency Converter calls the open.er-api.com exchange-rate API and caches rates in a versioned 24-hour cache.
 - DNS Lookup calls Cloudflare's DNS-over-HTTPS API.
+- Internet Speed Test streams download and upload traffic through speed.cloudflare.com, resolves the operator and location through api.ipapi.is, and probes the public address through stun.cloudflare.com. It runs only when the visitor presses Start and stores nothing.
 - YouTube Downloader sends the supplied URL to the Cobalt website and loads YouTube thumbnail images.
 - The contact form POSTs to the Cloudflare Worker at `NEXT_PUBLIC_CONTACT_ENDPOINT`; the Worker verifies Turnstile and sends two emails through Brevo. A prefilled `mailto:` fallback remains available on failure.
 - Fonts are integrated through next/font/google during the build process.
