@@ -136,8 +136,8 @@ Consequences:
 
 - No Next.js server runtime is available after deployment.
 - Do not add route handlers, server actions, middleware-dependent features, or runtime-only Next image optimization without changing the hosting model.
-- Deployment is handled by GitHub Actions: pushes to `develop` deploy to beta; pushes to `main` deploy to production. See **docs/DEPLOYMENT.md**.
-- `main` is the GitHub default branch; `develop` is the beta/integration branch. For beta work, open PRs against `develop` explicitly because GitHub defaults new PRs to `main`.
+- Deployment is handled by GitHub Actions: pushes to `develop` deploy to staging (`beta.yashcodes.com`); pushes to `main` deploy to production. See **docs/DEPLOYMENT.md**.
+- `main` is the GitHub default branch; `develop` is the staging/integration branch. For staging work, open PRs against `develop` explicitly because GitHub defaults new PRs to `main`.
 - Both `develop` and `main` are protected: direct pushes are blocked (administrators included), a PR is required, and the `Build static site` check must pass. Work on feature branches and merge via PR. `main` merges are owner-only because the owner is the only collaborator.
 - A successful Next build does not prove type or lint correctness because both checks are skipped in build configuration.
 - The **start** script is not the normal production path for the exported site. Serve or deploy **out/** using the existing static host.
@@ -642,7 +642,7 @@ At the last documentation update (2026-10-31):
 - The exported routes were **/**, **/tools/**, and the not-found route.
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
-- The latest `develop` (beta) and `main` (production) runs, including HTTPS verification, passed on 2026-10-30 UTC; the first attempts were queued during a GitHub Actions incident.
+- The latest `develop` (staging) and `main` (production) runs, including HTTPS verification, passed on 2026-10-30 UTC; the first attempts were queued during a GitHub Actions incident.
 - The deployment target is vps-2. The vps-2 deploy user, directories, SSH key, and secrets are configured; both deploy runs passed, both A records now point to vps-2, and Caddy issued certificates on 2026-10-31.
 - The vps-2 Caddy blocks are applied in the live Caddyfile. The pre-cutover backup is `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; `/opt/stacks/caddy/Caddyfile.next` remains as the staged copy.
 

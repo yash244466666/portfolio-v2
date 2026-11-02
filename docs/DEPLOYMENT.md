@@ -4,11 +4,11 @@ The site is a static Next.js export. `pnpm build` writes it to `out/`.
 
 | Branch | Environment | URL | vps-2 path | Caddy root |
 |---|---|---|---|---|
-| `develop` | beta | https://beta.yashcodes.com | `/opt/stacks/caddy/html/beta/` | `/srv/beta` |
+| `develop` | staging | https://beta.yashcodes.com | `/opt/stacks/caddy/html/beta/` | `/srv/beta` |
 | `main` | production | https://yashcodes.com | `/opt/stacks/caddy/html/production/` | `/srv/production` |
 
-`main` is the GitHub default branch. `develop` is the beta/integration branch.
-When opening a PR for beta work, set the base to `develop` explicitly; GitHub
+`main` is the GitHub default branch. `develop` is the staging/integration branch.
+When opening a PR for staging work, set the base to `develop` explicitly; GitHub
 defaults new PRs to `main`.
 
 ## Branch protection
@@ -43,7 +43,7 @@ an owner-only team, or a second-reviewer flow is added.
 - **The vps-2 deploy is green.** The `develop` and `main` runs completed
   successfully; `/opt/stacks/caddy/html/beta` and
   `/opt/stacks/caddy/html/production` each contain the 14 MB build.
-- **The cutover is complete.** Both A records now point to vps-2; the beta and
+- **The cutover is complete.** Both A records now point to vps-2; the staging and
   production blocks were applied to the live Caddyfile on 2026-10-31, and Caddy
   issued Let's Encrypt certificates for both domains.
 - **Both sites are healthy on vps-2.** `/` and `/tools/` return 200; an unknown
@@ -90,7 +90,7 @@ The **build** job:
 8. Verifies `out/index.html`, `out/_next`, and `out/tools/index.html`.
 9. Uploads the `site` artifact for 7 days.
 
-The **beta** deploy job runs only for `develop` (push or manual):
+The **staging** deploy job runs only for `develop` (push or manual):
 
 1. Downloads the `site` artifact.
 2. Writes the SSH key and known-hosts secret into `~/.ssh`.
@@ -107,8 +107,10 @@ The **production** deploy job runs only for `main` (push or manual):
 The deploy jobs verify the remote `index.html` and then request the public
 HTTPS URL.
 
-The `environment:` keys create GitHub environments named `beta` and
-`production`. Add required reviewers under **Settings → Environments** if
+The `environment:` keys create GitHub environments named `staging` and
+`production`. The older `beta` environment is left in settings but is no
+longer referenced; the staging job still deploys to the `beta.yashcodes.com`
+host and `/opt/stacks/caddy/html/beta/` path. Add required reviewers under **Settings → Environments** if
 production deploys should require approval.
 
 ## Required GitHub secrets
@@ -124,7 +126,7 @@ Set these once under **Settings → Secrets and variables → Actions**:
 
 The workflow uses repository-level secrets, so both environments read the same
 host, user, key, and known-hosts value. Use environment-level secrets only if
-beta and production later move to different servers.
+staging and production later move to different servers.
 
 Never commit the private key, host key, or any other credential.
 
@@ -203,7 +205,7 @@ vps2.yashcodes.com {
 
 ## Manual deployment
 
-### Beta on vps-2
+### Staging on vps-2
 
 ```bash
 pnpm install --frozen-lockfile
@@ -290,7 +292,7 @@ The backup created during the cutover is
 
 If editing the live file manually instead, add these blocks.
 
-#### Beta block
+#### Staging block
 
 ```caddyfile
 beta.yashcodes.com {
@@ -354,7 +356,7 @@ repeated ACME failures can hit rate limits.
 
 ### 3. Enable the HTTPS checks (completed)
 
-The `Verify beta` and `Verify production` steps are enabled in
+The `Verify staging` and `Verify production` steps are enabled in
 `.github/workflows/deploy.yml`.
 
 ### 4. Verify
@@ -398,7 +400,7 @@ If the deploy key is exposed:
    keeping the same restrictions.
 3. Run `gh secret set VPS_SSH_KEY < <new-private-key>`.
 4. Remove the old private key from any local machine that no longer needs it.
-5. Verify a beta deploy.
+5. Verify a staging deploy.
 
 The deploy key cannot run as root, cannot use docker, and cannot write outside
 the beta and production directories, but it can still modify both sites. Treat

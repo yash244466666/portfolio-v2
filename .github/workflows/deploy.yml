@@ -77,13 +77,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  deploy-beta:
-    name: Deploy beta
+  deploy-staging:
+    name: Deploy staging
     needs: build
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     environment:
-      name: beta
+      name: staging
       url: https://beta.yashcodes.com
     steps:
       - name: Download site artifact
@@ -103,7 +103,7 @@ jobs:
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Sync to beta
+      - name: Sync to staging
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -114,7 +114,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
             "$VPS_USER@$VPS_HOST" 'test -s /opt/stacks/caddy/html/beta/index.html'
 
-      - name: Verify beta
+      - name: Verify staging
         run: curl -fsS --retry 6 --retry-delay 3 https://beta.yashcodes.com/ > /dev/null
 
   deploy-production:
