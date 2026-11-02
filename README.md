@@ -1,12 +1,12 @@
 # MD. Mohi Minul Islam Yash — Portfolio & Browser Tools
 
-The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sikdar**) and a catalog of **87 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
+The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sikdar**) and a catalog of **88 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
 
 - **Production:** https://yashcodes.com
-- **Beta:** https://beta.yashcodes.com
+- **Staging:** https://beta.yashcodes.com
 - **Repository:** https://github.com/yash244466666/portfolio-v2
 
-> **Deployment status (2026-10-31):** live on **vps-2** (`140.238.208.16`). `develop` deploys beta to `/opt/stacks/caddy/html/beta`; `main` deploys production to `/opt/stacks/caddy/html/production`. Both A records now point to vps-2 and Caddy has issued HTTPS certificates. DNS propagation is complete; clients that cached the old records may still see the old hosts until the TTL expires. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+> **Deployment status (2026-10-31):** live on **vps-2** (`140.238.208.16`). `develop` deploys staging to `/opt/stacks/caddy/html/beta`; `main` deploys production to `/opt/stacks/caddy/html/production`. Both A records now point to vps-2 and Caddy has issued HTTPS certificates. DNS propagation is complete; clients that cached the old records may still see the old hosts until the TTL expires. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Contents
 
@@ -33,7 +33,7 @@ The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sik
 This repository contains one application with two public routes:
 
 - **`/`** — an animated, dark-themed single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
-- **`/tools/`** — a searchable catalog of 87 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, and lazy-loaded implementations.
+- **`/tools/`** — a searchable catalog of 88 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, and lazy-loaded implementations.
 
 The frontend is designed to be exported as static files. There is **no Next.js server runtime or API route**. The contact form POSTs to a separate Cloudflare Worker (`workers/contact`) that sends owner and visitor emails through Brevo; a prefilled `mailto:` link is the fallback.
 
@@ -43,13 +43,13 @@ The UI is animation-heavy and predominantly client-rendered. Reduced-motion beha
 
 | Branch | Role | Deploys to | URL |
 |---|---|---|---|
-| `develop` | Beta / integration branch | `/opt/stacks/caddy/html/beta/` on vps-2 | https://beta.yashcodes.com |
+| `develop` | Staging / integration branch | `/opt/stacks/caddy/html/beta/` on vps-2 | https://beta.yashcodes.com |
 | `main` | Default and production branch | `/opt/stacks/caddy/html/production/` on vps-2 | https://yashcodes.com |
 
-- `main` is the GitHub default branch. `develop` is the beta/integration branch.
+- `main` is the GitHub default branch. `develop` is the staging/integration branch.
 - Day-to-day work happens on feature branches and is merged into `develop` with a pull request.
 - `main` receives release pull requests from `develop`.
-- Because `main` is the default, set the PR base to `develop` explicitly for beta work; GitHub defaults new PRs to `main`.
+- Because `main` is the default, set the PR base to `develop` explicitly for staging work; GitHub defaults new PRs to `main`.
 - Both branches are protected: direct pushes are blocked (including for administrators), a pull request is required, and the `Build static site` check must pass. Force pushes and branch deletion are disabled.
 - Every push to `develop` or `main` (including a PR merge) runs the deployment workflow.
 - Pull requests run the build and type-check only; they never deploy.
@@ -146,17 +146,17 @@ There is no Three.js or React Three Fiber dependency in the current frontend.
 
 ## Tools catalog
 
-The catalog defines **87 tools** in `lib/content/tools/index.ts`:
+The catalog defines **88 tools** in `lib/content/tools/index.ts`:
 
 | Category | Count |
 |---|---:|
 | Core | 7 |
-| Developer | 45 |
+| Developer | 46 |
 | Text | 17 |
 | Media | 3 |
 | Security | 5 |
 | Math and logic | 10 |
-| **Total** | **87** |
+| **Total** | **88** |
 
 Every catalog definition currently has a matching implementation under `components/tools/<category>/<tool-id>.tsx` or a directory entry such as the JSON editor.
 
@@ -173,10 +173,11 @@ Some tools call external services:
 
 - **Currency Converter** — open.er-api.com exchange-rate API; caches rates in a versioned 24-hour cache.
 - **DNS Lookup** — Cloudflare DNS-over-HTTPS.
+- **Internet Speed Test** — measures throughput against speed.cloudflare.com, resolves the operator and location via api.ipapi.is, and probes the public address through stun.cloudflare.com. Manual Start only; nothing is stored.
 - **YouTube Downloader** — sends the supplied URL to the Cobalt website and loads YouTube thumbnails.
 - **Contact form** — posts to the Cloudflare Worker in `workers/contact`, which verifies Turnstile and sends owner/visitor emails through Brevo.
 
-The tools-page description saying everything runs locally is not universally accurate; use precise wording when editing it.
+The tools-page description says most tools run on-device while networked tools disclose their service; keep that wording honest when editing it.
 
 ## Project structure
 
@@ -329,7 +330,7 @@ The workflow is `.github/workflows/deploy.yml`.
 
 ### Triggers
 
-- Push to `develop` → build, then deploy beta.
+- Push to `develop` → build, then deploy staging.
 - Push to `main` → build, then deploy production.
 - Pull request to `develop` or `main` → build and type-check only.
 - Manual run from **Actions → Build and deploy → Run workflow**.
@@ -390,7 +391,7 @@ The `deploy` user has no sudo, no docker access, and write access only under `/o
 
 | Environment | Host path | Caddy root | Domain |
 |---|---|---|---|
-| Beta | `/opt/stacks/caddy/html/beta` | `/srv/beta` | beta.yashcodes.com |
+| Staging | `/opt/stacks/caddy/html/beta` | `/srv/beta` | beta.yashcodes.com |
 | Production | `/opt/stacks/caddy/html/production` | `/srv/production` | yashcodes.com |
 
 Caddy runs in Docker on vps-2. `/opt/stacks/caddy/html` is mounted read-only into the container as `/srv`.

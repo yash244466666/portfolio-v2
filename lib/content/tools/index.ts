@@ -54,6 +54,7 @@ export const tools: ToolDefinition[] = [
   { id: "http-status-codes", label: "HTTP Status Codes", description: "Searchable reference of all HTTP status codes with descriptions.", icon: "Globe", category: "dev", tags: ["http", "status", "code", "reference"] },
   { id: "mime-type-lookup", label: "MIME Type Lookup", description: "Search file extensions and MIME types bidirectionally.", icon: "FileSearch", category: "dev", tags: ["mime", "type", "file", "extension"] },
   { id: "dns-lookup", label: "DNS Lookup", description: "Query DNS records for any domain using public DNS APIs.", icon: "Search", category: "dev", tags: ["dns", "lookup", "domain", "network"] },
+  { id: "speed-test", label: "Internet Speed Test", description: "Measure real download, upload, latency and jitter, then inspect your public IP, ISP, edge server and best-effort VPN or proxy signals.", icon: "Gauge", category: "dev", tags: ["speed", "speedtest", "network", "bandwidth", "download", "upload", "latency", "ping", "jitter", "isp", "ip", "vpn", "proxy", "connection"] },
   { id: "open-graph-preview", label: "Open Graph Preview", description: "Preview how a URL appears when shared on social media.", icon: "Eye", category: "dev", tags: ["og", "preview", "social", "meta"] },
   { id: "meta-tag-generator", label: "Meta Tag Generator", description: "Build SEO meta tags for your website with structured output.", icon: "Tag", category: "dev", tags: ["meta", "seo", "tag", "generate"] },
   { id: "text-to-slug", label: "Text to Slug", description: "Convert text to URL-safe slugs with customizable separators.", icon: "Link2", category: "dev", tags: ["slug", "url", "text", "convert"] },
@@ -114,7 +115,7 @@ export const tools: ToolDefinition[] = [
 
 export const toolsPageContent: ToolsPageContent = {
   heading: "Developer Tools",
-  description: "A collection of free, client-side utilities. No data leaves your browser — everything runs locally.",
+  description: "A collection of free browser-based utilities. Most run entirely on your device; tools that call an external service say so on the tool itself.",
   searchPlaceholder: "Search tools...",
   backToGridLabel: "Back to Tools",
   categories: toolCategories,

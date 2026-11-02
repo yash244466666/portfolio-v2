@@ -136,8 +136,8 @@ Consequences:
 
 - No Next.js server runtime is available after deployment.
 - Do not add route handlers, server actions, middleware-dependent features, or runtime-only Next image optimization without changing the hosting model.
-- Deployment is handled by GitHub Actions: pushes to `develop` deploy to beta; pushes to `main` deploy to production. See **docs/DEPLOYMENT.md**.
-- `main` is the GitHub default branch; `develop` is the beta/integration branch. For beta work, open PRs against `develop` explicitly because GitHub defaults new PRs to `main`.
+- Deployment is handled by GitHub Actions: pushes to `develop` deploy to staging (`beta.yashcodes.com`); pushes to `main` deploy to production. See **docs/DEPLOYMENT.md**.
+- `main` is the GitHub default branch; `develop` is the staging/integration branch. For staging work, open PRs against `develop` explicitly because GitHub defaults new PRs to `main`.
 - Both `develop` and `main` are protected: direct pushes are blocked (administrators included), a PR is required, and the `Build static site` check must pass. Work on feature branches and merge via PR. `main` merges are owner-only because the owner is the only collaborator.
 - A successful Next build does not prove type or lint correctness because both checks are skipped in build configuration.
 - The **start** script is not the normal production path for the exported site. Serve or deploy **out/** using the existing static host.
@@ -314,16 +314,16 @@ The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo
 
 ### Catalog
 
-**lib/content/tools/index.ts** currently defines 87 tools:
+**lib/content/tools/index.ts** currently defines 88 tools:
 
 - Core: 7
-- Dev: 45
+- Dev: 46
 - Text: 17
 - Media: 3
 - Security: 5
 - Math and logic: 10
 
-All 87 definitions currently have matching implementations.
+All 88 definitions currently have matching implementations.
 
 A tool definition contains:
 
@@ -427,12 +427,13 @@ When adding a tool:
 
 ## 12. External network behavior
 
-The statement in the tools-page description that everything runs locally is not universally accurate.
+The tools-page description says most utilities run on the device. These tools still call external services, and each discloses that on its own page.
 
 Known networked features include:
 
 - Currency Converter calls the open.er-api.com exchange-rate API and caches rates in a versioned 24-hour cache.
 - DNS Lookup calls Cloudflare's DNS-over-HTTPS API.
+- Internet Speed Test streams download and upload traffic through speed.cloudflare.com, resolves the operator and location through api.ipapi.is, and probes the public address through stun.cloudflare.com. It runs only when the visitor presses Start and stores nothing.
 - YouTube Downloader sends the supplied URL to the Cobalt website and loads YouTube thumbnail images.
 - The contact form POSTs to the Cloudflare Worker at `NEXT_PUBLIC_CONTACT_ENDPOINT`; the Worker verifies Turnstile and sends two emails through Brevo. A prefilled `mailto:` fallback remains available on failure.
 - Fonts are integrated through next/font/google during the build process.
@@ -641,7 +642,7 @@ At the last documentation update (2026-10-31):
 - The exported routes were **/**, **/tools/**, and the not-found route.
 - ESLint was blocked by missing flat configuration.
 - No automated tests were discovered.
-- The latest `develop` (beta) and `main` (production) runs, including HTTPS verification, passed on 2026-10-30 UTC; the first attempts were queued during a GitHub Actions incident.
+- The latest `develop` (staging) and `main` (production) runs, including HTTPS verification, passed on 2026-10-30 UTC; the first attempts were queued during a GitHub Actions incident.
 - The deployment target is vps-2. The vps-2 deploy user, directories, SSH key, and secrets are configured; both deploy runs passed, both A records now point to vps-2, and Caddy issued certificates on 2026-10-31.
 - The vps-2 Caddy blocks are applied in the live Caddyfile. The pre-cutover backup is `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; `/opt/stacks/caddy/Caddyfile.next` remains as the staged copy.
 
