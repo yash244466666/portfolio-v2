@@ -39,36 +39,22 @@ export type {
 // PERSONAL INFORMATION
 // =============================================================================
 export const personalInfo: PersonalInfo = {
-  name: "Yash Sikdar",
+  name: "Yash",
   fullName: "MD. Mohi Minul Islam Yash",
   title: "Full Stack Software Engineer",
   greeting: "Hi, I'm",
-
-  // Hero Section
   typingTitles: [
     "Full Stack Software Engineer",
-    "Web Developer",
-    "Frontend Specialist",
-    "Backend Expert",
     "React Developer",
     "Ruby on Rails Developer",
+    "JavaScript & TypeScript Developer",
   ],
-
   tagline:
-    "I'm a software builder who loves coding and making things work faster and efficiently. I create scalable web applications using JavaScript, React, Ruby on Rails, and modern tech stacks.",
-
-  // About Section
+    "I'm a software engineer based in Bangladesh. I build and maintain web applications with JavaScript, TypeScript, React, Node.js, and Ruby on Rails. Open to remote and on-site software engineering roles.",
   aboutDescription:
-    "I'm a software builder who loves coding and making things work faster and efficiently. With 1800+ hours mastering algorithms, data structures, and full-stack development, I've helped improve applications reducing bugs by 30% and improving performance by 25%.",
-
-  // Contact Section
+    "I'm MD. Mohi Minul Islam Yash, a full-stack software engineer working in the industry since 2020. My experience includes SaaS maintenance, AI-based automation, MERN business applications, and Rails applications with React and PostgreSQL. I've worked with international teams in remote and hybrid roles. I use AI-assisted development alongside manual code review, testing, and security-focused reviews.",
   contactAvailability:
-    "I'm currently available for freelance work and new opportunities. Whether you have a project in mind or just want to chat about technology, I'd love to hear from you.",
-
-  // Navigation resume download
-  // Replace public/resume.pdf with the real document; no component changes needed.
-  // Omit resumeUrl (or set it to "" or "#") to hide the button.
-  // Root-relative/relative URLs download; absolute cross-origin URLs open in a new tab.
+    "I'm looking for my next software engineering role, preferably remote, and I'm also open to on-site opportunities. Get in touch to discuss a role or my experience.",
   resumeUrl: "/resume.pdf",
   resumeFileName: "MD-Mohi-Minul-Islam-Yash-Resume.pdf",
 };
@@ -79,17 +65,17 @@ export const personalInfo: PersonalInfo = {
 export const socialLinks: SocialLink[] = [
   {
     name: "GitHub",
-    url: "https://github.com/yashcodes",
+    url: "https://github.com/yash244466666",
     icon: "Github",
   },
   {
     name: "LinkedIn",
-    url: "https://linkedin.com/in/yashcodes",
+    url: "https://www.linkedin.com/in/md-mohi-minul-islam-yash/",
     icon: "Linkedin",
   },
   {
     name: "Twitter",
-    url: "https://twitter.com/yashcodes",
+    url: "https://twitter.com/yash_solo000",
     icon: "Twitter",
   },
   {
@@ -118,7 +104,7 @@ export const contactInfo: ContactInfo[] = [
   {
     type: "location",
     label: "Location",
-    value: "Barisal, Bangladesh",
+    value: "Bangladesh",
   },
 ];
 
@@ -129,37 +115,37 @@ export const skills: Skill[] = [
   {
     title: "Frontend Development",
     description:
-      "Expert in JavaScript, React, Vue.js, Next.js, and modern CSS frameworks like Tailwind CSS.",
+      "JavaScript, TypeScript, React, Redux, Next.js, HTML, CSS, and responsive web interfaces.",
     icon: "Code",
   },
   {
     title: "Backend Development",
     description:
-      "Proficient in Ruby on Rails, Node.js, Express.js, NestJS, Django, and RESTful API development.",
+      "Ruby on Rails, Node.js, Express, and API development, with additional skills in Python and Django.",
     icon: "Server",
   },
   {
-    title: "Database Management",
+    title: "Databases",
     description:
-      "Experience with MySQL, PostgreSQL, MongoDB for scalable data solutions.",
+      "PostgreSQL, MongoDB, and MySQL for web application data and persistence.",
     icon: "Database",
   },
   {
-    title: "Mobile Development",
+    title: "Security & Code Review",
     description:
-      "Building responsive web apps and native applications with modern frameworks.",
-    icon: "Smartphone",
+      "Security-focused code reviews, reverse engineering, OSINT, and ethical hacking.",
+    icon: "Code",
   },
   {
-    title: "DevOps & Deployment",
+    title: "Delivery & Collaboration",
     description:
-      "Skilled in Git, GitHub, Heroku, Netlify, and cloud deployment strategies.",
+      "Git, GitHub, GitLab, Jira, and Agile teamwork with international and remote teams.",
     icon: "Globe",
   },
   {
-    title: "Performance & Testing",
+    title: "Testing & Performance",
     description:
-      "TDD approach with RSpec, bug reduction by 30%, and performance optimization by 25%.",
+      "Debugging, performance optimization, TDD, RSpec, and manual review of AI-assisted code.",
     icon: "Zap",
   },
 ];
@@ -188,106 +174,93 @@ export const skills: Skill[] = [
 // Every link that is still "#" is rendered as a visibly disabled action.
 export const projects: Project[] = [
   {
-    title: "Sendout.ai - SaaS Platform",
+    title: "YashCodes Portfolio & Developer Tools",
     description:
-      "Currently maintaining and developing features for this AI-powered automation platform. Implementing reverse engineering solutions and bug fixes.",
-    image: "/modern-saas-dashboard.png",
-    tech: ["React", "Node.js", "AI Integration", "SaaS"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "https://sendout.ai",
-    role: "Full Stack Developer",
+      "My portfolio and a catalog of 88 browser-based utilities for development, text, media, security, and everyday calculations.",
+    tech: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
+    github: "https://github.com/yash244466666/portfolio-v2",
+    live: "/tools/",
+    role: "Personal project",
     longDescription:
-      "An AI-powered automation SaaS platform where I maintain the existing product and ship new features. The work spans the React frontend, the Node.js backend, and the AI integrations behind the platform's automation flows — including reverse-engineering existing behaviour to trace and fix defects.",
+      "Built as a static Next.js application with a searchable tool catalog and dynamically loaded utilities. Most tools process data in the browser; tools that use external services disclose that in their interface.",
     highlights: [
-      "Maintain and extend an AI-powered automation SaaS platform",
-      "Ship new features across a React and Node.js stack",
-      "Reverse-engineer existing behaviour to track down and fix defects",
+      "Built a searchable catalog organized into six tool categories",
+      "Implemented lazy-loaded tools with reset and browser-history navigation",
+      "Added mobile layouts, reduced-motion support, and a contact form backed by a separate Cloudflare Worker",
     ],
   },
   {
-    title: "ERP & CRM Systems",
+    title: "AnyHelpNow Website",
     description:
-      "Developed comprehensive business management applications using MERN stack with ticket systems and workflow automation.",
-    image: "/business-management-dashboard.png",
+      "Fixed bugs and implemented website features as a remote full-stack engineer at AnyHelpNow.",
+    tech: ["Web Development", "Debugging"],
+    github: "",
+    live: "https://anyhelpnow.com/",
+    showCode: false,
+    role: "Full-stack Engineer at AnyHelpNow",
+    year: "April–November 2026",
+    longDescription:
+      "Contributed to the existing anyhelpnow.com website as part of my full-time engineering role. My work focused on bug fixes and feature implementation.",
+  },
+  {
+    title: "Sendout.ai at Prospect Engine",
+    description:
+      "Maintained Sendout.ai, fixed defects, and implemented features as part of Prospect Engine's SaaS product team.",
+    tech: ["SaaS", "AI-based Automation", "Reverse Engineering"],
+    github: "",
+    live: "https://sendout.ai/",
+    showCode: false,
+    role: "Full-stack Engineer at Prospect Engine LLC",
+    year: "October 2024–March 2026",
+    longDescription:
+      "Worked on Sendout.ai as a member of Prospect Engine's SaaS product team. My work included product maintenance and reverse engineering platform behavior to support AI-based automation.",
+    highlights: [
+      "Maintained the product and implemented new features",
+      "Investigated platform behavior for automation workflows",
+      "Resolved software defects as part of the product team",
+    ],
+  },
+  {
+    title: "Business Applications at Bengal7",
+    description:
+      "Developed ERP, CRM, and ticketing applications using the MERN stack during a remote contract with Bengal7 IT Solutions.",
     tech: ["MongoDB", "Express.js", "React", "Node.js"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Full Stack Developer",
+    github: "",
+    live: "",
+    showCode: false,
+    showLiveDemo: false,
+    role: "Full-stack Engineer, contractor",
+    year: "April–August 2024",
     longDescription:
-      "Business management applications built on the MERN stack. The systems cover day-to-day operations, with ticket tracking and workflow automation tying the modules together.",
-    highlights: [
-      "Built ERP and CRM applications on MongoDB, Express.js, React, and Node.js",
-      "Implemented a ticket system for support and internal workflows",
-      "Automated recurring business workflows",
-    ],
+      "Worked on business applications covering ERP, CRM, and ticketing needs as a contractor at Bengal7 IT Solutions.",
   },
   {
-    title: "Unity Game Development",
+    title: "Web & Unity Development at JUUBIX",
     description:
-      "Built interactive games using Unity and C# with advanced gameplay mechanics and user engagement features.",
-    image: "/unity-game-interface.png",
-    tech: ["Unity", "C#", "Game Development", "UI/UX"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Game Developer",
+      "Contributed to a MERN web application and a Unity game using C# while working remotely at JUUBIX.",
+    tech: ["MERN", "Unity", "C#"],
+    github: "",
+    live: "",
+    showCode: false,
+    showLiveDemo: false,
+    role: "Full-stack Engineer at JUUBIX",
+    year: "December 2023–March 2024",
     longDescription:
-      "Interactive games built with Unity and C#. The work covered gameplay mechanics, player-facing UI/UX, and the engagement features that keep players coming back.",
-    highlights: [
-      "Built interactive games in Unity with C#",
-      "Implemented gameplay mechanics and player-facing UI/UX",
-      "Added user engagement features",
-    ],
+      "Worked with the team on web application development and a Unity game. The web application used the MERN stack, and the game used Unity and C#.",
   },
   {
-    title: "Ruby on Rails Web App",
+    title: "Rails Application at 2i Global Network",
     description:
-      "Developed scalable web applications with Ruby on Rails, React, and PostgreSQL achieving 100% client satisfaction through rigorous testing.",
-    image: "/ruby-on-rails-web-application.png",
-    tech: ["Ruby on Rails", "React", "PostgreSQL", "RSpec"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Full Stack Developer",
+      "Implemented web application features using Ruby on Rails, React, and PostgreSQL during a remote contract at 2i Global Network.",
+    tech: ["Ruby on Rails", "React", "PostgreSQL"],
+    github: "",
+    live: "",
+    showCode: false,
+    showLiveDemo: false,
+    role: "Ruby on Rails Developer, contractor",
+    year: "June–November 2023",
     longDescription:
-      "Scalable web applications built with Ruby on Rails, React, and PostgreSQL. RSpec testing ran alongside delivery, which is how the work reached 100% client satisfaction.",
-    highlights: [
-      "Built scalable web applications with Ruby on Rails and React",
-      "Modelled data in PostgreSQL",
-      "Covered behaviour with RSpec tests as part of delivery",
-    ],
-  },
-  {
-    title: "Lost & Found Mobile App",
-    description:
-      "Improved existing application reducing bugs by 30% and enhancing performance by 25% through optimization and testing.",
-    image: "/mobile-app-interface-lost-and-found.png",
-    tech: ["Mobile Development", "Performance Optimization", "Testing"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Mobile Developer",
-    longDescription:
-      "An existing lost-and-found application that I improved rather than rebuilt. Profiling and testing cut bugs by 30% and improved performance by 25%, while keeping the flows people use most intact.",
-    highlights: [
-      "Reduced bugs by 30% in an existing mobile application",
-      "Improved performance by 25% through optimization and testing",
-      "Strengthened test coverage across core flows",
-    ],
-  },
-  {
-    title: "Government R&H System",
-    description:
-      "Built robust applications for government department achieving 99% satisfaction rate through comprehensive testing and modern techniques.",
-    image: "/government-system-dashboard.png",
-    tech: ["Full Stack", "Government Systems", "Quality Assurance"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Full Stack Developer",
-    longDescription:
-      "Full-stack applications for a government R&H department, delivered with a heavy quality-assurance process. Comprehensive testing and modern techniques brought the project to a 99% satisfaction rate.",
-    highlights: [
-      "Built full-stack applications for a government R&H department",
-      "Applied a comprehensive testing and quality-assurance process",
-      "Reached a 99% satisfaction rate with the delivered system",
-    ],
+      "Contributed new features to an existing web application. My work combined Ruby on Rails, React, and PostgreSQL, with testing as part of implementation.",
   },
 ];
 
@@ -331,7 +304,7 @@ export const buttonTexts: ButtonTexts = {
   letsTalk: "Let's Talk",
   sendMessage: "Send Message",
   code: "Code",
-  liveDemo: "Live Demo",
+  liveDemo: "Visit Website",
   downloadResume: "Download Resume",
 };
 
@@ -341,18 +314,16 @@ export const buttonTexts: ButtonTexts = {
 export const sectionContent: SectionContent = {
   about: {
     heading: "About Me",
-    description:
-      "I'm a software builder who loves coding and making things work faster and efficiently. With 1800+ hours mastering algorithms, data structures, and full-stack development, I've helped improve applications reducing bugs by 30% and improving performance by 25%.",
+    description: personalInfo.aboutDescription,
   },
   projects: {
-    heading: "Featured Projects",
+    heading: "Selected Work",
     description:
-      "Here are some of my professional projects spanning SaaS platforms, enterprise applications, and mobile solutions that demonstrate my expertise in full-stack development.",
+      "A personal project and selected contributions from past engineering roles. Each entry explains my role and the technologies I used. Website links open the public products.",
   },
   contact: {
     heading: "Let's Work Together",
-    description:
-      "Ready to bring your ideas to life? I'm always excited to work on new projects and collaborate with amazing people. Let's create something extraordinary together.",
+    description: personalInfo.contactAvailability,
     formTitle: "Send Me a Message",
     infoTitle: "Get In Touch",
   },
@@ -365,7 +336,7 @@ export const formContent: FormContent = {
   placeholders: {
     name: "Your Name",
     email: "Your Email",
-    message: "Tell me about your project...",
+    message: "Tell me about the role or opportunity...",
   },
   labels: {
     name: "Name",
@@ -429,9 +400,9 @@ export const footerContent: FooterContent = {
 // WEBSITE METADATA
 // =============================================================================
 export const siteMetadata: SiteMetadata = {
-  title: "Yash - Full Stack Software Engineer",
+  title: "Yash | Full Stack Software Engineer in Bangladesh",
   description:
-    "Software builder specializing in JavaScript, React, Ruby on Rails, and modern web applications. Creating scalable solutions with efficient code.",
+    "MD. Mohi Minul Islam Yash is a software engineer in Bangladesh working with React, Node.js, TypeScript, and Ruby on Rails. Open to remote and on-site roles.",
   keywords: [
     "Full Stack Developer",
     "React",
@@ -440,7 +411,7 @@ export const siteMetadata: SiteMetadata = {
     "Web Development",
     "Software Engineer",
   ],
-  author: "Yash",
+  author: personalInfo.fullName,
   siteUrl: "https://yashcodes.com",
 };
 

@@ -34,19 +34,21 @@ export function ProjectCard({
                 }`}
             style={{ animationDelay: `${animationDelay}ms` }}
         >
-            <div className="relative h-48 overflow-hidden">
-                <Image
-                    src={project.image || "/placeholder.svg"}
-                    alt={project.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                />
-                <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                />
-            </div>
+            {project.image ? (
+                <div className="relative h-48 overflow-hidden">
+                    <Image
+                        src={project.image}
+                        alt={project.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
+                </div>
+            ) : null}
 
             <div className="p-6">
                 <h3 className="text-xl font-semibold text-foreground mb-3">{project.title}</h3>

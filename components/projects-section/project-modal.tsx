@@ -57,15 +57,17 @@ export function ProjectModal({
         >
             <div className="flex h-[100dvh] flex-col overflow-hidden bg-background sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl sm:border sm:border-border/70 sm:shadow-2xl">
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                    <div className="relative aspect-video max-h-[30dvh] w-full overflow-hidden bg-muted [@media(min-width:640px)_and_(min-height:600px)]:max-h-none">
-                        <Image
-                            src={project.image || "/placeholder.svg"}
-                            alt={project.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 768px"
-                        />
-                    </div>
+                    {project.image ? (
+                        <div className="relative aspect-video max-h-[30dvh] w-full overflow-hidden bg-muted [@media(min-width:640px)_and_(min-height:600px)]:max-h-none">
+                            <Image
+                                src={project.image}
+                                alt={project.title}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 768px"
+                            />
+                        </div>
+                    ) : null}
 
                     <div className="space-y-6 px-5 pt-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] sm:px-8 sm:pt-8 sm:pb-[calc(2rem_+_env(safe-area-inset-bottom))]">
                         <header className="space-y-3">
