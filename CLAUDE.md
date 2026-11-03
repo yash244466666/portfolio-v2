@@ -6,7 +6,7 @@
 
 ## 1. Project summary
 
-This repository contains MD. Mohi Minul Islam Yash's personal portfolio (display name: Yash Sikdar) and a large collection of browser-based developer utilities.
+This repository contains MD. Mohi Minul Islam Yash's personal portfolio (display name: Yash) and a large collection of browser-based developer utilities.
 
 The application has two public routes:
 
@@ -304,11 +304,11 @@ It contains:
 
 Components normally access this data through **lib/content/utils.ts**. Prefer editing centralized content rather than embedding new portfolio copy in component markup.
 
-Known content gap: most project GitHub and live-demo values are still **#** placeholders. Ensure cards do not claim a working external link when the value is a placeholder.
+Homepage content is based on the current résumé/profile and repository evidence. Selected work combines the public portfolio/tools project with past employer contributions; unsupported links are hidden. Project images are optional and omitted when no authentic image is available. Do not invent project stacks, outcome percentages, screenshots, or public source links.
 
 Each project may also define optional **longDescription**, **highlights**, **role**, and **year** fields used only by the project detail modal; missing fields are omitted from the modal, which falls back to **description**. Modal labels and accessible names live in **projectModalContent** in the same file.
 
-The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. A placeholder file ships at **public/resume.pdf**.
+The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. The current résumé (AnyHelpNow ending November 2026) ships at **public/resume.pdf**.
 
 ## 11. Tools route architecture
 
@@ -561,7 +561,7 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 
 1. There are no committed automated test files or Playwright configuration despite Playwright being a development dependency.
 2. The tools-page local-processing claim conflicts with several external API integrations.
-3. Most project Code and Live Demo URLs remain placeholders.
+3. Employer project entries need deeper approved case-study evidence; unavailable Code and Website actions are hidden.
 4. The repository has both npm and pnpm lockfiles.
 5. The frontend is heavily client-rendered, including many purely presentational components.
 6. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.

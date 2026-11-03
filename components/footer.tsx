@@ -43,11 +43,12 @@ export default function Footer() {
                 <a
                   key={link.name}
                   href={link.url}
+                  aria-label={link.name}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <IconComponent size={20} />
+                  <IconComponent aria-hidden="true" size={20} />
                 </a>
               )
             })}

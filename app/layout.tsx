@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { DM_Sans } from "next/font/google"
 import "./globals.css"
+import { siteMetadata } from "@/lib/content"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -11,9 +12,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Yash - Full Stack Software Engineer",
-  description:
-    "Software builder specializing in JavaScript, React, Ruby on Rails, and modern web applications. Creating scalable solutions with efficient code.",
+  title: siteMetadata.title,
+  description: siteMetadata.description,
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

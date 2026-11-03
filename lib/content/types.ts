@@ -18,7 +18,8 @@ export interface ContactInfo {
 export interface Project {
   title: string;
   description: string;
-  image: string;
+  /** Optional authentic project image; omitted when none is available. */
+  image?: string;
   tech: string[];
   github: string;
   live: string;

@@ -39,11 +39,12 @@ export function HeroSocialLinks({ links, isVisible = false }: HeroSocialLinksPro
                         <a
                             key={link.name}
                             href={link.url}
+                            aria-label={link.name}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`text-gray-400 ${hoverColor} transition-all hover:scale-110 transform p-2`}
                         >
-                            <IconComponent size={20} className="sm:w-6 sm:h-6" />
+                            <IconComponent aria-hidden="true" size={20} className="sm:w-6 sm:h-6" />
                         </a>
                     )
                 })}
