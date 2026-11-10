@@ -53,7 +53,7 @@ export default function ToolsRoute() {
           Skip to tools content
         </a>
         <Navigation />
-        <div id="tools-content" className="tools-page-content pt-[calc(var(--nav-height,4.25rem)+0.5rem)] sm:pt-[calc(var(--toolbar-offset,8.5rem)+1rem)] pb-16 flex-grow">
+        <div id="tools-content" className="tools-page-content pt-[calc(var(--nav-height,4.25rem)+0.5rem)] pb-16 flex-grow">
           <ToolsPage />
         </div>
         <Footer />

@@ -11,7 +11,7 @@ This repository contains MD. Mohi Minul Islam Yash's personal portfolio (site br
 The application exposes these public routes:
 
 - **/** — an animated single-page portfolio with navigation, hero, about, projects, contact, footer, and back-to-top sections. The full visible content is server-rendered; the loading screen is a decorative overlay.
-- **/tools/** — a searchable catalog of 88 utilities with category navigation, cinematic desktop scrolling, mobile fallbacks, hash-addressable tool views, a visible directory `h1`, and normal links to the first published tool pages.
+- **/tools/** — a searchable catalog of 88 utilities with category navigation, one continuous pinned desktop track, a stacked mobile/reduced-motion layout, hash-addressable tool views, a visually hidden directory `h1`, and normal links to the first published tool pages.
 - **/tools/json-editor/**, **/tools/timestamp-converter/**, **/tools/image-compressor/**, **/tools/meta-tag-generator/** — standalone tool pages with server-rendered answer copy, a worked example, the live widget, and related links.
 - **/projects/yashcodes/** — the YashCodes developer-tools case study.
 - **/robots.txt** and **/sitemap.xml** — generated at build time from the published-page inventory.
@@ -192,7 +192,6 @@ Consequences:
         math/
         shared/
         tools-route.tsx
-        tools-directory-header.tsx
         tool-playground.tsx
         tool-card.tsx
         tool-header.tsx
@@ -389,39 +388,41 @@ Directory implementations such as the JSON editor may expose an **index.ts** ins
 
 It measures navigation and toolbar heights with ResizeObserver and writes CSS custom properties used by sticky content.
 
-**components/tools/tools-directory-header.tsx** is rendered above the grid while the directory is visible. It provides the directory `h1` ("Free Online Developer Tools"), the introduction, and ordinary links to the four published tool pages. It is hidden with the grid when an in-place tool opens, leaving the tool's own `h1` as the only visible heading.
+There is no separate directory header block. The search bar and category chips are the first content below the navigation, and the browse state carries a single visually hidden `h1` ("Free Online Developer Tools") for assistive technology. The directory introduction and featured-tool chips were removed in the continuous-track layout; the four standalone tools are still discoverable through their normal cards and search results.
 
 ### Grid and search
 
 **components/tools/tools-grid.tsx** owns the visible catalog mode:
 
-- ToolsToolbar provides the combobox and category chips.
-- Empty search shows cinematic category sections.
+- ToolsToolbar provides the combobox and category chips immediately below the navigation.
+- Empty search shows the continuous category track.
 - Active search shows normal grouped grid results.
 - Popular suggestions appear for empty results.
 - Tool filtering matches labels, descriptions, categories, and tags through content utilities.
+- Selecting a category while searching clears the query and queues a jump to that category once the browse track is ready.
 
-### Cinematic category sections
+### Continuous desktop track
 
-**components/tools/tools-sections.tsx** implements desktop filmstrip scrolling:
+**components/tools/tools-sections.tsx** implements one pinned horizontal track:
 
-- Categories are divided into chunks of at most 12 cards.
-- Each chunk becomes a sticky scene.
-- Vertical page progress translates a horizontal card track.
-- A release interval crossfades to the next scene.
-- Scroll work is requestAnimationFrame-throttled.
-- ResizeObserver recalculates overflow and section heights.
-- Active category state feeds the toolbar.
-- Narrow screens below 768 px and reduced-motion users receive a normal stacked grid instead.
+- All six categories share a single row of cards in registry order (Core Tools → Dev Utilities → Text Utilities → Media Tools → Security Tools → Math & Logic).
+- One sticky panel holds the active category heading, description, count, Previous/Next controls, progress indicator, and the clipped card viewport.
+- The scene height is the measured panel height plus the horizontal travel (track width minus viewport width); vertical document scroll maps one-to-one to horizontal travel and clamps at both ends.
+- The active category, toolbar chip, and progress indicator change in place when a category's first card reaches the leading edge; scrolling backward applies the same boundary.
+- Category chips jump to the first card using the same measured positions. Previous/Next move about one card and disable at the ends.
+- Focus moves the track so a tabbed-to card is visible; `overflow-clip` keeps the focused viewport from scrolling independently.
+- A measured end buffer after the scene reserves any scroll shortfall so the final card can be fully reached before the footer.
+- The initial HTML is the ordinary stacked catalog with visible category headings. Pinning is enabled only after hydration, only at 768 px and wider, only when motion is allowed, and only when the panel fits below the sticky toolbar. Without JavaScript, with reduced motion, on narrow screens, or on a short viewport, the same cards stay in normal flow.
+- Scroll work is requestAnimationFrame-throttled; ResizeObserver recalculates after toolbar, panel, viewport, track, or window changes.
 
 When editing this subsystem, preserve:
 
-- Exact scroll restoration
+- Exact scroll restoration (including deep-track positions)
 - Dynamic navigation and toolbar offsets
-- Reverse scrolling
+- Reverse scrolling and in-place category boundaries
 - Search-to-category transitions
-- Mobile non-sticky layout
-- Reduced-motion non-transformed layout
+- Keyboard focus visibility across the clipped track
+- Mobile, short-viewport, no-JS, and reduced-motion stacked layouts
 - Resize and observer cleanup
 
 ### Tool navigation and state
@@ -666,7 +667,7 @@ Run the development server and verify:
 - Project cards open the modal from the keyboard; Escape closes it and focus returns to the trigger.
 - Tools search opens, filters, clears, and handles keyboard selection.
 - Category chips move to the expected section.
-- Desktop filmstrips advance and reverse without overlap.
+- The desktop track moves continuously forward and backward; the active heading and chip change in place at category boundaries; chips jump to category starts; Previous/Next move about one card and disable at the ends; the final card is fully reachable.
 - Mobile tools render as a normal stacked grid.
 - A direct tool hash opens the expected tool; unknown fragments leave the directory visible.
 - Promoted cards link to their standalone pages; legacy hashes still open the widget.

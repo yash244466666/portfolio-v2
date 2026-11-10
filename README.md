@@ -33,7 +33,7 @@ The personal portfolio of **MD. Mohi Minul Islam Yash** (site brand **YashCodes*
 This repository contains one application with these public routes:
 
 - **`/`** — an animated, dark-themed single-page portfolio with navigation, hero, about, projects, contact, footer, and back-to-top sections. The full visible content is server-rendered; the loading screen is a decorative overlay.
-- **`/tools/`** — a searchable catalog of 88 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, lazy-loaded implementations, a visible `h1`, and links to the first published tool pages.
+- **`/tools/`** — a searchable catalog of 88 client-side utilities with category navigation, one continuous pinned horizontal desktop track, a normal stacked mobile/reduced-motion layout, hash-addressable tool views, lazy-loaded implementations, a visually hidden directory `h1`, and links to the first published tool pages.
 - **`/tools/json-editor/`, `/tools/timestamp-converter/`, `/tools/image-compressor/`, `/tools/meta-tag-generator/`** — standalone pages with server-rendered answer copy, worked examples, the live widget, and related links.
 - **`/projects/yashcodes/`** — the YashCodes developer-tools case study.
 - **`/robots.txt`** and **`/sitemap.xml`** — generated at build time.
@@ -238,7 +238,6 @@ portfolio-v2/
 │   │   ├── tool-view.tsx
 │   │   ├── tool-playground.tsx
 │   │   ├── tools-route.tsx
-│   │   ├── tools-directory-header.tsx
 │   │   ├── tools-grid.tsx
 │   │   ├── tools-sections.tsx
 │   │   ├── tools-toolbar.tsx
@@ -460,11 +459,13 @@ Run the development server or serve the static export, and verify:
 - The exported `/index.html` contains one full-name `h1`, the role, six expertise cards, six project summaries, contact copy, the footer, and a real Tools link.
 - Navigation scrolls to home sections and the anchors clear the fixed header; the mobile menu opens and closes after navigation.
 - The project modal opens from the keyboard, closes with Escape, and returns focus to the trigger.
-- `/tools/` returns successfully and shows exactly one directory `h1`.
+- `/tools/` returns successfully and shows exactly one visually hidden directory `h1`.
+- Search and category chips appear first below the navigation; the removed intro block is absent.
 - Tools search opens, filters, clears, and handles keyboard selection.
-- Category chips scroll to the expected section.
-- Desktop filmstrips advance and reverse without overlap.
-- Mobile tools render as a normal stacked grid.
+- On desktop the single track moves forward and backward; the heading, description, active chip, and progress indicator change in place at category boundaries.
+- Category chips jump to their first card; Previous/Next move about one card and disable at the ends; the final card is fully reachable before the footer.
+- Keyboard focus stays visible across the clipped track and Tab continues out of it.
+- Mobile, short desktop viewports, reduced motion, and no-JS render the normal stacked grid with visible category headings.
 - A direct tool hash opens the expected tool; unknown fragments leave the directory visible.
 - Promoted cards navigate to `/tools/<slug>/`; legacy hashes still open the in-place widget.
 - Reset remounts the active tool.

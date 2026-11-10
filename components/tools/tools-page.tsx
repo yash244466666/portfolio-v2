@@ -3,8 +3,12 @@
 import { useEffect, useCallback, useRef, useState } from "react"
 import { getToolsPageContent, getToolById, searchTools } from "@/lib/content/tools/utils"
 import ToolsGrid, { ToolsGridHandle } from "@/components/tools/tools-grid"
-import ToolsDirectoryHeader from "@/components/tools/tools-directory-header"
 import ToolView from "@/components/tools/tool-view"
+
+/** Jump without inheriting the global `scroll-behavior: smooth`. */
+function jumpTo(top: number) {
+  window.scrollTo({ top, behavior: "instant" })
+}
 
 /**
  * Resolve a URL fragment to a registered tool ID. Unknown fragments (including
@@ -43,7 +47,7 @@ export default function ToolsPage() {
     const hashToolId = registeredToolIdFromHash(window.location.hash)
     if (hashToolId) {
       setActiveToolId(hashToolId)
-      window.scrollTo(0, 0)
+      jumpTo(0)
     } else {
       // The initial tools page entry should always restore to the very top.
       window.history.replaceState({ scrollY: 0 }, "", window.location.href)
@@ -70,7 +74,7 @@ export default function ToolsPage() {
         const savedY = event.state?.scrollY
         if (typeof savedY === "number" && event.state?.isGrid) {
           requestAnimationFrame(() => {
-            window.scrollTo({ top: savedY, behavior: "auto" })
+            jumpTo(savedY)
             // If a category breadcrumb click queued a category scroll, apply it
             // now that the grid is visible and at the saved card position.
             const queued = pendingCategoryRef.current
@@ -84,7 +88,7 @@ export default function ToolsPage() {
         } else {
           // Initial tools page entry (or any non-grid entry) goes to the top.
           requestAnimationFrame(() => {
-            window.scrollTo({ top: 0, behavior: "auto" })
+            jumpTo(0)
             const queued = pendingCategoryRef.current
             if (queued) {
               pendingCategoryRef.current = null
@@ -95,7 +99,7 @@ export default function ToolsPage() {
           })
         }
       } else {
-        window.scrollTo(0, 0)
+        jumpTo(0)
       }
     }
 
@@ -115,7 +119,7 @@ export default function ToolsPage() {
 
     setActiveToolId(id)
     requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "auto" })
+      jumpTo(0)
     })
   }, [])
 
@@ -133,7 +137,7 @@ export default function ToolsPage() {
 
   const handleHomeClick = useCallback(() => {
     window.location.hash = ""
-    window.scrollTo(0, 0)
+    jumpTo(0)
     // The scroll handler only updates the active category when the user
     // scrolls; after jumping to the top we already know the first category
     // is active, so update the toolbar chip immediately.
@@ -153,7 +157,6 @@ export default function ToolsPage() {
        * position explicitly through history state.
        */}
       <div className={showToolView ? "hidden" : "block"}>
-        <ToolsDirectoryHeader />
         <ToolsGrid
           ref={gridRef}
           tools={filteredTools}
