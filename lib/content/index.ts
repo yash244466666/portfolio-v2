@@ -5,6 +5,7 @@
 // Update content here instead of editing individual components.
 
 import type {
+  AdditionalWorkItem,
   SocialLink,
   ContactInfo,
   Project,
@@ -21,9 +22,11 @@ import type {
 
 // Re-export types for convenience
 export type {
+  AdditionalWorkItem,
   SocialLink,
   ContactInfo,
   Project,
+  ProjectLink,
   ProjectModalContent,
   Skill,
   PersonalInfo,
@@ -33,69 +36,84 @@ export type {
   FooterContent,
   SiteMetadata,
   ContentValidation,
-};
+} from "./types";
 
 // =============================================================================
 // PERSONAL INFORMATION
 // =============================================================================
 export const personalInfo: PersonalInfo = {
-  name: "Yash Sikdar",
+  // Compact navigation label and site brand.
+  name: "YashCodes",
+  // Primary public identity.
   fullName: "MD. Mohi Minul Islam Yash",
-  title: "Full Stack Software Engineer",
+  nameFirstLine: "MD. Mohi Minul Islam",
+  nameEmphasis: "Yash",
+  title: "Full-Stack Software Engineer",
   greeting: "Hi, I'm",
 
-  // Hero Section
+  // Hero Section — the full-stack role is in the visible paragraph; these
+  // rotating labels are decorative.
   typingTitles: [
-    "Full Stack Software Engineer",
-    "Web Developer",
-    "Frontend Specialist",
-    "Backend Expert",
-    "React Developer",
-    "Ruby on Rails Developer",
+    "Full-Stack Software Engineer",
+    "Web Application Developer",
+    "Automation and Integrations",
   ],
 
   tagline:
-    "I'm a software builder who loves coding and making things work faster and efficiently. I create scalable web applications using JavaScript, React, Ruby on Rails, and modern tech stacks.",
+    "I'm a full-stack software engineer. I pick the tools that fit the job. I built a marketplace booking system with connected calendars, and on a separate project I added scheduled notifications for admins. I've reverse-engineered parts of social platforms to build AI-assisted automation. I've also built tools that automate cybersecurity and open-source intelligence (OSINT) tasks for clients.",
 
   // About Section
   aboutDescription:
-    "I'm a software builder who loves coding and making things work faster and efficiently. With 1800+ hours mastering algorithms, data structures, and full-stack development, I've helped improve applications reducing bugs by 30% and improving performance by 25%.",
+    "I'm MD. Mohi Minul Islam Yash, a full-stack software engineer. I like working with teammates to take a feature from the first conversation through release. I've worked with people across countries and cultures and led a team in one previous role. I've built web and mobile apps, download managers, and Unity games, and worked with languages from TypeScript to C++. I use AI agents in my own work and have built automations for teams and clients. I've also built cybersecurity and open-source intelligence (OSINT) automation tools for both clients and employers.",
 
-  // Contact Section
-  contactAvailability:
-    "I'm currently available for freelance work and new opportunities. Whether you have a project in mind or just want to chat about technology, I'd love to hear from you.",
-
-  // Navigation resume download
-  // Replace public/resume.pdf with the real document; no component changes needed.
-  // Omit resumeUrl (or set it to "" or "#") to hide the button.
-  // Root-relative/relative URLs download; absolute cross-origin URLs open in a new tab.
-  resumeUrl: "/resume.pdf",
+  // Navigation resume download.
+  // Deliberately unset until Yash approves the exact public PDF. Set this to a
+  // same-origin path (and keep resumeFileName in sync) to re-enable the action.
+  // resumeUrl: "/resume.pdf",
   resumeFileName: "MD-Mohi-Minul-Islam-Yash-Resume.pdf",
 };
 
 // =============================================================================
 // SOCIAL MEDIA & CONTACT LINKS
 // =============================================================================
+// GitHub is verified. LinkedIn and X come from the résumé and the public
+// GitHub profile. The Facebook account is the YashCodes brand page, so it is
+// labelled as a brand presence and stays out of Person `sameAs`.
 export const socialLinks: SocialLink[] = [
   {
-    name: "GitHub",
-    url: "https://github.com/yashcodes",
-    icon: "Github",
-  },
-  {
     name: "LinkedIn",
-    url: "https://linkedin.com/in/yashcodes",
+    url: "https://www.linkedin.com/in/md-mohi-minul-islam-yash/",
     icon: "Linkedin",
+    label: "Yash on LinkedIn",
+    sameAs: true,
   },
   {
-    name: "Twitter",
-    url: "https://twitter.com/yashcodes",
+    name: "GitHub",
+    url: "https://github.com/yash244466666",
+    icon: "Github",
+    label: "Yash on GitHub",
+    sameAs: true,
+  },
+  {
+    name: "X",
+    url: "https://twitter.com/yash_solo000",
     icon: "Twitter",
+    label: "Yash on X",
+    sameAs: true,
+  },
+  {
+    name: "Facebook",
+    url: "https://www.facebook.com/yashcodes.for.you",
+    icon: "Facebook",
+    label: "YashCodes on Facebook",
+    sameAs: false,
   },
   {
     name: "Email",
     url: "mailto:info@yashcodes.com",
     icon: "Mail",
+    label: "Email Yash",
+    sameAs: false,
   },
 ];
 
@@ -129,37 +147,37 @@ export const skills: Skill[] = [
   {
     title: "Frontend Development",
     description:
-      "Expert in JavaScript, React, Vue.js, Next.js, and modern CSS frameworks like Tailwind CSS.",
+      "I've built CRM and admin screens, provider booking and calendar interfaces, and a frontend for social media automation. I work with React, Next.js, TypeScript, and Rails ERB. I also build search-friendly landing pages and content sites with HTML, CSS, and vanilla JavaScript.",
     icon: "Code",
   },
   {
     title: "Backend Development",
     description:
-      "Proficient in Ruby on Rails, Node.js, Express.js, NestJS, Django, and RESTful API development.",
+      "I've built APIs and backends with NestJS, plain Node.js, Python, Rust, and Ruby on Rails. My work ranges from booking, calendar integrations, and scheduled notifications to the services behind social media automation and OSINT tools.",
     icon: "Server",
   },
   {
-    title: "Database Management",
+    title: "Databases and Data Modeling",
     description:
-      "Experience with MySQL, PostgreSQL, MongoDB for scalable data solutions.",
+      "I design data models around what people need to find and update, then write the queries the application relies on. I've worked with PostgreSQL, MySQL, Oracle Database, and MongoDB.",
     icon: "Database",
   },
   {
-    title: "Mobile Development",
+    title: "Social Media Automation",
     description:
-      "Building responsive web apps and native applications with modern frameworks.",
-    icon: "Smartphone",
-  },
-  {
-    title: "DevOps & Deployment",
-    description:
-      "Skilled in Git, GitHub, Heroku, Netlify, and cloud deployment strategies.",
+      "I worked across the frontend and backend of a social media automation product. I reverse-engineered how parts of several platforms behaved, then used what I learned to build integrations and automate workflows with AI.",
     icon: "Globe",
   },
   {
-    title: "Performance & Testing",
+    title: "Mobile Apps, Games, and Utilities",
     description:
-      "TDD approach with RSpec, bug reduction by 30%, and performance optimization by 25%.",
+      "I've built apps for Android and iOS, written download managers, and developed games in Unity with C#.",
+    icon: "Smartphone",
+  },
+  {
+    title: "Testing and Delivery",
+    description:
+      "I run automated checks and browser-based end-to-end tests, and I check the staging build by hand before release. I've used GitHub Actions, GitLab, and Bitbucket for CI/CD.",
     icon: "Zap",
   },
 ];
@@ -167,135 +185,136 @@ export const skills: Skill[] = [
 // =============================================================================
 // PROJECTS PORTFOLIO
 // =============================================================================
-// Per-project action visibility (both flags are optional and default to true):
-//   showCode: false      hides the "Code" button for that project.
-//   showLiveDemo: false  hides the "Live Demo" button for that project.
-// Hiding one keeps the other; hiding both removes the action row entirely.
-// Example: { ..., showCode: false } renders only the Live Demo button.
-//
 // Projects render on the home page as cards and open a detail modal on click.
-// Besides the card fields, each project may carry these optional fields, which
-// are only used by the modal (see components/projects-section/project-modal.tsx):
+// `description` is the card summary; `longDescription` adds modal-only context.
+// Blank lines in `longDescription` become separate paragraphs.
 //
-//   longDescription — longer copy shown under the summary paragraph.
-//                     Falls back to `description` when omitted.
-//   highlights      — short bullet points listed under the highlights heading.
-//                     The whole section is hidden when this is missing/empty.
-//   role            — the part played on the project; hidden when omitted.
-//   year            — display year, e.g. "2024"; hidden when omitted. Omit it
-//                     rather than guessing if the date is not confirmed.
-//
-// Every link that is still "#" is rendered as a visibly disabled action.
+// `links` are public destinations. `showOnCard` adds a separate live link to
+// the card; otherwise the link appears only in the modal.
 export const projects: Project[] = [
   {
-    title: "Sendout.ai - SaaS Platform",
+    title: "Provider Scheduling and AI Marketplace",
     description:
-      "Currently maintaining and developing features for this AI-powered automation platform. Implementing reverse engineering solutions and bug fixes.",
-    image: "/modern-saas-dashboard.png",
-    tech: ["React", "Node.js", "AI Integration", "SaaS"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "https://sendout.ai",
-    role: "Full Stack Developer",
+      "I built the provider booking interface and backend, including connections to multiple calendars. For the newer AI marketplace, I built the payment system and a tool to find potential providers online.",
     longDescription:
-      "An AI-powered automation SaaS platform where I maintain the existing product and ship new features. The work spans the React frontend, the Node.js backend, and the AI integrations behind the platform's automation flows — including reverse-engineering existing behaviour to trace and fix defects.",
-    highlights: [
-      "Maintain and extend an AI-powered automation SaaS platform",
-      "Ship new features across a React and Node.js stack",
-      "Reverse-engineer existing behaviour to track down and fix defects",
+      "On the original marketplace, I built the screens providers used to manage appointments and the backend that let them connect multiple external calendars.\n\nFor the newer AI marketplace, I built the payment system and worked on an AI voice feature that called providers to arrange bookings. I also built a system from scratch to find potential providers online who could join the marketplace.",
+    image: "/project-cards/provider-scheduling-marketplace.webp",
+    imageAlt:
+      "Connected appointment calendars above symbols for payments, voice calls, and provider discovery.",
+    artworkLabel: "Illustration",
+    tech: [
+      "Appointment Scheduling",
+      "Calendar Integrations",
+      "Payments",
+      "AI Voice Calling",
+    ],
+    role: "Software Engineer",
+  },
+  {
+    title: "AI Social Media Automation",
+    description:
+      "I built frontend and backend features for a SaaS product that used AI to automate tasks across social media platforms.",
+    longDescription:
+      "The product needed to work across several social and professional networks. Where documentation was limited, I reverse-engineered how parts of those platforms behaved. I used what I learned to build integrations, then used AI to automate workflows that depended on them.",
+    image: "/project-cards/ai-social-media-automation.webp",
+    imageAlt:
+      "Social post and message tiles connected to an AI workflow and integration hub.",
+    artworkLabel: "Illustration",
+    tech: ["SaaS", "AI Automation", "Platform Integrations"],
+    role: "Full-Stack Developer",
+  },
+  {
+    title: "ERP, CRM, and POS Systems",
+    description:
+      "I built custom ERP, CRM, and point-of-sale systems, including interfaces and backend features for business records and internal workflows.",
+    longDescription:
+      "I worked on React interfaces and Node.js, Express, and MongoDB backends for ERP, CRM, and ticketing applications. I also built several point-of-sale systems for clients. I made a separate Next.js POS demo so people could see an example of the kind of work I do.",
+    image: "/project-cards/erp-crm-pos-systems.webp",
+    imageAlt:
+      "Point-of-sale terminal connected to customer, inventory, and support ticket modules.",
+    artworkLabel: "Illustration",
+    tech: ["ERP", "CRM", "Point of Sale", "Ticketing"],
+    role: "Full-Stack Developer",
+    links: [
+      {
+        label: "View POS Demo Code",
+        href: "https://github.com/yash244466666/ospos-nextjs",
+        external: true,
+      },
     ],
   },
   {
-    title: "ERP & CRM Systems",
+    title: "Lost and Found App",
     description:
-      "Developed comprehensive business management applications using MERN stack with ticket systems and workflow automation.",
-    image: "/business-management-dashboard.png",
-    tech: ["MongoDB", "Express.js", "React", "Node.js"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Full Stack Developer",
+      "I built a feature that sent administrators scheduled updates about activity on a lost-and-found website.",
     longDescription:
-      "Business management applications built on the MERN stack. The systems cover day-to-day operations, with ticket tracking and workflow automation tying the modules together.",
-    highlights: [
-      "Built ERP and CRM applications on MongoDB, Express.js, React, and Node.js",
-      "Implemented a ticket system for support and internal workflows",
-      "Automated recurring business workflows",
-    ],
+      "I added the notification feature to an existing Ruby on Rails app. It sent site activity updates to administrators at scheduled times so they could keep track of what was happening on the site.",
+    image: "/project-cards/lost-and-found-notifications.webp",
+    imageAlt:
+      "A tagged set of keys and a backpack linked to a notification bell and clock.",
+    artworkLabel: "Illustration",
+    tech: ["Ruby on Rails", "Scheduled Notifications"],
+    role: "Software Developer",
   },
   {
-    title: "Unity Game Development",
+    title: "Open-World Puzzle Game",
     description:
-      "Built interactive games using Unity and C# with advanced gameplay mechanics and user engagement features.",
-    image: "/unity-game-interface.png",
-    tech: ["Unity", "C#", "Game Development", "UI/UX"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Game Developer",
+      "I built the open world, menus, and character interactions for a multi-level puzzle game in Unity and C#.",
     longDescription:
-      "Interactive games built with Unity and C#. The work covered gameplay mechanics, player-facing UI/UX, and the engagement features that keep players coming back.",
-    highlights: [
-      "Built interactive games in Unity with C#",
-      "Implemented gameplay mechanics and player-facing UI/UX",
-      "Added user engagement features",
-    ],
+      "Players explored a city, collected puzzle pieces, and brought them back to the city center to solve the puzzle and finish each level. I built the open world they explored, the game menus, and the way the character interacted with the environment.",
+    image: "/project-cards/open-world-puzzle-game.webp",
+    imageAlt:
+      "Glowing puzzle pieces along city streets leading to a partly assembled puzzle in the central plaza.",
+    artworkLabel: "Illustration",
+    tech: ["Unity", "C#", "Open-World Game"],
+    role: "Game Development",
   },
   {
-    title: "Ruby on Rails Web App",
+    title: "YashCodes Developer Tools",
     description:
-      "Developed scalable web applications with Ruby on Rails, React, and PostgreSQL achieving 100% client satisfaction through rigorous testing.",
-    image: "/ruby-on-rails-web-application.png",
-    tech: ["Ruby on Rails", "React", "PostgreSQL", "RSpec"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Full Stack Developer",
+      "I built a collection of 88 browser-based tools for tasks like formatting JSON, converting timestamps, and compressing images.",
     longDescription:
-      "Scalable web applications built with Ruby on Rails, React, and PostgreSQL. RSpec testing ran alongside delivery, which is how the work reached 100% client satisfaction.",
-    highlights: [
-      "Built scalable web applications with Ruby on Rails and React",
-      "Modelled data in PostgreSQL",
-      "Covered behaviour with RSpec tests as part of delivery",
+      "I built YashCodes as my personal portfolio and a place to try common developer tools. I added search and categories so people could find the right utility. Each tool loads when opened, so visitors can browse the full directory before loading a widget. I designed an animated filmstrip for desktop and a stacked view for smaller screens and reduced-motion preferences.",
+    image: "/project-cards/yashcodes-tools.webp",
+    imageAlt:
+      "Live YashCodes tools directory showing search, categories, and utility cards.",
+    tech: ["Next.js", "React", "TypeScript", "GitHub Actions"],
+    role: "Personal Project",
+    links: [
+      { label: "Try the Tools", href: "/tools/", showOnCard: true },
+      { label: "Read Case Study", href: "/projects/yashcodes/" },
     ],
   },
+];
+
+// =============================================================================
+// MORE ENGINEERING WORK
+// =============================================================================
+export const additionalWork: AdditionalWorkItem[] = [
   {
-    title: "Lost & Found Mobile App",
+    title: "Mobile Applications",
     description:
-      "Improved existing application reducing bugs by 30% and enhancing performance by 25% through optimization and testing.",
-    image: "/mobile-app-interface-lost-and-found.png",
-    tech: ["Mobile Development", "Performance Optimization", "Testing"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Mobile Developer",
-    longDescription:
-      "An existing lost-and-found application that I improved rather than rebuilt. Profiling and testing cut bugs by 30% and improved performance by 25%, while keeping the flows people use most intact.",
-    highlights: [
-      "Reduced bugs by 30% in an existing mobile application",
-      "Improved performance by 25% through optimization and testing",
-      "Strengthened test coverage across core flows",
-    ],
+      "I've built apps for Android and iOS alongside my work on web applications.",
   },
   {
-    title: "Government R&H System",
+    title: "Download Managers",
+    description: "I've built download managers for handling file downloads.",
+  },
+  {
+    title: "AI Agent Workflows",
     description:
-      "Built robust applications for government department achieving 99% satisfaction rate through comprehensive testing and modern techniques.",
-    image: "/government-system-dashboard.png",
-    tech: ["Full Stack", "Government Systems", "Quality Assurance"],
-    github: "#", // TODO: Add actual GitHub link
-    live: "#", // TODO: Add actual live demo link
-    role: "Full Stack Developer",
-    longDescription:
-      "Full-stack applications for a government R&H department, delivered with a heavy quality-assurance process. Comprehensive testing and modern techniques brought the project to a 99% satisfaction rate.",
-    highlights: [
-      "Built full-stack applications for a government R&H department",
-      "Applied a comprehensive testing and quality-assurance process",
-      "Reached a 99% satisfaction rate with the delivered system",
-    ],
+      "I use AI agents in my own work and have built automations for teams and clients.",
+  },
+  {
+    title: "Cybersecurity and OSINT Tools",
+    description:
+      "I've built tools that automate cybersecurity and open-source intelligence tasks for both clients and employers.",
   },
 ];
 
 // =============================================================================
 // PROJECT DETAIL MODAL COPY
 // =============================================================================
-// Labels used by the project detail modal. Project-specific copy lives on the
-// projects above; this covers the surrounding UI so it can be edited in one place.
 export const projectModalContent: ProjectModalContent = {
   // Accessible label for the full-card button. "{title}" becomes the project title.
   openLabelTemplate: "View {title} details",
@@ -306,8 +325,8 @@ export const projectModalContent: ProjectModalContent = {
   // Labels for the optional meta row entries.
   roleLabel: "Role",
   yearLabel: "Year",
-  // Shown on actions whose link is still a "#" placeholder.
-  unavailableLabel: "Coming soon",
+  // Heading above the optional public links list.
+  linksHeading: "Links",
 };
 
 // =============================================================================
@@ -330,9 +349,8 @@ export const buttonTexts: ButtonTexts = {
   viewMyWork: "View My Work",
   letsTalk: "Let's Talk",
   sendMessage: "Send Message",
-  code: "Code",
-  liveDemo: "Live Demo",
   downloadResume: "Download Resume",
+  viewDetails: "View Project Details",
 };
 
 // =============================================================================
@@ -342,19 +360,23 @@ export const sectionContent: SectionContent = {
   about: {
     heading: "About Me",
     description:
-      "I'm a software builder who loves coding and making things work faster and efficiently. With 1800+ hours mastering algorithms, data structures, and full-stack development, I've helped improve applications reducing bugs by 30% and improving performance by 25%.",
+      "I'm MD. Mohi Minul Islam Yash, a full-stack software engineer. I like working with teammates to take a feature from the first conversation through release. I've worked with people across countries and cultures and led a team in one previous role. I've built web and mobile apps, download managers, and Unity games, and worked with languages from TypeScript to C++. I use AI agents in my own work and have built automations for teams and clients. I've also built cybersecurity and open-source intelligence (OSINT) automation tools for both clients and employers.",
   },
   projects: {
     heading: "Featured Projects",
     description:
-      "Here are some of my professional projects spanning SaaS platforms, enterprise applications, and mobile solutions that demonstrate my expertise in full-stack development.",
+      "Here are some of the systems I've built, from provider booking and business applications to AI automation and games. Open a project to see what I worked on and how it fit into the product.",
+    moreWorkHeading: "More Engineering Work",
   },
   contact: {
-    heading: "Let's Work Together",
+    heading: "Let's Talk About Your Team",
     description:
-      "Ready to bring your ideas to life? I'm always excited to work on new projects and collaborate with amazing people. Let's create something extraordinary together.",
+      "I'm open to full-stack software engineering roles. If you're hiring, I'd like to hear what your team is building and where I could help.",
     formTitle: "Send Me a Message",
-    infoTitle: "Get In Touch",
+    formDescription:
+      "A short note is enough to get started. If you have a job description or project brief, you can attach it.",
+    infoTitle: "Reach Me Directly",
+    infoDescription: "Prefer email or a quick call? Here's how to reach me.",
   },
 };
 
@@ -365,7 +387,7 @@ export const formContent: FormContent = {
   placeholders: {
     name: "Your Name",
     email: "Your Email",
-    message: "Tell me about your project...",
+    message: "Tell me about the role or what you'd like to discuss.",
   },
   labels: {
     name: "Name",
@@ -379,15 +401,15 @@ export const formContent: FormContent = {
     hint: "Any format · up to 100 MB per file · max 5 files.",
     remove: "Remove",
     limitReached: "5 files selected — that is the maximum.",
-    privacy:
-      "Your file is stored privately, shared by an expiring link, and deleted after 30 days.",
+    privacy: "Your file is stored privately and deleted after 30 days.",
   },
   status: {
-    sending: "Sending…",
-    success: "Message sent — check your inbox for a confirmation.",
+    sending: "Sending your message…",
+    success: "Message sent. Check your inbox for a confirmation.",
     successNoConfirmation:
-      "Message sent. The confirmation email could not be delivered, but your message reached me.",
-    error: "Your message could not be sent. Please try again or email me directly.",
+      "Your message reached me. The confirmation email could not be sent.",
+    error:
+      "Your message could not be sent. Try again or email me directly.",
     verificationRequired: "Please complete the verification check before sending.",
     verificationUnavailable:
       "Verification could not load. Refresh the page or email me directly.",
@@ -398,13 +420,14 @@ export const formContent: FormContent = {
       "Your email address is used only to reply to you and send a confirmation. It is not stored on this site.",
     protectedBy: "Protected by Cloudflare",
     fileTooLarge: "That file is larger than 100 MB. Please choose a smaller one.",
-    fileTypeUnsupported: "That file has no extension, so its type cannot be detected.",
+    fileTypeUnsupported:
+      "That file has no extension, so its type cannot be detected.",
     fileNotSent:
       "The file was not delivered either — attach it manually if you email me directly.",
     attachmentRejected:
       "The mail provider refused that file. Try a PDF or an image, or email me directly.",
     attachmentAsLink:
-      "Message sent — your file is attached to the email as a download link.",
+      "Message sent. Your file was shared as a download link.",
     fileUploadFailed:
       "Your file could not be uploaded. Try again, or pick a smaller file.",
     tooManyFiles: "You can attach up to 5 files per message.",
@@ -421,27 +444,36 @@ export const formContent: FormContent = {
 // =============================================================================
 export const footerContent: FooterContent = {
   copyrightYear: new Date().getFullYear().toString(),
-  copyrightText:
-    `© ${new Date().getFullYear()} Yash. All rights reserved. Built with modern web technologies.`,
+  copyrightText: `© ${new Date().getFullYear()} MD. Mohi Minul Islam Yash. All rights reserved.`,
 };
 
 // =============================================================================
 // WEBSITE METADATA
 // =============================================================================
 export const siteMetadata: SiteMetadata = {
-  title: "Yash - Full Stack Software Engineer",
+  title: "MD. Mohi Minul Islam Yash – Full-Stack Software Engineer",
   description:
-    "Software builder specializing in JavaScript, React, Ruby on Rails, and modern web applications. Creating scalable solutions with efficient code.",
+    "MD. Mohi Minul Islam Yash is a full-stack software engineer. Explore his work in web apps, marketplace booking, integrations, and AI automation, and get in touch.",
   keywords: [
-    "Full Stack Developer",
+    "MD. Mohi Minul Islam Yash",
+    "Mohi Minul Islam Yash",
+    "Yash Sikdar",
+    "YashCodes",
+    "Full-Stack Software Engineer",
+    "Web Application Developer",
+    "Automation and Integrations",
     "React",
+    "Next.js",
+    "Node.js",
     "Ruby on Rails",
-    "JavaScript",
-    "Web Development",
-    "Software Engineer",
+    "AI automation",
+    "OSINT",
   ],
-  author: "Yash",
+  author: "MD. Mohi Minul Islam Yash",
   siteUrl: "https://yashcodes.com",
+  ogImage: "/og-image.png",
+  jobTitle: "Full-Stack Software Engineer",
+  twitterHandle: "@yash_solo000",
 };
 
 // =============================================================================
@@ -493,7 +525,8 @@ export const validateContent = (): ContentValidation => {
   const errors: string[] = [];
 
   // Check personal info
-  if (!personalInfo.name) errors.push("Personal name is required");
+  if (!personalInfo.name) errors.push("Personal brand name is required");
+  if (!personalInfo.fullName) errors.push("Personal full name is required");
   if (!personalInfo.tagline) errors.push("Personal tagline is required");
 
   // Check social links
@@ -502,6 +535,11 @@ export const validateContent = (): ContentValidation => {
 
   // Check projects
   if (projects.length === 0) errors.push("At least one project is required");
+  projects.forEach((project) => {
+    if (!project.imageAlt) {
+      errors.push(`Project "${project.title}" needs image alt text`);
+    }
+  });
 
   // Check skills
   if (skills.length === 0) errors.push("At least one skill is required");

@@ -11,9 +11,16 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Yash - Full Stack Software Engineer",
+  metadataBase: new URL("https://yashcodes.com"),
+  title: {
+    default: "MD. Mohi Minul Islam Yash – Full-Stack Software Engineer",
+    template: "%s | YashCodes",
+  },
   description:
-    "Software builder specializing in JavaScript, React, Ruby on Rails, and modern web applications. Creating scalable solutions with efficient code.",
+    "MD. Mohi Minul Islam Yash is a full-stack software engineer. Explore his work in web apps, marketplace booking, integrations, and AI automation, and get in touch.",
+  applicationName: "YashCodes",
+  authors: [{ name: "MD. Mohi Minul Islam Yash", url: "https://yashcodes.com/" }],
+  creator: "MD. Mohi Minul Islam Yash",
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
@@ -27,8 +34,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} antialiased dark`}>
+    <html lang="en" className={`${dmSans.variable} antialiased dark`} suppressHydrationWarning>
       <body className="font-sans bg-gray-950 text-white overflow-x-hidden" suppressHydrationWarning={true}>
+        {/* Runs before the body paints. Content is visible without JS; the
+            class lets entrance animations start hidden only when scripting is
+            available. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
         {children}
       </body>
     </html>

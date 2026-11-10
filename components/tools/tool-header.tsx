@@ -14,9 +14,15 @@ interface ToolHeaderProps {
   onHomeClick?: () => void
   onCategoryClick?: (categoryId: string) => void
   onReset?: () => void
+  /**
+   * Standalone tool pages already render a page-level h1, so they hide the
+   * duplicate tool title while keeping the description, tags, and actions.
+   * Defaults to true.
+   */
+  showTitle?: boolean
 }
 
-export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick, onReset }: ToolHeaderProps) {
+export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick, onReset, showTitle = true }: ToolHeaderProps) {
   const [isCapturing, setIsCapturing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [isError, setIsError] = useState(false)
@@ -30,7 +36,7 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
   // their place and can press Enter/Space to return immediately.
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
-      backButtonRef.current?.focus()
+      backButtonRef.current?.focus({ preventScroll: true })
     })
     return () => cancelAnimationFrame(raf)
   }, [])
@@ -177,19 +183,21 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
 
           {/* Title and Description */}
           <div className="tool-header__meta">
-            <div className="tool-header__title-row flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
-              <div className="tool-header__icon-mobile relative group shrink-0 sm:hidden">
-                <div className="relative p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary">
-                  <IconComponent className="h-5 w-5" />
+            {showTitle ? (
+              <div className="tool-header__title-row flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
+                <div className="tool-header__icon-mobile relative group shrink-0 sm:hidden">
+                  <div className="relative p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-primary">
+                    <IconComponent className="h-5 w-5" />
+                  </div>
                 </div>
+                <h1 className="tool-header__title text-2xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 min-w-0">
+                  {tool.label}
+                </h1>
+                <span className="tool-header__category-badge px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider hidden sm:inline-block">
+                  {categoryLabel}
+                </span>
               </div>
-              <h1 className="tool-header__title text-2xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 min-w-0">
-                {tool.label}
-              </h1>
-              <span className="tool-header__category-badge px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider hidden sm:inline-block">
-                {categoryLabel}
-              </span>
-            </div>
+            ) : null}
 
             <p className="tool-header__description text-muted-foreground text-base sm:text-lg max-w-2xl leading-relaxed mb-4">
               {tool.description}

@@ -9,6 +9,7 @@ import {
   contactInfo,
   skills,
   projects,
+  additionalWork,
   projectModalContent,
   sectionContent,
   buttonTexts,
@@ -16,6 +17,7 @@ import {
   footerContent,
   siteMetadata,
   type Project,
+  type SectionContent,
 } from "./index";
 
 // =============================================================================
@@ -48,18 +50,25 @@ export const getSkills = () => skills;
 export const getProjects = () => projects;
 
 /**
+ * Get the text-only "More Engineering Work" entries.
+ */
+export const getAdditionalWork = () => additionalWork;
+
+/**
  * Get project detail modal copy (labels and accessible names)
  */
 export const getProjectModalContent = () => projectModalContent;
 
 /**
- * Get section content by section name
+ * Get section content by section name. Overloads keep each section's fields
+ * typed instead of returning a union of every section shape.
  */
-export const getSectionContent = (
-  section: "about" | "projects" | "contact"
-) => {
+export function getSectionContent(section: "about"): SectionContent["about"];
+export function getSectionContent(section: "projects"): SectionContent["projects"];
+export function getSectionContent(section: "contact"): SectionContent["contact"];
+export function getSectionContent(section: "about" | "projects" | "contact") {
   return sectionContent[section];
-};
+}
 
 /**
  * Get button texts
@@ -80,6 +89,16 @@ export const getFooterContent = () => footerContent;
  * Get site metadata
  */
 export const getSiteMetadata = () => siteMetadata;
+
+/**
+ * Personal profile URLs eligible for Person `sameAs` structured data.
+ * Brand pages and the mailto link are deliberately excluded.
+ */
+export const getPersonSameAsLinks = () => {
+  return socialLinks
+    .filter((link) => link.sameAs && /^https?:\/\//i.test(link.url))
+    .map((link) => link.url);
+};
 
 // =============================================================================
 // SPECIFIC CONTENT SELECTORS
@@ -106,15 +125,6 @@ export const getAboutDescription = () => personalInfo.aboutDescription;
 export const getFeaturedProjects = (limit?: number) => {
   return limit ? projects.slice(0, limit) : projects;
 };
-
-/**
- * Resolve which actions should be rendered for a project.
- * Omitted flags default to `true`, so existing content keeps both actions.
- */
-export const getProjectActionVisibility = (project: Project) => ({
-  showCode: project.showCode !== false,
-  showLiveDemo: project.showLiveDemo !== false,
-});
 
 /**
  * Get skills by category (if you want to group them later)
@@ -158,20 +168,6 @@ export const getProjectsByTech = (tech: string) => {
 };
 
 /**
- * Get projects with live demos
- */
-export const getProjectsWithDemos = () => {
-  return projects.filter((project) => project.live && project.live !== "#");
-};
-
-/**
- * Get projects with GitHub links
- */
-export const getProjectsWithGitHub = () => {
-  return projects.filter((project) => project.github && project.github !== "#");
-};
-
-/**
  * Whether a project link is still a "#" placeholder (or missing).
  * Placeholder links must never be rendered as working links.
  */
@@ -201,28 +197,8 @@ export const isProjectComplete = (project: Project): boolean => {
     project.title &&
     project.description &&
     project.image &&
+    project.imageAlt &&
     project.tech.length > 0
-  );
-};
-
-/**
- * Get incomplete projects (missing links, etc.)
- */
-export const getIncompleteProjects = () => {
-  return projects.filter(
-    (project) =>
-      project.github === "#" ||
-      project.live === "#" ||
-      !isProjectComplete(project)
-  );
-};
-
-/**
- * Get projects that need attention (placeholder links)
- */
-export const getProjectsNeedingLinks = () => {
-  return projects.filter(
-    (project) => project.github === "#" || project.live === "#"
   );
 };
 
@@ -235,6 +211,9 @@ export const validateSocialLinks = () => {
   socialLinks.forEach((link) => {
     if (!link.url || link.url.startsWith("#")) {
       issues.push(`${link.name} needs a valid URL`);
+    }
+    if (!link.label) {
+      issues.push(`${link.name} needs an accessible label`);
     }
   });
 
@@ -251,15 +230,17 @@ export const validateSocialLinks = () => {
 export const getContentStats = () => {
   return {
     totalProjects: projects.length,
-    projectsWithDemos: getProjectsWithDemos().length,
-    projectsWithGitHub: getProjectsWithGitHub().length,
-    incompleteProjects: getIncompleteProjects().length,
+    projectsWithLinks: projects.filter((project) => (project.links?.length ?? 0) > 0)
+      .length,
+    incompleteProjects: projects.filter((project) => !isProjectComplete(project))
+      .length,
     totalSkills: skills.length,
     totalSocialLinks: socialLinks.length,
+    totalAdditionalWork: additionalWork.length,
     contentCompleteness: {
       projects:
-        ((getProjectsWithDemos().length + getProjectsWithGitHub().length) /
-          (projects.length * 2)) *
+        (projects.filter((project) => isProjectComplete(project)).length /
+          projects.length) *
         100,
       socialLinks:
         (socialLinks.filter((link) => !link.url.startsWith("#")).length /
@@ -280,34 +261,31 @@ export const contentUtils = {
   getContactInfo,
   getSkills,
   getProjects,
+  getAdditionalWork,
   getProjectModalContent,
   getSectionContent,
   getButtonTexts,
   getFormContent,
   getFooterContent,
   getSiteMetadata,
+  getPersonSameAsLinks,
 
   // Specific selectors
   getTypingTitles,
   getTagline,
   getAboutDescription,
   getFeaturedProjects,
-  getProjectActionVisibility,
   getSkillsByCategory,
   getSocialLinksForDisplay,
   getContactInfoForDisplay,
 
   // Search & filter
   getProjectsByTech,
-  getProjectsWithDemos,
-  getProjectsWithGitHub,
   isPlaceholderLink,
   getSkillsByKeyword,
 
   // Validation
   isProjectComplete,
-  getIncompleteProjects,
-  getProjectsNeedingLinks,
   validateSocialLinks,
 
   // Statistics

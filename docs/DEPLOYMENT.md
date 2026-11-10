@@ -64,6 +64,25 @@ an owner-only team, or a second-reviewer flow is added.
   Fonts fetch; the workflow now retries the build up to three times, and the
   reruns passed.
 
+### 2026-11-10 search-ready staging release
+
+- A 2026-11-10 build containing the server-rendered homepage, four standalone
+  tool pages, the YashCodes case study, `robots.txt`, and `sitemap.xml` was
+  deployed directly to `/opt/stacks/caddy/html/beta` because GitHub API access
+  was rate-limited in the working environment. The feature branch is pushed
+  separately for the normal PR flow.
+- The beta Caddy block redirects `/index.html`, `/tools`, `/tools/index.html`,
+  the four `/tools/<slug>` aliases, and `/projects/yashcodes` to the
+  trailing-slash canonical URL in one hop. Query strings are preserved.
+- The beta block sets `X-Robots-Tag: noindex`; production remains indexable.
+- Production received only the generic `/index.html` and `/tools` redirects.
+  Add the tool-page and case-study aliases when the release reaches production.
+- Pre-change backup: `/opt/stacks/caddy/Caddyfile.bak-20261110-104251`.
+- Caddy bind-mounts the Caddyfile as a single file. Edit it **in place**
+  (`sudo sh -c 'cat new-Caddyfile > /opt/stacks/caddy/Caddyfile'`) and reload.
+  Replacing the inode (for example with `install`) leaves the running container
+  on the old file until the container is restarted.
+
 ## What the workflow does
 
 `.github/workflows/deploy.yml` runs on:
@@ -413,6 +432,22 @@ it as a deployment credential.
 The deploy user does not own the existing directories. Use `rsync -rlz
 --chmod=D755,F644` rather than `rsync -a`. The files are deployed correctly;
 only directory timestamps fail.
+
+### Manual deploy as `yash` fails with `mkstemp ... Permission denied`
+
+The site files are owned by `deploy`; `yash` can write the top-level directory
+but not the existing subdirectories. Sync the build to a temporary remote
+directory first, then run the final sync as root with the correct ownership:
+
+```bash
+rsync -rlz --delete --delay-updates --chmod=D755,F644 \
+  out/ oracle-2:/tmp/portfolio-beta/
+ssh oracle-2 'sudo rsync -rlz --delete --delay-updates \
+  --chmod=D755,F644 --chown=deploy:site-deploy \
+  /tmp/portfolio-beta/ /opt/stacks/caddy/html/beta/'
+```
+
+Do not leave the remote temporary copy in place after the deploy.
 
 ### `Permission denied (publickey)`
 

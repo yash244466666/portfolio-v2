@@ -1,39 +1,49 @@
 "use client"
 
+import type { MouseEvent } from "react"
 import { Button } from "@/components/ui/button"
 
 interface HeroActionsProps {
     primaryLabel: string
     secondaryLabel: string
-    onPrimaryClick: () => void
-    onSecondaryClick: () => void
-    isVisible?: boolean
+    primaryHref: string
+    secondaryHref: string
+    onPrimaryClick?: (event: MouseEvent<HTMLAnchorElement>) => void
+    onSecondaryClick?: (event: MouseEvent<HTMLAnchorElement>) => void
 }
 
 export function HeroActions({
     primaryLabel,
     secondaryLabel,
+    primaryHref,
+    secondaryHref,
     onPrimaryClick,
     onSecondaryClick,
-    isVisible = false,
 }: HeroActionsProps) {
     return (
-        <div className={`transition-all duration-1000 delay-400 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-12 px-4 sm:px-0">
+        <div
+            className="animate-fade-in-up motion-reduce:animate-none"
+            style={{ animationDelay: "360ms" }}
+        >
+            <div className="mb-8 flex flex-col items-center justify-center gap-3 px-4 sm:mb-12 sm:flex-row sm:gap-4 sm:px-0">
                 <Button
+                    asChild
                     size="lg"
-                    onClick={onPrimaryClick}
-                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-3 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                    className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 px-6 py-3 text-white shadow-lg transition-all hover:from-purple-700 hover:to-cyan-700 hover:shadow-xl sm:w-auto sm:px-8"
                 >
-                    {primaryLabel}
+                    <a href={primaryHref} onClick={onPrimaryClick}>
+                        {primaryLabel}
+                    </a>
                 </Button>
                 <Button
+                    asChild
                     variant="outline"
                     size="lg"
-                    onClick={onSecondaryClick}
-                    className="w-full sm:w-auto border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white px-6 sm:px-8 py-3 transition-all transform hover:scale-105"
+                    className="w-full border-gray-600 px-6 py-3 text-gray-300 transition-all hover:bg-gray-800 hover:text-white sm:w-auto sm:px-8"
                 >
-                    {secondaryLabel}
+                    <a href={secondaryHref} onClick={onSecondaryClick}>
+                        {secondaryLabel}
+                    </a>
                 </Button>
             </div>
         </div>

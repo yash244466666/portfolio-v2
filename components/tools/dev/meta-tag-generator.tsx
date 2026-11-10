@@ -5,6 +5,19 @@ import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
 
+/** Escape text nodes: &, <, and >. */
+function escapeText(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+}
+
+/** Escape a double-quoted attribute value: text escaping plus quotes. */
+function escapeAttribute(value: string): string {
+  return escapeText(value).replace(/"/g, "&quot;")
+}
+
 export default function MetaTagGenerator() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -26,33 +39,33 @@ export default function MetaTagGenerator() {
   const generatedHtml = useMemo(() => {
     const lines: string[] = []
     lines.push("<!-- Primary Meta Tags -->")
-    if (title) lines.push(`<title>${title}</title>`)
-    if (description) lines.push(`<meta name="description" content="${description}" />`)
-    if (keywords) lines.push(`<meta name="keywords" content="${keywords}" />`)
-    if (author) lines.push(`<meta name="author" content="${author}" />`)
-    if (viewport) lines.push(`<meta name="viewport" content="${viewport}" />`)
-    if (robots) lines.push(`<meta name="robots" content="${robots}" />`)
-    if (canonical) lines.push(`<link rel="canonical" href="${canonical}" />`)
+    if (title) lines.push(`<title>${escapeText(title)}</title>`)
+    if (description) lines.push(`<meta name="description" content="${escapeAttribute(description)}" />`)
+    if (keywords) lines.push(`<meta name="keywords" content="${escapeAttribute(keywords)}" />`)
+    if (author) lines.push(`<meta name="author" content="${escapeAttribute(author)}" />`)
+    if (viewport) lines.push(`<meta name="viewport" content="${escapeAttribute(viewport)}" />`)
+    if (robots) lines.push(`<meta name="robots" content="${escapeAttribute(robots)}" />`)
+    if (canonical) lines.push(`<link rel="canonical" href="${escapeAttribute(canonical)}" />`)
 
     const hasOg = ogTitle || ogDescription || ogImage || ogUrl
     if (hasOg) {
       lines.push("")
       lines.push("<!-- Open Graph / Facebook -->")
-      lines.push(`<meta property="og:type" content="${ogType}" />`)
-      if (ogTitle) lines.push(`<meta property="og:title" content="${ogTitle}" />`)
-      if (ogDescription) lines.push(`<meta property="og:description" content="${ogDescription}" />`)
-      if (ogImage) lines.push(`<meta property="og:image" content="${ogImage}" />`)
-      if (ogUrl) lines.push(`<meta property="og:url" content="${ogUrl}" />`)
+      lines.push(`<meta property="og:type" content="${escapeAttribute(ogType)}" />`)
+      if (ogTitle) lines.push(`<meta property="og:title" content="${escapeAttribute(ogTitle)}" />`)
+      if (ogDescription) lines.push(`<meta property="og:description" content="${escapeAttribute(ogDescription)}" />`)
+      if (ogImage) lines.push(`<meta property="og:image" content="${escapeAttribute(ogImage)}" />`)
+      if (ogUrl) lines.push(`<meta property="og:url" content="${escapeAttribute(ogUrl)}" />`)
     }
 
     const hasTw = twTitle || twDescription || twImage
     if (hasTw) {
       lines.push("")
       lines.push("<!-- Twitter -->")
-      lines.push(`<meta name="twitter:card" content="${twCard}" />`)
-      if (twTitle) lines.push(`<meta name="twitter:title" content="${twTitle}" />`)
-      if (twDescription) lines.push(`<meta name="twitter:description" content="${twDescription}" />`)
-      if (twImage) lines.push(`<meta name="twitter:image" content="${twImage}" />`)
+      lines.push(`<meta name="twitter:card" content="${escapeAttribute(twCard)}" />`)
+      if (twTitle) lines.push(`<meta name="twitter:title" content="${escapeAttribute(twTitle)}" />`)
+      if (twDescription) lines.push(`<meta name="twitter:description" content="${escapeAttribute(twDescription)}" />`)
+      if (twImage) lines.push(`<meta name="twitter:image" content="${escapeAttribute(twImage)}" />`)
     }
 
     return lines.join("\n")
@@ -61,7 +74,7 @@ export default function MetaTagGenerator() {
   const fields = [
     { label: "Title", value: title, setter: setTitle, placeholder: "My Website" },
     { label: "Description", value: description, setter: setDescription, placeholder: "A brief description of your website" },
-    { label: "Keywords", value: keywords, setter: setKeywords, placeholder: "web, development, tools" },
+    { label: "Keywords (legacy)", value: keywords, setter: setKeywords, placeholder: "web, development, tools" },
     { label: "Author", value: author, setter: setAuthor, placeholder: "John Doe" },
     { label: "Viewport", value: viewport, setter: setViewport, placeholder: "width=device-width, initial-scale=1" },
     { label: "Robots", value: robots, setter: setRobots, placeholder: "index, follow" },
@@ -166,6 +179,11 @@ export default function MetaTagGenerator() {
           <CopyButton text={generatedHtml} />
         </div>
         <pre className="text-sm font-mono text-foreground whitespace-pre-wrap break-all">{generatedHtml}</pre>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Text is escaped for &amp;, &lt;, and &gt;; quoted attributes also escape
+          double quotes. Keywords are kept for legacy systems and are ignored by
+          Google.
+        </p>
       </ToolResult>
     </div>
   )

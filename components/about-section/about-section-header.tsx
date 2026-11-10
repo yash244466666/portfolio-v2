@@ -9,7 +9,7 @@ interface AboutSectionHeaderProps {
 export function AboutSectionHeader({ heading, description, isVisible = false }: AboutSectionHeaderProps) {
     return (
         <div
-            className={`text-center mb-12 sm:mb-16 transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"
+            className={`text-center mb-12 sm:mb-16 transition-all duration-1000 motion-reduce:animate-none ${isVisible ? "animate-fade-in-up" : "reveal-pending"
                 }`}
         >
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">{heading}</h2>

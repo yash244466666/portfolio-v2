@@ -46,7 +46,10 @@ interface CompressionResult {
   url: string
   /** True when the untouched original file is the result. */
   keptOriginal: boolean
+  /** MIME type actually returned by the encoder. */
   mime: string
+  /** MIME type the settings asked for; differs when the browser falls back. */
+  requestedMime: string
   width: number
   height: number
   size: number
@@ -273,6 +276,7 @@ export default function ImageCompressor() {
         url: current.url,
         keptOriginal: true,
         mime: current.mime,
+        requestedMime: current.mime,
         width: current.width,
         height: current.height,
         size: current.file.size,
@@ -333,7 +337,11 @@ export default function ImageCompressor() {
           background: flatten ? background : undefined,
         })
         if (operationToken !== operationTokenRef.current) return
-        if (!best || blob.size < best.blob.size) best = { blob, mime }
+        // canvas.toBlob may fall back to PNG when the requested encoder is not
+        // available. Label the bytes by the type the browser actually
+        // returned, not by the format the select asked for.
+        const actualMime = (blob.type || mime).toLowerCase()
+        if (!best || blob.size < best.blob.size) best = { blob, mime: actualMime }
       }
 
       // Never hand back something larger than what the user already has.
@@ -348,6 +356,13 @@ export default function ImageCompressor() {
         return
       }
 
+      const requestedMime =
+        format === "auto"
+          ? best.mime
+          : format === "original"
+            ? current.mime
+            : ENCODABLE_MIME_BY_FORMAT[format]
+
       const url = URL.createObjectURL(best.blob)
       if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
       resultUrlRef.current = url
@@ -355,6 +370,7 @@ export default function ImageCompressor() {
         url,
         keptOriginal: false,
         mime: best.mime,
+        requestedMime,
         width: targetDimensions.width,
         height: targetDimensions.height,
         size: best.blob.size,
@@ -642,6 +658,13 @@ export default function ImageCompressor() {
               {result.keptOriginal && result.reason && (
                 <p className="text-sm text-amber-400">{result.reason}</p>
               )}
+
+              {!result.keptOriginal && result.requestedMime !== result.mime ? (
+                <p className="text-sm text-amber-400">
+                  Your browser encoded this as {formatLabel(result.mime)} instead
+                  of {formatLabel(result.requestedMime)}.
+                </p>
+              ) : null}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <figure className="overflow-hidden rounded-lg border border-border/50 bg-background/40">

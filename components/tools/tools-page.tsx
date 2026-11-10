@@ -1,9 +1,26 @@
 "use client"
 
 import { useEffect, useCallback, useRef, useState } from "react"
-import { getToolsPageContent, searchTools } from "@/lib/content/tools/utils"
+import { getToolsPageContent, getToolById, searchTools } from "@/lib/content/tools/utils"
 import ToolsGrid, { ToolsGridHandle } from "@/components/tools/tools-grid"
+import ToolsDirectoryHeader from "@/components/tools/tools-directory-header"
 import ToolView from "@/components/tools/tool-view"
+
+/**
+ * Resolve a URL fragment to a registered tool ID. Unknown fragments (including
+ * the `#tools-content` skip link) must leave the directory visible rather than
+ * opening the "Tool Not Found" state.
+ */
+function registeredToolIdFromHash(hash: string): string | null {
+  if (!hash || hash === "#") return null
+  let id: string
+  try {
+    id = decodeURIComponent(hash.slice(1))
+  } catch {
+    return null
+  }
+  return id && getToolById(id) ? id : null
+}
 
 export default function ToolsPage() {
   const [activeToolId, setActiveToolId] = useState<string | null>(null)
@@ -23,9 +40,9 @@ export default function ToolsPage() {
     const originalScrollRestoration = window.history.scrollRestoration
     window.history.scrollRestoration = "manual"
 
-    const hash = window.location.hash.slice(1)
-    if (hash) {
-      setActiveToolId(hash)
+    const hashToolId = registeredToolIdFromHash(window.location.hash)
+    if (hashToolId) {
+      setActiveToolId(hashToolId)
       window.scrollTo(0, 0)
     } else {
       // The initial tools page entry should always restore to the very top.
@@ -41,8 +58,12 @@ export default function ToolsPage() {
   // stored in the history entry.
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
-      const hash = window.location.hash.slice(1)
-      const nextToolId = event.state?.toolId || hash || null
+      const stateToolId =
+        typeof event.state?.toolId === "string" && getToolById(event.state.toolId)
+          ? event.state.toolId
+          : null
+      const nextToolId =
+        stateToolId || registeredToolIdFromHash(window.location.hash)
       setActiveToolId(nextToolId)
 
       if (!nextToolId) {
@@ -132,6 +153,7 @@ export default function ToolsPage() {
        * position explicitly through history state.
        */}
       <div className={showToolView ? "hidden" : "block"}>
+        <ToolsDirectoryHeader />
         <ToolsGrid
           ref={gridRef}
           tools={filteredTools}

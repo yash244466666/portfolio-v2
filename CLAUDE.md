@@ -1,21 +1,24 @@
 # Repository Context for Coding Agents
 
-> Last verified: 2026-11-01
+> Last verified: 2026-11-10
 > Applies to: AGENT.md and CLAUDE.md
 > These two files intentionally contain the same repository guidance. Keep them synchronized.
 
 ## 1. Project summary
 
-This repository contains MD. Mohi Minul Islam Yash's personal portfolio (display name: Yash Sikdar) and a large collection of browser-based developer utilities.
+This repository contains MD. Mohi Minul Islam Yash's personal portfolio (site brand: YashCodes) and a large collection of browser-based developer utilities.
 
-The application has two public routes:
+The application exposes these public routes:
 
-- **/** — an animated single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
-- **/tools/** — a searchable catalog of 87 utilities with category navigation, cinematic desktop scrolling, mobile fallbacks, hash-addressable tool views, and lazy-loaded implementations.
+- **/** — an animated single-page portfolio with navigation, hero, about, projects, contact, footer, and back-to-top sections. The full visible content is server-rendered; the loading screen is a decorative overlay.
+- **/tools/** — a searchable catalog of 88 utilities with category navigation, cinematic desktop scrolling, mobile fallbacks, hash-addressable tool views, a visible directory `h1`, and normal links to the first published tool pages.
+- **/tools/json-editor/**, **/tools/timestamp-converter/**, **/tools/image-compressor/**, **/tools/meta-tag-generator/** — standalone tool pages with server-rendered answer copy, a worked example, the live widget, and related links.
+- **/projects/yashcodes/** — the YashCodes developer-tools case study.
+- **/robots.txt** and **/sitemap.xml** — generated at build time from the published-page inventory.
 
 The frontend is a Next.js App Router application configured as a static export. The site is fully static: there is no Next.js server runtime or API route. The only backend is the separate Cloudflare Worker in **workers/contact**, which the contact form POSTs to; it sends an owner notification and a visitor confirmation through Brevo, with a prefilled `mailto:` link as the fallback.
 
-The UI is dark-themed, animation-heavy, and predominantly client-rendered. Preserve reduced-motion behavior, keyboard navigation, mobile layouts, and static-export compatibility when making changes.
+The UI is dark-themed and animation-heavy. Visible content is server-rendered, while the backgrounds, loader, typewriter, reveals, and interactions are client-side. Preserve reduced-motion behavior, keyboard navigation, mobile layouts, no-JS visibility, and static-export compatibility when making changes.
 
 ## 2. Sources of truth
 
@@ -25,10 +28,16 @@ Important source-of-truth files:
 
 - **package.json** — installed packages and scripts.
 - **next.config.mjs** — static-export and development-proxy behavior.
-- **app/page.tsx** — home-page composition and loading lifecycle.
-- **app/tools/page.tsx** — tools route shell.
+- **app/page.tsx** — home route metadata and structured data; renders **components/home-page.tsx**.
+- **components/home-page.tsx** — client home composition and loader overlay lifecycle.
+- **app/tools/page.tsx** — tools route metadata; renders **components/tools/tools-route.tsx**.
+- **app/tools/[slug]/page.tsx** — four static standalone tool pages; its inventory is **lib/content/tool-pages.ts**.
+- **app/projects/yashcodes/page.tsx** — YashCodes case study.
+- **app/robots.ts** and **app/sitemap.ts** — build-time crawl files.
+- **lib/seo.ts** — canonical, Open Graph, Twitter, JSON-LD, and page-metadata helpers.
 - **components/backgrounds/index.tsx** — available backgrounds and environment-controlled mode.
 - **lib/content/index.ts** — portfolio copy, navigation, skills, projects, contact details, and labels.
+- **lib/content/tool-pages.ts** — the published tool-page inventory, answer copy, examples, related links, promoted IDs, and standalone paths.
 - **lib/content/tools/index.ts** — tool categories and all tool definitions.
 - **components/tools/tools-page.tsx** — tools hash/history state.
 - **components/tools/tools-sections.tsx** — pinned horizontal desktop scrolling.
@@ -148,11 +157,21 @@ Consequences:
       layout.tsx
       page.tsx
       globals.css
+      robots.ts
+      sitemap.ts
       tools/
         page.tsx
         loading.tsx
+        [slug]/
+          page.tsx
+      projects/
+        yashcodes/
+          page.tsx
 
     components/
+      home-page.tsx
+      page-shell.tsx
+      structured-data.tsx
       hero-section.tsx
       hero-section/
       about-section.tsx
@@ -172,6 +191,16 @@ Consequences:
         security/
         math/
         shared/
+        tools-route.tsx
+        tools-directory-header.tsx
+        tool-playground.tsx
+        tool-card.tsx
+        tool-header.tsx
+        tools-grid.tsx
+        tools-page.tsx
+        tools-sections.tsx
+        tools-toolbar.tsx
+        tool-view.tsx
       ui/
 
     hooks/
@@ -189,9 +218,14 @@ Consequences:
     lib/
       contact/
       content/
+        index.ts
+        types.ts
+        utils.ts
+        tool-pages.ts
       tools/
       instrumentation.ts
       react-telemetry.ts
+      seo.ts
       utils.ts
 
     .github/
@@ -207,7 +241,8 @@ Consequences:
         README.md
 
     public/
-      project images, favicons, placeholders, and pdf.worker.min.mjs
+      og-image.png, project-cards/ (six WebP cards), favicons, placeholders,
+      and pdf.worker.min.mjs
 
     scratch/
       historical refactor helpers
@@ -218,24 +253,23 @@ Consequences:
 
 - DM Sans via next/font/google
 - Dark mode on the root html element
-- Global metadata and favicons
-- Global CSS
+- A tiny inline script that adds `.js` before the body paints
+- Global metadata defaults, favicons, and CSS
 
-**app/page.tsx** is a client component and orchestrates the home route.
+**app/page.tsx** is a server component. It exports the home metadata, renders the WebSite/ProfilePage/Person JSON-LD, and renders **components/home-page.tsx** (client).
 
-Lifecycle:
+**components/home-page.tsx** renders Navigation, HeroSection, AboutSection, ProjectsSection, ContactSection, Footer, BackToTop, and the AnimatedBackground immediately. All visible content is present in the exported HTML; the loading screen is a decorative overlay:
 
-1. The first client render shows LoadingScreen.
-2. A mount effect enables the full client tree.
-3. AnimatedBackground loads dynamically with SSR disabled.
-4. LoadingScreen advances its percentage every 15 ms by 7 points, reaching 100% in about 0.22 seconds.
-5. At approximately 0.25 seconds it begins a 150 ms fade, so first-load content appears roughly 0.4 seconds after hydration (about 0.5–0.75 seconds from first paint).
-6. After completion, Navigation, HeroSection, AboutSection, ProjectsSection, ContactSection, Footer, and BackToTop render.
-7. Hero content becomes visible after a short delay and its typewriter cycles continuously.
-8. About, projects, and contact use IntersectionObserver-driven visibility.
-9. Small screens and reduced-motion users bypass selected entrance animations.
+1. The loader covers the already-rendered page and advances its percentage every 15 ms by 7 points, reaching 100% in about 0.22 seconds.
+2. At approximately 0.25 seconds it begins a 150 ms fade and unmounts at about 0.4 seconds.
+3. It is `aria-hidden`, `pointer-events-none`, and has CSS fallbacks: without JavaScript it fades out after 1.2 seconds; if the app bundle fails it is hidden after 4 seconds.
+4. Reduced-motion users never see it.
+5. The hero and typewriter animate with CSS. The typewriter starts with "Full-Stack Software Engineer", cycles through two more labels, and is decorative (`aria-hidden`). The stable `h1` is the full name, with `aria-label="MD. Mohi Minul Islam Yash"`.
+6. About, projects, contact, and the additional-work subsection use `useSectionVisibility`. Their hidden reveal state is applied only under `html.js`; a 4-second CSS fallback reveals content if the bundle fails.
+7. Section links are real anchors enhanced with smooth scrolling; modified clicks keep native new-tab behaviour.
+8. **useHashScroll** retries the URL hash after the content mounts.
 
-The custom mouse cursor remains disabled in **app/page.tsx**. Do not enable it incidentally.
+The custom mouse cursor remains disabled in **components/home-page.tsx**. Do not enable it incidentally.
 
 About and projects use simple gradient background elements. Older documentation referring to empty Three.js canvases is obsolete.
 
@@ -289,26 +323,25 @@ Static portfolio content lives in **lib/content/index.ts** and typed contracts l
 
 It contains:
 
-- Personal identity and typewriter titles
-- Social links
+- Personal identity: brand label, full name, the two hero name lines, title, greeting, and decorative typewriter titles
+- Social links with accessible labels and a **sameAs** flag for structured data
 - Contact information
-- Optional resume download URL and suggested file name
+- Optional resume download URL and suggested file name (intentionally unset until a PDF is approved)
 - Six skill groups
 - Six featured projects
+- Four additional-work entries
 - Navigation items
 - Button text
-- Section copy
+- Section copy, including separate contact section, form, and direct-contact descriptions
 - Contact-form labels, placeholders, status messages, and privacy copy
 - Footer copy and computed current year
-- Site metadata
+- Site metadata (home title/description, social image, job title, X handle)
 
-Components normally access this data through **lib/content/utils.ts**. Prefer editing centralized content rather than embedding new portfolio copy in component markup.
+Components normally access this data through **lib/content/utils.ts**. Prefer editing centralized content rather than embedding new portfolio copy in component markup. The standalone tool-page inventory lives separately in **lib/content/tool-pages.ts**.
 
-Known content gap: most project GitHub and live-demo values are still **#** placeholders. Ensure cards do not claim a working external link when the value is a placeholder.
+Each project defines **image**, **imageAlt**, optional **artworkLabel** ("Illustration" on concept art), **tech** (up to four tags), **role**, and optional **longDescription**, **highlights**, **year**, and **links**. A **ProjectLink** may be external and may set **showOnCard**; links otherwise appear only in the modal. Project cards show the summary, role, tags, a visible "View Project Details" affordance, and any card-level live link. Modal labels and accessible names live in **projectModalContent** in the same file.
 
-Each project may also define optional **longDescription**, **highlights**, **role**, and **year** fields used only by the project detail modal; missing fields are omitted from the modal, which falls back to **description**. Modal labels and accessible names live in **projectModalContent** in the same file.
-
-The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. A placeholder file ships at **public/resume.pdf**.
+The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. **resumeUrl** is currently unset and **public/resume.pdf** was removed, so `/resume.pdf` returns 404. Do not re-enable the action until an approved PDF exists.
 
 ## 11. Tools route architecture
 
@@ -343,7 +376,9 @@ Directory implementations such as the JSON editor may expose an **index.ts** ins
 
 ### Route shell
 
-**app/tools/page.tsx** renders:
+**app/tools/page.tsx** is a server component. It exports the tools metadata (title, description, canonical) and renders **components/tools/tools-route.tsx**.
+
+**components/tools/tools-route.tsx** renders:
 
 - The shared animated background
 - A skip link
@@ -353,6 +388,8 @@ Directory implementations such as the JSON editor may expose an **index.ts** ins
 - BackToTop
 
 It measures navigation and toolbar heights with ResizeObserver and writes CSS custom properties used by sticky content.
+
+**components/tools/tools-directory-header.tsx** is rendered above the grid while the directory is visible. It provides the directory `h1` ("Free Online Developer Tools"), the introduction, and ordinary links to the four published tool pages. It is hidden with the grid when an in-place tool opens, leaving the tool's own `h1` as the only visible heading.
 
 ### Grid and search
 
@@ -398,8 +435,9 @@ Navigation behavior:
 3. The selected tool view scrolls to the top.
 4. Browser back restores the grid and its recorded vertical position.
 5. Category breadcrumbs queue a category scroll after the grid returns.
-6. Direct hash loads open the matching tool.
-7. Unknown IDs render the Tool Not Found state.
+6. Direct hash loads open the matching tool only when the ID is registered.
+7. Unknown fragments, including the `#tools-content` skip link, leave the directory visible instead of opening Tool Not Found.
+8. Promoted tools (the four published pages) are normal anchors to `/tools/<slug>/`; their old `/tools/#<id>` bookmarks still open the in-place widget.
 
 Do not casually replace this with router navigation. Browser history and scroll restoration are deliberate and tightly coupled.
 
@@ -424,6 +462,17 @@ When adding a tool:
 5. Keep processing client-side unless the UI clearly discloses an external service.
 6. Add keyboard labels and reduced-motion handling where relevant.
 7. Verify direct navigation to **/tools/#<id>**, reset, browser back, search, and mobile layout.
+
+### Standalone tool pages
+
+**app/tools/[slug]/page.tsx** is a server component with `generateStaticParams` over **TOOL_PAGE_SLUGS** from **lib/content/tool-pages.ts** and `dynamicParams = false`. It exports per-page metadata and canonical URLs and renders:
+
+- A breadcrumb, visible `h1`, intro, and answer paragraphs in the initial HTML.
+- A worked example (rows or escaped code blocks) from the same inventory.
+- **components/tools/tool-playground.tsx**, which reuses the catalog widget, the Reset action, and the Capture action (ToolHeader with `showTitle={false}`).
+- Related links back to the other published tools and the directory.
+
+Adding or removing a published page means updating **lib/content/tool-pages.ts**; the route list, directory links, sitemap, and standalone pages all use that inventory. Unknown `/tools/<slug>/` paths are real 404s from the static host.
 
 ## 12. External network behavior
 
@@ -559,16 +608,19 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 
 ### Product and quality
 
-1. There are no committed automated test files or Playwright configuration despite Playwright being a development dependency.
+1. There are no committed automated test files or Playwright configuration despite Playwright being a development dependency. The 2026-11-10 verification script lives in the gitignored `handoff/` folder and is not part of CI.
 2. The tools-page local-processing claim conflicts with several external API integrations.
-3. Most project Code and Live Demo URLs remain placeholders.
-4. The repository has both npm and pnpm lockfiles.
-5. The frontend is heavily client-rendered, including many purely presentational components.
-6. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
-7. Dynamic tool import failures are converted into a generic unavailable state, which can obscure the original loading error.
-8. The contact Worker's live Brevo delivery, Worker secrets, and KV rate limiting still need an end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
-9. Historical planning and bug documents contain obsolete architecture claims.
-10. Scratch scripts and empty legacy directories should not be assumed to participate in production.
+3. The repository has both npm and pnpm lockfiles.
+4. The home shell and most tool UI remain client components even though the visible page content is server-rendered. A future mount gate around the content would silently break crawlability again.
+5. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
+6. Dynamic tool import failures are converted into a generic unavailable state, which can obscure the original loading error.
+7. The contact Worker's live Brevo delivery, Worker secrets, and KV rate limiting still need an end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
+8. Production still serves the pre-2026-11-10 build. The new home content, standalone tool pages, case study, crawl files, and tool-page/case-study Caddy aliases reach production only after a release PR merges and deploys.
+9. The staging host must stay `X-Robots-Tag: noindex`; production must stay indexable. Both are enforced in the live vps-2 Caddyfile, not in the Next build.
+10. Caddy bind-mounts the Caddyfile as a single file. Editing it in place preserves the inode; replacing it (for example with `install`) leaves the running container on the old file until the container is restarted.
+11. The home page loads Cloudflare Turnstile for the contact form. Its third-party script emits several formatted console messages; they are not application errors.
+12. Historical planning and bug documents contain obsolete architecture claims.
+13. Scratch scripts and empty legacy directories should not be assumed to participate in production.
 
 ## 19. Coding conventions
 
@@ -608,18 +660,31 @@ Do not commit generated `out/` or `.next/` files; check the final diff for them.
 Run the development server and verify:
 
 - **/** returns successfully.
-- **/tools/** returns successfully.
-- Loading completes and home content appears.
-- Navigation scrolls to home sections.
+- The exported `/index.html` contains one full-name `h1`, the role, six expertise cards, six project summaries, the contact copy, the footer, and a real Tools link.
+- Loading completes and home content appears; the loader is pointer-safe and dismisses on its own.
+- Navigation scrolls to home sections; anchors clear the fixed header; mobile menu opens, labels, and closes after navigating.
+- Project cards open the modal from the keyboard; Escape closes it and focus returns to the trigger.
 - Tools search opens, filters, clears, and handles keyboard selection.
 - Category chips move to the expected section.
 - Desktop filmstrips advance and reverse without overlap.
 - Mobile tools render as a normal stacked grid.
-- A direct tool hash opens the expected tool.
+- A direct tool hash opens the expected tool; unknown fragments leave the directory visible.
+- Promoted cards link to their standalone pages; legacy hashes still open the widget.
 - Reset remounts the active tool.
 - Back restores the grid scroll position.
 - Reduced-motion mode keeps all content usable.
-- Browser console has no unexpected errors.
+- No-JS mode and a failed JS bundle both keep the content visible and remove the loader.
+- Browser console has no unexpected application errors (Turnstile's third-party messages excepted).
+
+### SEO and crawl checks
+
+- `/robots.txt` and `/sitemap.xml` return 200 with `text/plain` and `text/xml`.
+- The sitemap lists only canonical production URLs, each of which returns 200 after the production release.
+- `/index.html`, `/tools`, `/tools/index.html`, `/tools/<slug>`, `/tools/<slug>/index.html`, `/projects/yashcodes`, and `/projects/yashcodes/index.html` redirect once to the trailing-slash canonical URL; a query string is preserved.
+- `https://beta.yashcodes.com/` and its published pages return `X-Robots-Tag: noindex`; production does not.
+- Unknown `/tools/<slug>/` and unknown root paths return a real 404.
+- The homepage JSON-LD parses and contains one WebSite, one ProfilePage, and one Person `@id`; `sameAs` contains only verified personal profiles.
+- `/og-image.png` returns 200 with `image/png`.
 
 ### Contact checks
 
@@ -635,16 +700,18 @@ Do not send live email or deploy external changes without explicit user authoriz
 
 ### Build notes
 
-At the last documentation update (2026-10-31):
+At the last documentation update (2026-11-10):
 
 - Strict TypeScript checking passed.
-- Static production build passed.
-- The exported routes were **/**, **/tools/**, and the not-found route.
-- ESLint was blocked by missing flat configuration.
-- No automated tests were discovered.
-- The latest `develop` (staging) and `main` (production) runs, including HTTPS verification, passed on 2026-10-30 UTC; the first attempts were queued during a GitHub Actions incident.
-- The deployment target is vps-2. The vps-2 deploy user, directories, SSH key, and secrets are configured; both deploy runs passed, both A records now point to vps-2, and Caddy issued certificates on 2026-10-31.
-- The vps-2 Caddy blocks are applied in the live Caddyfile. The pre-cutover backup is `/opt/stacks/caddy/Caddyfile.bak-20261030-185633`; `/opt/stacks/caddy/Caddyfile.next` remains as the staged copy.
+- The static build passed. The exported routes are **/**, **/tools/**, **/tools/json-editor/**, **/tools/timestamp-converter/**, **/tools/image-compressor/**, **/tools/meta-tag-generator/**, **/projects/yashcodes/**, **/robots.txt**, **/sitemap.xml**, and the not-found route.
+- A 102-check Playwright suite (`handoff/verify.mjs`, gitignored) passed against both the local export and `https://beta.yashcodes.com/`: static content, metadata, modal keyboard behavior, anchors, mobile menu, no-JS, reduced motion, failed-bundle fallback, 88 cards, hash behavior, timestamp edge cases, JSON validation, meta-tag escaping, image compression, and console errors.
+- ESLint is still blocked by the missing flat configuration.
+- No committed automated tests exist; the Playwright suite is a local handoff artifact.
+- The 2026-11-10 build was deployed directly to staging (vps-2 `/opt/stacks/caddy/html/beta`) because GitHub API access was rate-limited in this environment. The feature branch is pushed separately for the normal PR flow.
+- The staging Caddy block now has one-hop redirects for `/index.html`, `/tools`, `/tools/index.html`, the four `/tools/<slug>` aliases, and `/projects/yashcodes`; it preserves query strings and sets `X-Robots-Tag: noindex`. Production received the generic `/index.html` and `/tools` redirects and remains indexable. The pre-change Caddyfile backup is `/opt/stacks/caddy/Caddyfile.bak-20261110-104251`.
+- `public/resume.pdf` was removed and the resume action stays hidden until an approved PDF exists; staging `/resume.pdf` returns 404.
+- The contact Worker, secrets, and KV setup were not changed. No live email was sent.
+- The `develop` (staging) and `main` (production) GitHub Actions runs and vps-2 certificate setup from 2026-10-30/31 remain valid; production content is still the pre-rewrite build until a release PR merges.
 
 These are observations, not permanent guarantees. Re-run relevant checks after changes.
 

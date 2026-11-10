@@ -55,12 +55,7 @@ export default function ContactSection() {
   })
 
   // Get content from centralized content module
-  const sectionContent = getSectionContent("contact") as {
-    heading: string
-    description: string
-    formTitle: string
-    infoTitle: string
-  }
+  const sectionContent = getSectionContent("contact")
   const contactInfo = getContactInfo()
   const formContent = getFormContent()
   const buttonTexts = getButtonTexts()
@@ -398,6 +393,7 @@ export default function ContactSection() {
         <div className="grid lg:grid-cols-2 gap-8 sm:gap-12">
           <ContactFormCard
             title={sectionContent.formTitle}
+            description={sectionContent.formDescription}
             formData={formData}
             labels={formContent.labels}
             placeholders={formContent.placeholders}
@@ -444,7 +440,7 @@ export default function ContactSection() {
 
           <ContactInfoList
             title={sectionContent.infoTitle}
-            description={sectionContent.description}
+            description={sectionContent.infoDescription}
             items={contactItems}
             isVisible={isVisible}
           />

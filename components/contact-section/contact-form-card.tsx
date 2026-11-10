@@ -19,6 +19,8 @@ const TURNSTILE_ATTRIBUTION_URL = "https://www.cloudflare.com/products/turnstile
 
 interface ContactFormCardProps {
     title: string
+    /** Short explanation shown directly below the form heading. */
+    description: string
     formData: {
         name: string
         email: string
@@ -82,6 +84,7 @@ interface ContactFormCardProps {
 
 export function ContactFormCard({
     title,
+    description,
     formData,
     labels,
     placeholders,
@@ -120,8 +123,13 @@ export function ContactFormCard({
     )}&body=${encodeURIComponent(mailtoBody)}`
 
     return (
-        <Card className={`p-6 sm:p-8 transition-all duration-1000 ${isVisible ? "animate-slide-in-left" : "opacity-0"}`}>
-            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">{title}</h3>
+        <Card className={`p-6 sm:p-8 transition-all duration-1000 motion-reduce:animate-none ${isVisible ? "animate-slide-in-left" : "reveal-pending"}`}>
+            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">{title}</h3>
+            {description && (
+                <p className="mb-5 text-sm leading-relaxed text-muted-foreground sm:mb-6 sm:text-base">
+                    {description}
+                </p>
+            )}
 
             <form onSubmit={onSubmit} className="space-y-5">
                 <div className="space-y-2">
