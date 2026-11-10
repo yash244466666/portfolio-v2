@@ -303,7 +303,7 @@ export function ContactFormCard({
                 </div>
 
                 {siteKey ? (
-                    <div className="space-y-1.5">
+                    <div className="max-w-full space-y-1.5 overflow-hidden">
                         <TurnstileWidget
                             siteKey={siteKey}
                             onTokenChange={onTurnstileTokenChange}
