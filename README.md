@@ -70,7 +70,7 @@ The old `master` branch was renamed to `main`; the remote `master` no longer exi
 - Hero section with a cycling decorative typewriter, CSS entrance animations, and anchor actions.
 - About section with six capability cards and gradient background elements.
 - Projects section with six featured cards, artwork labels, roles, tags, a detail modal, and a text-only "More Engineering Work" subsection.
-- Contact section with a Worker-backed form (Turnstile, honeypot, sending/success/error states, `mailto:` fallback), separate form and direct-contact copy, and contact detail cards.
+- Contact section with one centered panel: a Worker-backed form (Turnstile, honeypot, sending/success/error states, `mailto:` fallback) and a compact direct-contact strip for Email, Phone, and Location below it.
 - Footer with the full name, designation, labelled profile links, and the computed current year.
 - Per-page metadata, absolute canonicals, Open Graph/Twitter cards, a social image, `robots.txt`, `sitemap.xml`, and ProfilePage/Person JSON-LD.
 - Back-to-top control.
