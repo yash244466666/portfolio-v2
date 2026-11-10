@@ -7,23 +7,25 @@ interface ContactInfoListProps {
     title: string
     description: string
     items: ContactInfoItemProps[]
-    isVisible?: boolean
 }
 
-export function ContactInfoList({ title, description, items, isVisible = false }: ContactInfoListProps) {
+export function ContactInfoList({ title, description, items }: ContactInfoListProps) {
     return (
-        <div className={`space-y-8 transition-all duration-1000 delay-200 motion-reduce:animate-none ${isVisible ? "animate-fade-in-up" : "reveal-pending"}`}>
+        <section
+            aria-labelledby="contact-direct-heading"
+            className="grid gap-4 rounded-b-2xl border-t border-border/70 bg-muted/25 p-5 sm:px-8 sm:py-6 lg:grid-cols-[11rem_minmax(0,1fr)] lg:items-center lg:gap-6"
+        >
             <div>
-                <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">{title}</h3>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6 sm:mb-8">{description}</p>
+                <h3 id="contact-direct-heading" className="text-lg font-semibold text-foreground">{title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
             </div>
 
-            <div className="space-y-6">
+            <ul className="grid gap-2 md:grid-cols-3 md:gap-3">
                 {items.map((item) => (
-                    <ContactInfoItem key={item.type} {...item} isVisible={isVisible} />
+                    <ContactInfoItem key={item.type} {...item} />
                 ))}
-            </div>
-        </div>
+            </ul>
+        </section>
     )
 }
 

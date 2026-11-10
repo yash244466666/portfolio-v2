@@ -139,6 +139,7 @@ export function buildHomeStructuredData() {
           "TypeScript",
           "Node.js",
           "Ruby on Rails",
+          "Custom AI agents",
           "AI automation",
           "Open-source intelligence",
         ],

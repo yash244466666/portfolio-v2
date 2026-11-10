@@ -2,7 +2,6 @@
 
 import type { ChangeEvent, FormEvent } from "react"
 import { Paperclip, X } from "lucide-react"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -79,7 +78,6 @@ interface ContactFormCardProps {
     fileNotSentNote: string
     /** False when the feedback already explains what happened to the file. */
     showFileNotSentNote: boolean
-    isVisible?: boolean
 }
 
 export function ContactFormCard({
@@ -114,7 +112,6 @@ export function ContactFormCard({
     protectedByLabel,
     fileNotSentNote,
     showFileNotSentNote,
-    isVisible = false,
 }: ContactFormCardProps) {
     const isSending = status === "sending"
     const mailtoBody = `${formData.message}\n\nSender: ${formData.name}\nEmail: ${formData.email}`
@@ -123,47 +120,49 @@ export function ContactFormCard({
     )}&body=${encodeURIComponent(mailtoBody)}`
 
     return (
-        <Card className={`p-6 sm:p-8 transition-all duration-1000 motion-reduce:animate-none ${isVisible ? "animate-slide-in-left" : "reveal-pending"}`}>
-            <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">{title}</h3>
+        <div className="p-5 sm:p-8">
+            <h3 id="contact-form-heading" className="mb-2 text-xl font-semibold text-foreground sm:text-2xl">{title}</h3>
             {description && (
                 <p className="mb-5 text-sm leading-relaxed text-muted-foreground sm:mb-6 sm:text-base">
                     {description}
                 </p>
             )}
 
-            <form onSubmit={onSubmit} className="space-y-5">
-                <div className="space-y-2">
-                    <label htmlFor="contact-name" className="text-sm font-medium text-foreground">
-                        {labels.name}
-                    </label>
-                    <Input
-                        id="contact-name"
-                        type="text"
-                        name="name"
-                        autoComplete="name"
-                        placeholder={placeholders.name}
-                        value={formData.name}
-                        onChange={onChange}
-                        required
-                        className="w-full"
-                    />
-                </div>
+            <form aria-labelledby="contact-form-heading" onSubmit={onSubmit} className="space-y-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="min-w-0 space-y-2">
+                        <label htmlFor="contact-name" className="text-sm font-medium text-foreground">
+                            {labels.name}
+                        </label>
+                        <Input
+                            id="contact-name"
+                            type="text"
+                            name="name"
+                            autoComplete="name"
+                            placeholder={placeholders.name}
+                            value={formData.name}
+                            onChange={onChange}
+                            required
+                            className="w-full"
+                        />
+                    </div>
 
-                <div className="space-y-2">
-                    <label htmlFor="contact-email" className="text-sm font-medium text-foreground">
-                        {labels.email}
-                    </label>
-                    <Input
-                        id="contact-email"
-                        type="email"
-                        name="email"
-                        autoComplete="email"
-                        placeholder={placeholders.email}
-                        value={formData.email}
-                        onChange={onChange}
-                        required
-                        className="w-full"
-                    />
+                    <div className="min-w-0 space-y-2">
+                        <label htmlFor="contact-email" className="text-sm font-medium text-foreground">
+                            {labels.email}
+                        </label>
+                        <Input
+                            id="contact-email"
+                            type="email"
+                            name="email"
+                            autoComplete="email"
+                            placeholder={placeholders.email}
+                            value={formData.email}
+                            onChange={onChange}
+                            required
+                            className="w-full"
+                        />
+                    </div>
                 </div>
 
                 <div className="space-y-2">
@@ -330,7 +329,7 @@ export function ContactFormCard({
                 <Button
                     type="submit"
                     disabled={isSending}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="min-h-11 w-full bg-primary py-3 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-40"
                 >
                     {isSending ? sendingLabel : submitLabel}
                 </Button>
@@ -360,7 +359,7 @@ export function ContactFormCard({
 
                 <p className="text-xs text-muted-foreground">{privacyNote}</p>
             </form>
-        </Card>
+        </div>
     )
 }
 

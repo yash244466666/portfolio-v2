@@ -72,13 +72,13 @@ export function ProjectCard({
                     ))}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 relative z-20">
+                <div className="pointer-events-none relative z-20 flex flex-wrap items-center gap-x-5 gap-y-2">
                     <span aria-hidden="true" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                         {viewDetailsLabel}
                         <ArrowRight className="h-4 w-4" />
                     </span>
                     {cardLinks.map((link) => {
-                        const classes = "inline-flex items-center gap-1.5 text-sm font-medium text-foreground/80 underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+                        const classes = "pointer-events-auto inline-flex items-center gap-1.5 text-sm font-medium text-foreground/80 underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
                         if (link.external) {
                             return (
                                 <a
@@ -103,8 +103,8 @@ export function ProjectCard({
                 </div>
             </div>
 
-            {/* Full-card control: keeps the visible detail label and live links
-                above it, so nothing nests. */}
+            {/* The detail label passes clicks to this button. Separate links
+                stay interactive above it. */}
             <button
                 type="button"
                 onClick={(event) => onSelect(project, event.currentTarget)}

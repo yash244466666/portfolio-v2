@@ -240,7 +240,7 @@ Consequences:
         README.md
 
     public/
-      og-image.png, project-cards/ (six WebP cards), favicons, placeholders,
+      og-image.png, project-cards/ (WebP project artwork), favicons, placeholders,
       and pdf.worker.min.mjs
 
     scratch/

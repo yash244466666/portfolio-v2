@@ -60,7 +60,7 @@ export const personalInfo: PersonalInfo = {
   ],
 
   tagline:
-    "I'm a full-stack software engineer. I pick the tools that fit the job. I built a marketplace booking system with connected calendars, and on a separate project I added scheduled notifications for admins. I've reverse-engineered parts of social platforms to build AI-assisted automation. I've also built tools that automate cybersecurity and open-source intelligence (OSINT) tasks for clients.",
+    "I'm a full-stack software engineer who builds web applications and custom AI agents. I built a marketplace booking system with connected calendars and added scheduled notifications for admins on another project. I've reverse-engineered parts of social platforms to build AI-assisted automation. I've also built tools that automate cybersecurity and open-source intelligence (OSINT) tasks for clients.",
 
   // About Section
   aboutDescription:
@@ -153,14 +153,14 @@ export const skills: Skill[] = [
   {
     title: "Backend Development",
     description:
-      "I've built APIs and backends with NestJS, plain Node.js, Python, Rust, and Ruby on Rails. My work ranges from booking, calendar integrations, and scheduled notifications to the services behind social media automation and OSINT tools.",
+      "I've built APIs and backend services with NestJS, plain Node.js, Python, Rust, and Ruby on Rails. I model application data and write queries with PostgreSQL, MySQL, Oracle Database, and MongoDB.",
     icon: "Server",
   },
   {
-    title: "Databases and Data Modeling",
+    title: "AI Agents & Automation",
     description:
-      "I design data models around what people need to find and update, then write the queries the application relies on. I've worked with PostgreSQL, MySQL, Oracle Database, and MongoDB.",
-    icon: "Database",
+      "I build custom AI agents and automate recurring tasks. One example is a desktop prototype that uses screenshots to plan mouse and keyboard actions from plain-language instructions.",
+    icon: "Bot",
   },
   {
     title: "Social Media Automation",
@@ -270,19 +270,24 @@ export const projects: Project[] = [
     role: "Game Development",
   },
   {
-    title: "YashCodes Developer Tools",
+    title: "Vision Desktop Agent",
     description:
-      "I built a collection of 88 browser-based tools for tasks like formatting JSON, converting timestamps, and compressing images.",
+      "I built a prototype that uses a vision model to interpret desktop screenshots and plan mouse and keyboard actions from plain-language instructions.",
     longDescription:
-      "I built YashCodes as my personal portfolio and a place to try common developer tools. I added search and categories so people could find the right utility. Each tool loads when opened, so visitors can browse the full directory before loading a widget. I designed an animated filmstrip for desktop and a stacked view for smaller screens and reduced-motion preferences.",
-    image: "/project-cards/yashcodes-tools.webp",
+      "I built a desktop agent for an employer and created this separate public prototype to illustrate the approach. A custom GNOME Shell extension exposes screen capture over D-Bus on Wayland. The Python loop sends each screenshot and task to a cloud vision model, reads the structured action it returns, then captures a fresh view for the next step.\n\nThe public repository documents the architecture and contains prototype code. The current checkout is incomplete and does not run end to end.",
+    image: "/project-cards/vision-desktop-agent.webp",
     imageAlt:
-      "Live YashCodes tools directory showing search, categories, and utility cards.",
-    tech: ["Next.js", "React", "TypeScript", "GitHub Actions"],
-    role: "Personal Project",
+      "Desktop monitor with a cursor selecting a highlighted control and an arrow looping back to a vision lens.",
+    artworkLabel: "Illustration",
+    tech: ["Python", "Vision Models", "GNOME / Wayland"],
+    role: "AI Agent Development",
     links: [
-      { label: "Try the Tools", href: "/tools/", showOnCard: true },
-      { label: "Read Case Study", href: "/projects/yashcodes/" },
+      {
+        label: "View Repository",
+        href: "https://github.com/yash244466666/vision-desktop-agent",
+        external: true,
+        showOnCard: true,
+      },
     ],
   },
 ];
@@ -453,7 +458,7 @@ export const footerContent: FooterContent = {
 export const siteMetadata: SiteMetadata = {
   title: "MD. Mohi Minul Islam Yash – Full-Stack Software Engineer",
   description:
-    "MD. Mohi Minul Islam Yash is a full-stack software engineer. Explore his work in web apps, marketplace booking, integrations, and AI automation, and get in touch.",
+    "MD. Mohi Minul Islam Yash is a full-stack software engineer who builds web applications, integrations, and custom AI agents.",
   keywords: [
     "MD. Mohi Minul Islam Yash",
     "Mohi Minul Islam Yash",

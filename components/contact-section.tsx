@@ -8,8 +8,10 @@ import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import { ContactSectionHeader } from "@/components/contact-section/contact-section-header"
 import { ContactFormCard, type ContactFormStatus } from "@/components/contact-section/contact-form-card"
 import { ContactInfoList } from "@/components/contact-section/contact-info-list"
+import { Card } from "@/components/ui/card"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
+import { cn } from "@/lib/utils"
 import {
   requestUploadUrl,
   sendContactMessage,
@@ -390,7 +392,10 @@ export default function ContactSection() {
           isVisible={isVisible}
         />
 
-        <div className="grid lg:grid-cols-2 gap-8 sm:gap-12">
+        <Card className={cn(
+          "mx-auto max-w-4xl gap-0 rounded-2xl py-0 motion-reduce:animate-none",
+          isVisible ? "animate-fade-in-up" : "reveal-pending",
+        )}>
           <ContactFormCard
             title={sectionContent.formTitle}
             description={sectionContent.formDescription}
@@ -435,16 +440,14 @@ export default function ContactSection() {
               attachments.length > 0 &&
               errorCode !== "attachment-rejected"
             }
-            isVisible={isVisible}
           />
 
           <ContactInfoList
             title={sectionContent.infoTitle}
             description={sectionContent.infoDescription}
             items={contactItems}
-            isVisible={isVisible}
           />
-        </div>
+        </Card>
       </div>
     </section>
   )
