@@ -67,9 +67,7 @@ export const personalInfo: PersonalInfo = {
     "I'm MD. Mohi Minul Islam Yash, a full-stack software engineer. I like working with teammates to take a feature from the first conversation through release. I've worked with people across countries and cultures and led a team in one previous role. I've built web and mobile apps, download managers, and Unity games, and worked with languages from TypeScript to C++. I use AI agents in my own work and have built automations for teams and clients. I've also built cybersecurity and open-source intelligence (OSINT) automation tools for both clients and employers.",
 
   // Navigation resume download.
-  // Deliberately unset until Yash approves the exact public PDF. Set this to a
-  // same-origin path (and keep resumeFileName in sync) to re-enable the action.
-  // resumeUrl: "/resume.pdf",
+  resumeUrl: "/resume.pdf",
   resumeFileName: "MD-Mohi-Minul-Islam-Yash-Resume.pdf",
 };
 

@@ -340,7 +340,7 @@ Components normally access this data through **lib/content/utils.ts**. Prefer ed
 
 Each project defines **image**, **imageAlt**, optional **artworkLabel** ("Illustration" on concept art), **tech** (up to four tags), **role**, and optional **longDescription**, **highlights**, **year**, and **links**. A **ProjectLink** may be external and may set **showOnCard**; links otherwise appear only in the modal. Project cards show the summary, role, tags, a visible "View Project Details" affordance, and any card-level live link. Modal labels and accessible names live in **projectModalContent** in the same file.
 
-The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. **resumeUrl** is currently unset and **public/resume.pdf** was removed, so `/resume.pdf` returns 404. Do not re-enable the action until an approved PDF exists.
+The navigation resume button reads **personalInfo.resumeUrl** and **personalInfo.resumeFileName**, with its label in **buttonTexts.downloadResume**. It is hidden when the URL is missing, empty, or a **#** placeholder; same-origin URLs download via the **download** attribute, while cross-origin URLs open in a new tab with **rel="noopener noreferrer"**. **resumeUrl** is set to `/resume.pdf` backed by **public/resume.pdf**.
 
 ## 11. Tools route architecture
 
