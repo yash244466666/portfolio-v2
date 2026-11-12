@@ -19,8 +19,29 @@ export const metadata: Metadata = {
   description:
     "MD. Mohi Minul Islam Yash is a full-stack software engineer. Explore his work in web apps, marketplace booking, integrations, and AI automation, and get in touch.",
   applicationName: "YashCodes",
+  keywords: [
+    "MD. Mohi Minul Islam Yash",
+    "Mohi Minul Islam Yash",
+    "Yash Sikdar",
+    "YashCodes",
+    "Full-Stack Software Engineer",
+    "Web Application Developer",
+    "AI Automation",
+    "Custom AI Agents",
+  ],
   authors: [{ name: "MD. Mohi Minul Islam Yash", url: "https://yashcodes.com/" }],
   creator: "MD. Mohi Minul Islam Yash",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

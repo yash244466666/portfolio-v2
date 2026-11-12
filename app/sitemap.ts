@@ -6,7 +6,7 @@ import { toolPages } from "@/lib/content/tool-pages"
 export const dynamic = "force-static"
 
 // The content release date for this version of the site.
-const LAST_MODIFIED = new Date("2026-11-10T00:00:00.000Z")
+const LAST_MODIFIED = new Date("2026-11-12T00:00:00.000Z")
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

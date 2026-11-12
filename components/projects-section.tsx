@@ -48,7 +48,12 @@ export default function ProjectsSection() {
   })
 
   return (
-    <section id="projects" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden">
+    <section
+      id="projects"
+      aria-labelledby="projects-heading"
+      ref={sectionRef}
+      className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden"
+    >
       <ProjectsBackground />
 
       <div className="max-w-6xl mx-auto relative z-10">

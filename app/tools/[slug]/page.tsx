@@ -2,9 +2,10 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import PageShell from "@/components/page-shell"
+import { StructuredData } from "@/components/structured-data"
 import ToolPlayground from "@/components/tools/tool-playground"
 import { getToolPage, TOOL_PAGE_SLUGS } from "@/lib/content/tool-pages"
-import { buildPageMetadata } from "@/lib/seo"
+import { buildPageMetadata, buildToolPageStructuredData } from "@/lib/seo"
 
 interface ToolPageProps {
   params: Promise<{ slug: string }>
@@ -38,6 +39,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
   return (
     <PageShell contentId="tool-page-content" skipLabel="Skip to tool content">
+      <StructuredData data={buildToolPageStructuredData(page)} />
       <article className="mx-auto max-w-5xl px-4 sm:px-6">
         <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">
           <ol className="flex flex-wrap items-center gap-2">

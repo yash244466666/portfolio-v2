@@ -12,7 +12,7 @@ export function ContactSectionHeader({ heading, description, isVisible = false }
             className={`text-center mb-12 sm:mb-16 transition-all duration-1000 motion-reduce:animate-none ${isVisible ? "animate-fade-in-up" : "reveal-pending"
                 }`}
         >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">{heading}</h2>
+            <h2 id="contact-heading" className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 sm:mb-6">{heading}</h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
                 {description}
             </p>

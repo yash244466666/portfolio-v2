@@ -4,6 +4,18 @@ import { SITE_URL } from "@/lib/seo"
 // Metadata routes are evaluated at build time for the static export.
 export const dynamic = "force-static"
 
+const AI_AND_SEARCH_USER_AGENTS = [
+  "OAI-SearchBot",
+  "GPTBot",
+  "ChatGPT-User",
+  "PerplexityBot",
+  "ClaudeBot",
+  "Claude-SearchBot",
+  "Google-Extended",
+  "Applebot-Extended",
+  "bingbot",
+]
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -11,12 +23,10 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
       },
-      {
-        // ChatGPT Search uses OAI-SearchBot; it is allowed to read the public
-        // pages that are eligible for search snippets.
-        userAgent: "OAI-SearchBot",
+      ...AI_AND_SEARCH_USER_AGENTS.map((userAgent) => ({
+        userAgent,
         allow: "/",
-      },
+      })),
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

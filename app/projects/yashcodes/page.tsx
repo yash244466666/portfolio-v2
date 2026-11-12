@@ -3,7 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import PageShell from "@/components/page-shell"
 import { StructuredData } from "@/components/structured-data"
-import { buildPageMetadata, absoluteUrl } from "@/lib/seo"
+import { buildCaseStudyStructuredData, buildPageMetadata } from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: "YashCodes Developer Tools Case Study – 88 Browser Utilities",
@@ -14,21 +14,7 @@ export const metadata: Metadata = buildPageMetadata({
   imageAlt: "The YashCodes tools directory",
 })
 
-const caseStudyData = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  headline: "YashCodes Developer Tools Case Study",
-  description:
-    "How YashCodes combines 88 browser utilities in one static Next.js site.",
-  author: {
-    "@type": "Person",
-    name: "MD. Mohi Minul Islam Yash",
-    url: absoluteUrl("/"),
-  },
-  mainEntityOfPage: absoluteUrl("/projects/yashcodes/"),
-  image: absoluteUrl("/project-cards/yashcodes-tools.webp"),
-  about: ["Developer tools", "Next.js", "Static site", "Web performance"],
-}
+const caseStudyData = buildCaseStudyStructuredData()
 
 const highlights = [
   "88 browser-based utilities across six categories, with search and tags.",

@@ -384,7 +384,12 @@ export default function ContactSection() {
   }))
 
   return (
-    <section id="contact" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30">
+    <section
+      id="contact"
+      aria-labelledby="contact-heading"
+      ref={sectionRef}
+      className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30"
+    >
       <div className="max-w-6xl mx-auto">
         <ContactSectionHeader
           heading={sectionContent.heading}

@@ -1,6 +1,12 @@
 import type { Metadata } from "next"
+import { StructuredData } from "@/components/structured-data"
 import ToolsRoute from "@/components/tools/tools-route"
-import { buildPageMetadata, TOOLS_DESCRIPTION, TOOLS_TITLE } from "@/lib/seo"
+import {
+  buildPageMetadata,
+  buildToolsDirectoryStructuredData,
+  TOOLS_DESCRIPTION,
+  TOOLS_TITLE,
+} from "@/lib/seo"
 
 export const metadata: Metadata = buildPageMetadata({
   title: TOOLS_TITLE,
@@ -9,5 +15,10 @@ export const metadata: Metadata = buildPageMetadata({
 })
 
 export default function ToolsPage() {
-  return <ToolsRoute />
+  return (
+    <>
+      <StructuredData data={buildToolsDirectoryStructuredData()} />
+      <ToolsRoute />
+    </>
+  )
 }
