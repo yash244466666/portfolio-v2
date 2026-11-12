@@ -6,8 +6,8 @@ interface HeroHeadingProps {
 }
 
 /**
- * The single stable h1 for the page. The visible name stays on one line,
- * while `aria-label` keeps it readable as one continuous name.
+ * The single stable h1 for the page. The visible name stays on one line
+ * in uniform white, while `aria-label` keeps it readable as one continuous name.
  */
 export function HeroHeading({
   greeting,
@@ -24,15 +24,7 @@ export function HeroHeading({
         aria-label={fullName}
         className="mb-4 whitespace-nowrap text-[clamp(1.125rem,5vw,1.875rem)] font-bold leading-tight text-white sm:text-4xl md:text-5xl"
       >
-        <span aria-hidden="true">
-          {firstLine}
-        </span>{" "}
-        <span
-          aria-hidden="true"
-          className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent"
-        >
-          {emphasis}
-        </span>
+        {firstLine} {emphasis}
       </h1>
     </div>
   );
