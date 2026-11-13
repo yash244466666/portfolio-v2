@@ -18,8 +18,8 @@ import { useHashScroll } from "@/hooks/use-hash-scroll"
 const AnimatedBackground = dynamic(() => import("@/components/backgrounds"), {
   ssr: false,
   loading: () => (
-    <div className="fixed inset-0 pointer-events-none z-0 bg-gray-950">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black opacity-50" />
+    <div className="fixed inset-0 pointer-events-none z-0 bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-background to-black opacity-50" />
     </div>
   ),
 })
@@ -48,7 +48,7 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <main className="min-h-screen bg-gray-950 relative">
+      <main className="min-h-screen bg-background relative">
         <LoadingScreen onComplete={() => setLoadingComplete(true)} />
       </main>
     )

@@ -12,28 +12,28 @@ import type { Scope } from "animejs"
 
 const BLOBS = [
   {
-    gradient: "linear-gradient(135deg, rgba(99,102,241,0.7) 0%, rgba(139,92,246,0.4) 100%)",
+    gradient: "linear-gradient(135deg, rgba(250,204,21,0.55) 0%, rgba(234,179,8,0.28) 100%)",
     size: 500,
     x: 20,
     y: 25,
     blur: 40,
   },
   {
-    gradient: "linear-gradient(225deg, rgba(56,189,248,0.65) 0%, rgba(6,182,212,0.35) 100%)",
+    gradient: "linear-gradient(225deg, rgba(245,158,11,0.50) 0%, rgba(217,119,6,0.25) 100%)",
     size: 420,
     x: 70,
     y: 20,
     blur: 35,
   },
   {
-    gradient: "linear-gradient(315deg, rgba(236,72,153,0.55) 0%, rgba(244,114,182,0.30) 100%)",
+    gradient: "linear-gradient(315deg, rgba(253,224,71,0.40) 0%, rgba(250,204,21,0.20) 100%)",
     size: 380,
     x: 55,
     y: 65,
     blur: 30,
   },
   {
-    gradient: "linear-gradient(45deg, rgba(52,211,153,0.50) 0%, rgba(16,185,129,0.25) 100%)",
+    gradient: "linear-gradient(45deg, rgba(161,161,170,0.32) 0%, rgba(113,113,122,0.16) 100%)",
     size: 350,
     x: 15,
     y: 70,
@@ -47,7 +47,7 @@ const BLOBS = [
     blur: 25,
   },
   {
-    gradient: "linear-gradient(90deg, rgba(99,102,241,0.40) 0%, rgba(56,189,248,0.25) 100%)",
+    gradient: "linear-gradient(90deg, rgba(217,119,6,0.38) 0%, rgba(250,204,21,0.20) 100%)",
     size: 550,
     x: 45,
     y: 40,
@@ -188,7 +188,7 @@ export default function GlassmorphismBackground() {
       <div
         className="absolute inset-0"
         style={{
-          background: "rgba(3,7,18,0.10)",
+          background: "rgba(9,9,11,0.10)",
         }}
       />
     </div>

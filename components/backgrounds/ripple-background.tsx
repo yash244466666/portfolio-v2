@@ -94,10 +94,10 @@ export default function RippleBackground() {
           ctx.beginPath()
           ctx.arc(r.x, r.y, ringRadius, 0, Math.PI * 2)
           ctx.strokeStyle = ring === 0
-            ? `rgba(99,102,241,${ringAlpha})`
+            ? `rgba(250,204,21,${ringAlpha})`
             : ring === 1
-            ? `rgba(56,189,248,${ringAlpha * 0.7})`
-            : `rgba(139,92,246,${ringAlpha * 0.5})`
+            ? `rgba(245,158,11,${ringAlpha * 0.7})`
+            : `rgba(217,119,6,${ringAlpha * 0.5})`
           ctx.lineWidth = 1.5 - ring * 0.4
           ctx.stroke()
         }
@@ -106,7 +106,7 @@ export default function RippleBackground() {
         if (life < 0.3) {
           const glowAlpha = (1 - life / 0.3) * alpha * 0.5
           const grad = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, 30)
-          grad.addColorStop(0, `rgba(99,102,241,${glowAlpha})`)
+          grad.addColorStop(0, `rgba(250,204,21,${glowAlpha})`)
           grad.addColorStop(1, "transparent")
           ctx.fillStyle = grad
           ctx.fillRect(r.x - 30, r.y - 30, 60, 60)
@@ -114,7 +114,7 @@ export default function RippleBackground() {
       }
 
       // Subtle grid pattern
-      ctx.strokeStyle = `rgba(99,102,241,${0.03 * fadeRef.current})`
+      ctx.strokeStyle = `rgba(250,204,21,${0.03 * fadeRef.current})`
       ctx.lineWidth = 0.5
       const gridSize = 60
       for (let x = 0; x < w; x += gridSize) {

@@ -118,7 +118,7 @@ function getInitialBg(): BackgroundId {
 
 function BackgroundFallback() {
   return (
-    <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black opacity-50" />
+    <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-background to-black opacity-50" />
   )
 }
 
@@ -172,7 +172,7 @@ export function BackgroundSwitcher({
 
       {/* Options panel */}
       {open && (
-        <div className="absolute bottom-14 left-0 bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-2 shadow-2xl min-w-[160px] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-200" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.1) transparent" }}>
+        <div className="absolute bottom-14 left-0 bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-xl p-2 shadow-2xl min-w-[160px] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-200" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.1) transparent" }}>
           <p className="text-[10px] uppercase tracking-widest text-white/40 px-2 pt-1 pb-2 font-medium">
             Background
           </p>
@@ -185,14 +185,14 @@ export function BackgroundSwitcher({
               }}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
                 currentBg === opt.id
-                  ? "bg-indigo-500/20 text-indigo-300"
+                  ? "bg-yellow-400/15 text-yellow-300"
                   : "text-white/60 hover:text-white hover:bg-white/5"
               }`}
             >
               <span className="text-base">{opt.icon}</span>
               <span>{opt.label}</span>
               {currentBg === opt.id && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-yellow-400" />
               )}
             </button>
           ))}
