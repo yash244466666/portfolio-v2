@@ -124,7 +124,9 @@ export function TurnstileWidget({
         widgetId = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           theme: "dark",
-          size: "flexible",
+          // Flexible still has a 300 px minimum, so narrow phones get the
+          // compact challenge instead of a widget that widens the page.
+          size: window.matchMedia("(max-width: 359px)").matches ? "compact" : "flexible",
           // Hidden until Cloudflare decides the visitor needs a challenge. The
           // token is still issued through `callback` when none is required, so
           // the submit flow is unchanged.

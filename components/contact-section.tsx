@@ -8,8 +8,10 @@ import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import { ContactSectionHeader } from "@/components/contact-section/contact-section-header"
 import { ContactFormCard, type ContactFormStatus } from "@/components/contact-section/contact-form-card"
 import { ContactInfoList } from "@/components/contact-section/contact-info-list"
+import { Card } from "@/components/ui/card"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
+import { cn } from "@/lib/utils"
 import {
   requestUploadUrl,
   sendContactMessage,
@@ -55,12 +57,7 @@ export default function ContactSection() {
   })
 
   // Get content from centralized content module
-  const sectionContent = getSectionContent("contact") as {
-    heading: string
-    description: string
-    formTitle: string
-    infoTitle: string
-  }
+  const sectionContent = getSectionContent("contact")
   const contactInfo = getContactInfo()
   const formContent = getFormContent()
   const buttonTexts = getButtonTexts()
@@ -387,7 +384,12 @@ export default function ContactSection() {
   }))
 
   return (
-    <section id="contact" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30">
+    <section
+      id="contact"
+      aria-labelledby="contact-heading"
+      ref={sectionRef}
+      className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30"
+    >
       <div className="max-w-6xl mx-auto">
         <ContactSectionHeader
           heading={sectionContent.heading}
@@ -395,9 +397,13 @@ export default function ContactSection() {
           isVisible={isVisible}
         />
 
-        <div className="grid lg:grid-cols-2 gap-8 sm:gap-12">
+        <Card className={cn(
+          "mx-auto max-w-4xl gap-0 rounded-2xl py-0 motion-reduce:animate-none",
+          isVisible ? "animate-fade-in-up" : "reveal-pending",
+        )}>
           <ContactFormCard
             title={sectionContent.formTitle}
+            description={sectionContent.formDescription}
             formData={formData}
             labels={formContent.labels}
             placeholders={formContent.placeholders}
@@ -439,16 +445,14 @@ export default function ContactSection() {
               attachments.length > 0 &&
               errorCode !== "attachment-rejected"
             }
-            isVisible={isVisible}
           />
 
           <ContactInfoList
             title={sectionContent.infoTitle}
-            description={sectionContent.description}
+            description={sectionContent.infoDescription}
             items={contactItems}
-            isVisible={isVisible}
           />
-        </div>
+        </Card>
       </div>
     </section>
   )

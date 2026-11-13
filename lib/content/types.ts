@@ -6,6 +6,13 @@ export interface SocialLink {
   name: string;
   url: string;
   icon: string;
+  /** Accessible name for the icon-only profile link. */
+  label: string;
+  /**
+   * Whether this is a personal profile that may appear in Person `sameAs`
+   * structured data. Brand pages stay in the footer but stay out of `sameAs`.
+   */
+  sameAs?: boolean;
 }
 
 export interface ContactInfo {
@@ -15,37 +22,43 @@ export interface ContactInfo {
   link?: string;
 }
 
+/** A destination attached to a project record. */
+export interface ProjectLink {
+  label: string;
+  href: string;
+  /** Open in a new tab with rel="noopener noreferrer". */
+  external?: boolean;
+  /** Render this link on the card as well as inside the detail modal. */
+  showOnCard?: boolean;
+}
+
 export interface Project {
   title: string;
+  /** Short summary shown on the card and at the top of the modal. */
   description: string;
-  image: string;
-  tech: string[];
-  github: string;
-  live: string;
   /**
-   * Whether to render the "Code" action for this project.
-   * Defaults to `true` when omitted.
-   */
-  showCode?: boolean;
-  /**
-   * Whether to render the "Live Demo" action for this project.
-   * Defaults to `true` when omitted.
-   */
-  showLiveDemo?: boolean;
-  /**
-   * Optional long-form copy shown in the project detail modal.
-   * The modal falls back to `description` when this is omitted.
+   * Longer modal copy. Blank lines become separate paragraphs.
+   * Falls back to `description` when omitted.
    */
   longDescription?: string;
+  image: string;
+  /** Alt text for the card and modal artwork. Required for the new records. */
+  imageAlt: string;
   /**
-   * Optional bullet points listed under the modal's highlights heading.
-   * The highlights section is hidden when this is missing or empty.
+   * Visible label over the artwork, for example "Illustration" on concept
+   * images. Omit it for real screenshots.
    */
-  highlights?: string[];
-  /** Optional role label shown in the modal meta row; hidden when omitted. */
+  artworkLabel?: string;
+  /** Up to four short tags; the card renders all of them. */
+  tech: string[];
+  /** Role label shown on the card and in the modal meta row. */
   role?: string;
-  /** Optional year label shown in the modal meta row; hidden when omitted. */
+  /** Optional year label shown in the modal meta row. */
   year?: string;
+  /** Optional bullet points listed under the modal's highlights heading. */
+  highlights?: string[];
+  /** Public destinations: demo code, the tools directory, a case study. */
+  links?: ProjectLink[];
 }
 
 /**
@@ -66,8 +79,8 @@ export interface ProjectModalContent {
   roleLabel: string;
   /** Label preceding the optional project year. */
   yearLabel: string;
-  /** Hint appended to actions whose link is still a `#` placeholder. */
-  unavailableLabel: string;
+  /** Heading above the optional public links list. */
+  linksHeading: string;
 }
 
 export interface Skill {
@@ -83,14 +96,19 @@ export interface NavigationItem {
 }
 
 export interface PersonalInfo {
+  /** Compact brand label used in the navigation. */
   name: string;
+  /** Full name used in the hero, About, footer, titles, and structured data. */
   fullName: string;
+  /** First line of the hero heading. */
+  nameFirstLine: string;
+  /** Emphasised second line of the hero heading. */
+  nameEmphasis: string;
   title: string;
   greeting: string;
   typingTitles: string[];
   tagline: string;
   aboutDescription: string;
-  contactAvailability: string;
   /**
    * Resume link used by the navigation download button.
    * Omit it (or set it to an empty string or "#") to hide the button.
@@ -101,6 +119,11 @@ export interface PersonalInfo {
   resumeFileName?: string;
 }
 
+export interface AdditionalWorkItem {
+  title: string;
+  description: string;
+}
+
 export interface SectionContent {
   about: {
     heading: string;
@@ -109,12 +132,15 @@ export interface SectionContent {
   projects: {
     heading: string;
     description: string;
+    moreWorkHeading: string;
   };
   contact: {
     heading: string;
     description: string;
     formTitle: string;
+    formDescription: string;
     infoTitle: string;
+    infoDescription: string;
   };
 }
 
@@ -200,10 +226,10 @@ export interface ButtonTexts {
   viewMyWork: string;
   letsTalk: string;
   sendMessage: string;
-  code: string;
-  liveDemo: string;
   /** Optional resume button label; falls back to "Download Resume". */
   downloadResume?: string;
+  /** Visible project card action. */
+  viewDetails: string;
 }
 
 export interface FooterContent {
@@ -217,6 +243,11 @@ export interface SiteMetadata {
   keywords: string[];
   author: string;
   siteUrl: string;
+  /** Social share image, root-relative or absolute. */
+  ogImage: string;
+  jobTitle: string;
+  /** Optional X/Twitter handle, e.g. "@yash_solo000". */
+  twitterHandle?: string;
 }
 
 export interface ContentValidation {

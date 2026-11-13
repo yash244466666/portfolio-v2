@@ -64,6 +64,25 @@ an owner-only team, or a second-reviewer flow is added.
   Fonts fetch; the workflow now retries the build up to three times, and the
   reruns passed.
 
+### 2026-11-10 search-ready staging release
+
+- A 2026-11-10 build containing the server-rendered homepage, four standalone
+  tool pages, the YashCodes case study, `robots.txt`, and `sitemap.xml` was
+  deployed directly to `/opt/stacks/caddy/html/beta` because GitHub API access
+  was rate-limited in the working environment. The feature branch is pushed
+  separately for the normal PR flow.
+- The beta Caddy block redirects `/index.html`, `/tools`, `/tools/index.html`,
+  the four `/tools/<slug>` aliases, and `/projects/yashcodes` to the
+  trailing-slash canonical URL in one hop. Query strings are preserved.
+- The beta block sets `X-Robots-Tag: noindex`; production remains indexable.
+- Production received only the generic `/index.html` and `/tools` redirects.
+  Add the tool-page and case-study aliases when the release reaches production.
+- Pre-change backup: `/opt/stacks/caddy/Caddyfile.bak-20261110-104251`.
+- Caddy bind-mounts the Caddyfile as a single file. Edit it **in place**
+  (`sudo sh -c 'cat new-Caddyfile > /opt/stacks/caddy/Caddyfile'`) and reload.
+  Replacing the inode (for example with `install`) leaves the running container
+  on the old file until the container is restarted.
+
 ## What the workflow does
 
 `.github/workflows/deploy.yml` runs on:
@@ -413,6 +432,15 @@ it as a deployment credential.
 The deploy user does not own the existing directories. Use `rsync -rlz
 --chmod=D755,F644` rather than `rsync -a`. The files are deployed correctly;
 only directory timestamps fail.
+
+### Enforcing CI/CD-only deploys
+
+All staging and production deployments must run through `.github/workflows/deploy.yml`:
+
+- Staging (`beta.yashcodes.com`) deploys only on push / `workflow_dispatch` to `develop`.
+- Production (`yashcodes.com`) deploys only on push / `workflow_dispatch` to `main`.
+- Keep the `deploy` SSH private key exclusively in the GitHub Actions `VPS_SSH_KEY` secret (never keep a copy on developer workstations) so manual local `rsync` deploys cannot bypass PR checks or branch history.
+- If a direct manual sync ever happened in the past (as on 2026-11-12 from a local workstation before rotating the key), reconcile by merging the deployed work into `develop`/`main` via PR and rotating `VPS_SSH_KEY`.
 
 ### `Permission denied (publickey)`
 

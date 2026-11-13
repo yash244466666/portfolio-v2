@@ -8,10 +8,7 @@ import { ProjectModal } from "./project-modal"
 
 interface ProjectsGridProps {
     projects: Project[]
-    buttonTexts: {
-        code: string
-        liveDemo: string
-    }
+    viewDetailsLabel: string
     isVisible?: boolean
 }
 
@@ -20,7 +17,7 @@ interface ActiveProject {
     trigger: HTMLElement | null
 }
 
-export function ProjectsGrid({ projects, buttonTexts, isVisible = false }: ProjectsGridProps) {
+export function ProjectsGrid({ projects, viewDetailsLabel, isVisible = false }: ProjectsGridProps) {
     const modalContent = getProjectModalContent()
     const [activeProject, setActiveProject] = useState<ActiveProject | null>(null)
 
@@ -39,10 +36,10 @@ export function ProjectsGrid({ projects, buttonTexts, isVisible = false }: Proje
                     <ProjectCard
                         key={`${project.title}-${index}`}
                         project={project}
-                        buttonTexts={buttonTexts}
+                        viewDetailsLabel={viewDetailsLabel}
                         modalContent={modalContent}
                         onSelect={handleSelect}
-                        animationDelay={index * 200}
+                        animationDelay={index * 120}
                         isVisible={isVisible}
                     />
                 ))}
@@ -52,7 +49,6 @@ export function ProjectsGrid({ projects, buttonTexts, isVisible = false }: Proje
                     project={activeProject.project}
                     trigger={activeProject.trigger}
                     onClose={handleClose}
-                    buttonTexts={buttonTexts}
                     modalContent={modalContent}
                 />
             ) : null}

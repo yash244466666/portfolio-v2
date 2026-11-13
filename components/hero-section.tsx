@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, type MouseEvent } from "react"
 import { getPersonalInfo, getSocialLinks, getButtonTexts } from "@/lib/content/utils"
 import { useCyclingTypewriter } from "@/hooks/use-cycling-typewriter"
 import { HeroHeading } from "@/components/hero-section/hero-heading"
@@ -12,9 +12,7 @@ import { ScrollIndicator } from "@/components/hero-section/scroll-indicator"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
 
-export default function HeroSection({ loadingComplete }: { loadingComplete: boolean }) {
-  const [isVisible, setIsVisible] = useState(false)
-
+export default function HeroSection() {
   const personalInfo = getPersonalInfo()
   const socialLinks = getSocialLinks()
   const buttonTexts = getButtonTexts()
@@ -27,51 +25,69 @@ export default function HeroSection({ loadingComplete }: { loadingComplete: bool
   })
 
   useComponentInstrumentation("HeroSection", {
-    propsSnapshot: () => ({ loadingComplete }),
-    stateSnapshot: () => ({ isVisible, currentTitle: title }),
-    trackValues: () => ({ isVisible, title }),
+    stateSnapshot: () => ({ currentTitle: title }),
+    trackValues: () => ({ title }),
     throttleMs: 1500,
   })
 
-  useEffect(() => {
-    if (!loadingComplete) {
-      return
-    }
-
-    const timer = setTimeout(() => {
-      setIsVisible(true)
-    }, 200)
-
-    return () => clearTimeout(timer)
-  }, [loadingComplete])
-
   const scrollToSection = useCallback((sectionId: string) => {
     const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-      logComponentEvent("HeroSection", {
-        event: "scroll-to",
-        detail: { sectionId },
-        throttleMs: 1500,
-      })
-    }
+    if (!element) return
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    element.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" })
+    logComponentEvent("HeroSection", {
+      event: "scroll-to",
+      detail: { sectionId },
+      throttleMs: 1500,
+    })
   }, [])
 
+  // Plain left clicks use the animated scroll. Modified clicks keep native
+  // anchor behaviour so "Open in new tab", copy link, and keyboard activation
+  // all continue to work.
+  const handleAnchorClick = useCallback(
+    (sectionId: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return
+      }
+      event.preventDefault()
+      scrollToSection(sectionId)
+    },
+    [scrollToSection]
+  )
+
   return (
-    <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 relative overflow-hidden">
-      <div className="max-w-4xl mx-auto text-center relative z-10">
-        <HeroHeading greeting={personalInfo.greeting} name={personalInfo.name} isVisible={isVisible} />
-        <HeroTypewriterTitle title={title} loadingComplete={loadingComplete} isVisible={isVisible} />
-        <HeroDescription tagline={personalInfo.tagline} isVisible={isVisible} />
+    <section
+      aria-label="Introduction"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pt-20 sm:px-6"
+    >
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
+        <HeroHeading
+          greeting={personalInfo.greeting}
+          firstLine={personalInfo.nameFirstLine}
+          emphasis={personalInfo.nameEmphasis}
+          fullName={personalInfo.fullName}
+        />
+        <HeroTypewriterTitle title={title} />
+        <HeroDescription tagline={personalInfo.tagline} />
         <HeroActions
           primaryLabel={buttonTexts.viewMyWork}
           secondaryLabel={buttonTexts.letsTalk}
-          onPrimaryClick={() => scrollToSection("projects")}
-          onSecondaryClick={() => scrollToSection("contact")}
-          isVisible={isVisible}
+          primaryHref="#projects"
+          secondaryHref="#contact"
+          onPrimaryClick={handleAnchorClick("projects")}
+          onSecondaryClick={handleAnchorClick("contact")}
         />
-        <HeroSocialLinks links={socialLinks} isVisible={isVisible} />
-        <ScrollIndicator onClick={() => scrollToSection("about")} isVisible={isVisible} />
+        <HeroSocialLinks links={socialLinks} />
+        <ScrollIndicator href="#about" onClick={handleAnchorClick("about")} />
       </div>
     </section>
   )

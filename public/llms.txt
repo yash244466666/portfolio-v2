@@ -1,0 +1,30 @@
+# MD. Mohi Minul Islam Yash (YashCodes)
+
+> Full-stack software engineer (also known as Yash Sikdar and YashCodes) based in Barisal, Bangladesh. Builds production web applications, marketplace scheduling and payment systems, platform integrations, cybersecurity/OSINT tools, and custom AI agents.
+
+## Identity & Profiles
+
+- **Full Name**: MD. Mohi Minul Islam Yash (also searched as Mohi Minul Islam Yash, Yash Sikdar)
+- **Brand**: YashCodes (https://yashcodes.com/)
+- **Role**: Full-Stack Software Engineer
+- **Location**: Barisal, Bangladesh
+- **Email**: info@yashcodes.com
+- **Resume PDF**: [Download Resume](https://yashcodes.com/resume.pdf)
+- **GitHub**: https://github.com/yash244466666
+- **LinkedIn**: https://www.linkedin.com/in/md-mohi-minul-islam-yash/
+- **X (Twitter)**: https://twitter.com/yash_solo000
+- **Facebook**: https://www.facebook.com/yashcodes.for.you
+
+## Primary Pages
+
+- [Portfolio Home](https://yashcodes.com/): Biography, technical skills, featured engineering projects, contact form, and resume download.
+- [Developer Tools Directory](https://yashcodes.com/tools/): Searchable catalog of 88 browser-based utilities across Core, Dev, Text, Media, Security, and Math & Logic categories.
+- [YashCodes Tools Case Study](https://yashcodes.com/projects/yashcodes/): Architecture, lazy loading, history/scroll restoration, and performance tradeoffs.
+- [Complete Context Profile](https://yashcodes.com/llms-full.txt): Full structured overview of skills, projects, standalone tools, and technical FAQs for AI search engines.
+
+## Standalone Tool Pages
+
+- [JSON Editor](https://yashcodes.com/tools/json-editor/): Format, minify, validate, and inspect JSON locally in the browser with tree view and syntax error reporting.
+- [Unix Timestamp Converter](https://yashcodes.com/tools/timestamp-converter/): Convert seconds or milliseconds to UTC/local ISO dates and back with explicit unit detection.
+- [Image Compressor](https://yashcodes.com/tools/image-compressor/): Compress, resize, and convert PNG, JPEG, WebP, and AVIF images locally in the browser.
+- [Meta Tag Generator](https://yashcodes.com/tools/meta-tag-generator/): Generate properly HTML-escaped title, description, canonical, Open Graph, and Twitter Card meta tags.

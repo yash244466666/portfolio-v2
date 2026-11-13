@@ -1,10 +1,11 @@
 "use client"
 
+import Link from "next/link"
 import type { ToolDefinition } from "@/lib/content/tools/types"
-import { Card } from "@/components/ui/card"
 import { ArrowRight, Braces } from "lucide-react"
 import { iconMap } from "@/lib/content/tools/icon-map"
 import { getToolCategories } from "@/lib/content/tools/utils"
+import { getToolPagePath } from "@/lib/content/tool-pages"
 
 interface ToolCardProps {
   tool: ToolDefinition
@@ -14,9 +15,9 @@ interface ToolCardProps {
 /**
  * Premium glassmorphism tool card.
  *
- * Reveal and scroll-driven motion are handled by the surrounding container, so
- * this component stays fully visible and relies on a stable `.tool-card` class
- * for any external animation targets.
+ * Promoted tools link to their standalone page with a normal anchor so the
+ * URL is shareable and crawlable. Every other tool keeps the directory's
+ * hash-driven in-place behaviour.
  */
 export default function ToolCard({ tool, onSelect }: ToolCardProps) {
   const IconComponent = iconMap[tool.icon] || Braces
@@ -32,25 +33,18 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
 
   const categories = getToolCategories()
   const categoryLabel = categories.find((c) => c.id === tool.category)?.label || "Dev"
+  const standaloneHref = getToolPagePath(tool.id)
 
-  return (
-    <a
-      href={`#${tool.id}`}
-      data-tool-card={tool.id}
-      aria-label={`Open ${tool.label} tool`}
-      className="tool-card tool-card--root group relative cursor-pointer overflow-hidden p-4 sm:p-5 h-full flex flex-col gap-3 sm:gap-4 rounded-xl
+  const className = `tool-card tool-card--root group relative cursor-pointer overflow-hidden p-4 sm:p-5 h-full flex flex-col gap-3 sm:gap-4 rounded-xl
         bg-muted/70 backdrop-blur-md border border-white/[0.08]
         transition-all duration-200 ease-out
         hover:-translate-y-1
         active:scale-[0.98] active:duration-75
         touch-manipulation
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      onClick={(e) => {
-        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
-        e.preventDefault()
-        onSelect(tool.id)
-      }}
-    >
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background`
+
+  const content = (
+    <>
       <div className="tool-card__top flex items-start justify-between gap-3">
         <div className="tool-card__icon-tile p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary border border-primary/10 transition-all duration-200">
           <IconComponent className="h-6 w-6" aria-hidden="true" />
@@ -72,12 +66,43 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
       </div>
 
       <div className="tool-card__footer flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06]">
-        <span className="tool-card__footer-label">Open tool</span>
+        <span className="tool-card__footer-label">
+          {standaloneHref ? "Open page" : "Open tool"}
+        </span>
         <ArrowRight
           className="tool-card__footer-arrow h-4 w-4"
           aria-hidden="true"
         />
       </div>
+    </>
+  )
+
+  if (standaloneHref) {
+    return (
+      <Link
+        href={standaloneHref}
+        data-tool-card={tool.id}
+        aria-label={`Open ${tool.label} page`}
+        className={className}
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <a
+      href={`#${tool.id}`}
+      data-tool-card={tool.id}
+      aria-label={`Open ${tool.label} tool`}
+      className={className}
+      onClick={(e) => {
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+        onSelect(tool.id)
+      }}
+    >
+      {content}
     </a>
   )
 }
