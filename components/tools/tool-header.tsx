@@ -46,9 +46,9 @@ export default function ToolHeader({ tool, onBack, onHomeClick, onCategoryClick,
 
   const getPageBackgroundColor = (): string => {
     const main = document.querySelector("main")
-    if (!main) return "#030712"
+    if (!main) return "#09090b"
     const computed = window.getComputedStyle(main).backgroundColor
-    if (!computed || computed === "rgba(0, 0, 0, 0)" || computed === "transparent") return "#030712"
+    if (!computed || computed === "rgba(0, 0, 0, 0)" || computed === "transparent") return "#09090b"
     return computed
   }
 

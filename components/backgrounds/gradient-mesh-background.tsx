@@ -13,12 +13,12 @@ import type { Scope } from "animejs"
  */
 
 const BLOBS = [
-  { color: "from-indigo-500/30 to-purple-600/20", size: "w-[600px] h-[600px]", x: "15%", y: "10%", dur: 18000 },
-  { color: "from-cyan-400/25 to-blue-500/15", size: "w-[500px] h-[500px]", x: "60%", y: "15%", dur: 22000 },
-  { color: "from-violet-500/20 to-fuchsia-500/15", size: "w-[550px] h-[550px]", x: "40%", y: "55%", dur: 20000 },
-  { color: "from-blue-400/25 to-indigo-600/20", size: "w-[480px] h-[480px]", x: "75%", y: "60%", dur: 16000 },
-  { color: "from-purple-400/20 to-pink-500/15", size: "w-[520px] h-[520px]", x: "25%", y: "70%", dur: 24000 },
-  { color: "from-teal-400/20 to-cyan-500/15", size: "w-[450px] h-[450px]", x: "85%", y: "35%", dur: 19000 },
+  { color: "from-yellow-400/25 to-amber-500/15", size: "w-[600px] h-[600px]", x: "15%", y: "10%", dur: 18000 },
+  { color: "from-amber-400/20 to-yellow-600/15", size: "w-[500px] h-[500px]", x: "60%", y: "15%", dur: 22000 },
+  { color: "from-yellow-300/20 to-amber-500/10", size: "w-[550px] h-[550px]", x: "40%", y: "55%", dur: 20000 },
+  { color: "from-zinc-500/20 to-zinc-700/15", size: "w-[480px] h-[480px]", x: "75%", y: "60%", dur: 16000 },
+  { color: "from-amber-500/20 to-orange-600/10", size: "w-[520px] h-[520px]", x: "25%", y: "70%", dur: 24000 },
+  { color: "from-yellow-500/15 to-amber-600/10", size: "w-[450px] h-[450px]", x: "85%", y: "35%", dur: 19000 },
 ]
 
 export default function GradientMeshBackground() {

@@ -14,31 +14,31 @@ const BLOB_COUNT = 5
 
 const BLOBS = [
   {
-    colors: "radial-gradient(ellipse at 30% 50%, rgba(99,102,241,0.65) 0%, rgba(59,130,246,0.35) 40%, transparent 70%)",
+    colors: "radial-gradient(ellipse at 30% 50%, rgba(250,204,21,0.45) 0%, rgba(234,179,8,0.22) 40%, transparent 70%)",
     size: 750,
     startX: 15,
     startY: 20,
   },
   {
-    colors: "radial-gradient(ellipse at 60% 40%, rgba(139,92,246,0.60) 0%, rgba(168,85,247,0.30) 40%, transparent 70%)",
+    colors: "radial-gradient(ellipse at 60% 40%, rgba(245,158,11,0.42) 0%, rgba(217,119,6,0.20) 40%, transparent 70%)",
     size: 650,
     startX: 60,
     startY: 15,
   },
   {
-    colors: "radial-gradient(ellipse at 50% 60%, rgba(6,182,212,0.55) 0%, rgba(34,211,238,0.25) 40%, transparent 70%)",
+    colors: "radial-gradient(ellipse at 50% 60%, rgba(253,224,71,0.35) 0%, rgba(250,204,21,0.16) 40%, transparent 70%)",
     size: 600,
     startX: 40,
     startY: 65,
   },
   {
-    colors: "radial-gradient(ellipse at 70% 30%, rgba(236,72,153,0.45) 0%, rgba(244,114,182,0.20) 40%, transparent 70%)",
+    colors: "radial-gradient(ellipse at 70% 30%, rgba(161,161,170,0.26) 0%, rgba(113,113,122,0.12) 40%, transparent 70%)",
     size: 550,
     startX: 75,
     startY: 55,
   },
   {
-    colors: "radial-gradient(ellipse at 40% 70%, rgba(52,211,153,0.40) 0%, rgba(16,185,129,0.20) 40%, transparent 70%)",
+    colors: "radial-gradient(ellipse at 40% 70%, rgba(217,119,6,0.35) 0%, rgba(180,83,9,0.16) 40%, transparent 70%)",
     size: 500,
     startX: 25,
     startY: 75,

@@ -161,8 +161,8 @@ export default function StarfieldBackground() {
 
       // Subtle nebula glow at center
       const gradient = ctx.createRadialGradient(w * 0.5, h * 0.4, 0, w * 0.5, h * 0.4, w * 0.5)
-      gradient.addColorStop(0, `rgba(99,102,241,${0.04 * fadeRef.current})`)
-      gradient.addColorStop(0.5, `rgba(139,92,246,${0.02 * fadeRef.current})`)
+      gradient.addColorStop(0, `rgba(250,204,21,${0.035 * fadeRef.current})`)
+      gradient.addColorStop(0.5, `rgba(245,158,11,${0.018 * fadeRef.current})`)
       gradient.addColorStop(1, "transparent")
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, w, h)
@@ -209,7 +209,7 @@ export default function StarfieldBackground() {
       <div
         className="starfield-glow absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.06) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse at 50% 30%, rgba(250,204,21,0.05) 0%, transparent 60%)",
           opacity: 0,
         }}
       />

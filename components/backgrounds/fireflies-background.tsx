@@ -14,12 +14,12 @@ import type { Scope } from "animejs"
 const FIREFLY_COUNT = 35
 
 const COLORS = [
-  "rgba(99,102,241,VAR)",   // Indigo
-  "rgba(139,92,246,VAR)",   // Purple
-  "rgba(56,189,248,VAR)",   // Sky
-  "rgba(52,211,153,VAR)",   // Emerald
-  "rgba(251,191,36,VAR)",   // Amber
-  "rgba(244,114,182,VAR)",  // Pink
+  "rgba(250,204,21,VAR)",   // Signal Yellow
+  "rgba(245,158,11,VAR)",   // Amber
+  "rgba(253,224,71,VAR)",   // Bright Yellow
+  "rgba(217,119,6,VAR)",    // Deep Amber
+  "rgba(251,191,36,VAR)",   // Warm Gold
+  "rgba(234,179,8,VAR)",    // Gold
 ]
 
 function generateFireflies() {
@@ -179,8 +179,8 @@ export default function FirefliesBackground() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at 30% 40%, rgba(99,102,241,0.04) 0%, transparent 50%), " +
-            "radial-gradient(ellipse at 70% 60%, rgba(139,92,246,0.03) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 30% 40%, rgba(250,204,21,0.04) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 70% 60%, rgba(245,158,11,0.03) 0%, transparent 50%)",
         }}
       />
     </div>

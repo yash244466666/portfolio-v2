@@ -25,8 +25,8 @@ const MOUSE_RADIUS = 220
 const MOUSE_PUSH_STRENGTH = 0.8
 const PARTICLE_MIN_SPEED = 0.15
 const PARTICLE_MAX_SPEED = 0.5
-const BASE_COLOR = { r: 99, g: 102, b: 241 } // Indigo
-const ACCENT_COLOR = { r: 56, g: 189, b: 248 } // Sky
+const BASE_COLOR = { r: 217, g: 119, b: 6 } // Amber
+const ACCENT_COLOR = { r: 250, g: 204, b: 21 } // Signal Yellow
 
 export default function ParticlesBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)

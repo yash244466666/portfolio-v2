@@ -68,23 +68,23 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
   if (!isLoading) return null
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-gray-950 transition-opacity duration-150 ${isFadingOut ? "opacity-0" : "opacity-100"}`}>
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-150 ${isFadingOut ? "opacity-0" : "opacity-100"}`}>
       <div className="text-center">
         <div className="relative mb-8">
-          <div className="w-20 h-20 border-4 border-gray-800 rounded-full animate-spin border-t-purple-500 mx-auto"></div>
+          <div className="w-20 h-20 border-4 border-zinc-800 rounded-full animate-spin border-t-yellow-400 mx-auto"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-purple-400 font-mono text-sm">{progress}%</span>
+            <span className="text-yellow-400 font-mono text-sm">{progress}%</span>
           </div>
         </div>
 
-        <div className="w-64 h-1 bg-gray-800 rounded-full mx-auto mb-4 overflow-hidden">
+        <div className="w-64 h-1 bg-zinc-800 rounded-full mx-auto mb-4 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 to-cyan-400 rounded-full transition-all duration-100 ease-out"
+            className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-100 ease-out"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
 
-        <p className="text-gray-400 text-sm font-medium">Loading Portfolio...</p>
+        <p className="text-muted-foreground text-sm font-medium">Loading Portfolio...</p>
       </div>
     </div>
   )

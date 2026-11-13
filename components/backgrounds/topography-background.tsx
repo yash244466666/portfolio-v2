@@ -10,8 +10,8 @@ import { useEffect, useRef } from "react"
  */
 
 const LINE_COUNT = 28
-const BASE_COLOR = { r: 99, g: 102, b: 241 }
-const ACCENT_COLOR = { r: 56, g: 189, b: 248 }
+const BASE_COLOR = { r: 217, g: 119, b: 6 }
+const ACCENT_COLOR = { r: 250, g: 204, b: 21 }
 const MOUSE_RADIUS = 250
 
 export default function TopographyBackground() {

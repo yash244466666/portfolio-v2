@@ -370,7 +370,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
                   aria-valuenow={0}
                 >
                   <div
-                    className="tools-section__progress-bar h-full bg-gradient-to-r from-primary to-cyan-400 origin-left transition-transform duration-75 ease-linear"
+                    className="tools-section__progress-bar h-full bg-gradient-to-r from-yellow-400 to-amber-500 origin-left transition-transform duration-75 ease-linear"
                     style={{ transform: "scaleX(var(--section-progress, 0))" }}
                   />
                 </div>
