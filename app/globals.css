@@ -282,15 +282,15 @@ html[data-scroll-locked] {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
+  animation: fadeInUp 0.8s ease-out both;
 }
 
 .animate-fade-in {
-  animation: fadeInMesh 0.6s ease-out forwards;
+  animation: fadeInMesh 0.6s ease-out both;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.8s ease-out forwards;
+  animation: slideInLeft 0.8s ease-out both;
 }
 
 .animate-glow {
@@ -303,6 +303,62 @@ html[data-scroll-locked] {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Progressive enhancement for section reveals.
+   The inline script in app/layout.tsx adds `.js` before paint. Without JS the
+   content is fully visible; with JS the section starts hidden and the
+   IntersectionObserver reveals it. The delayed fallback makes content visible
+   even if a later bundle fails to load. */
+html.js .reveal-pending {
+  opacity: 0;
+  animation: revealFallback 0s linear 4s forwards;
+}
+
+@keyframes revealFallback {
+  to {
+    opacity: 1;
+  }
+}
+
+/* The loading screen is a decorative, pointer-safe overlay over already
+   rendered content. With JS it unmounts after its own fade; without JS, or if
+   the app bundle never loads, these fallbacks remove it from view. */
+.loading-screen {
+  pointer-events: none;
+}
+
+html:not(.js) .loading-screen {
+  animation: loaderFallbackExit 0.4s ease-in-out 1.2s forwards;
+}
+
+html.js .loading-screen {
+  animation: loaderFallbackExit 0s linear 4s forwards;
+}
+
+@keyframes loaderFallbackExit {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal-pending {
+    opacity: 1;
+    animation: none;
+  }
+
+  .loading-screen {
+    display: none;
+  }
+
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-slide-in-left,
+  .animate-bounce {
+    animation: none !important;
+  }
 }
 
 @keyframes sheen {

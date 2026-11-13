@@ -1,6 +1,14 @@
 "use client"
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react"
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { getToolCategories } from "@/lib/content/tools/utils"
 import type { ToolDefinition } from "@/lib/content/tools/types"
 import { SearchX } from "lucide-react"
@@ -30,6 +38,7 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
   const categories = getToolCategories()
   const sectionsRef = useRef<ToolsSectionsHandle>(null)
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
+  const pendingCategoryRef = useRef<string | null>(null)
 
   useImperativeHandle(
     ref,
@@ -67,8 +76,10 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
   const handleCategoryClick = useCallback(
     (id: string) => {
       if (searchQuery) {
+        // Clear the query first. The effect below jumps to the category once
+        // the browse track has mounted and taken its measurements.
+        pendingCategoryRef.current = id
         onSearchChange("")
-        requestAnimationFrame(() => sectionsRef.current?.scrollToCategory(id))
       } else {
         sectionsRef.current?.scrollToCategory(id)
       }
@@ -76,8 +87,18 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
     [searchQuery, onSearchChange]
   )
 
+  useEffect(() => {
+    if (searchQuery || !pendingCategoryRef.current) return
+    const id = pendingCategoryRef.current
+    pendingCategoryRef.current = null
+    // ToolsSections queues the jump itself until its pinned measurements are
+    // ready, so a single frame is enough to let the browse layout mount.
+    requestAnimationFrame(() => sectionsRef.current?.scrollToCategory(id))
+  }, [searchQuery])
+
   return (
     <section className="tools-grid tools-grid--root max-w-6xl mx-auto px-4 sm:px-6 animate-fade-in-up">
+      <h1 className="sr-only">Free Online Developer Tools</h1>
       <ToolsToolbar
         categories={categories}
         activeCategoryId={activeCategoryId}

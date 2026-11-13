@@ -1,24 +1,27 @@
-"use client"
-
 interface HeroTypewriterTitleProps {
-    title: string
-    loadingComplete: boolean
-    isVisible?: boolean
+  title: string;
 }
 
-export function HeroTypewriterTitle({ title, loadingComplete, isVisible = false }: HeroTypewriterTitleProps) {
-    return (
-        <div className={`transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight min-h-[60px] sm:min-h-[80px] md:min-h-[120px]">
-                {loadingComplete && (
-                    <>
-                        <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">{title}</span>
-                        <span className="animate-pulse text-yellow-400 ml-1">|</span>
-                    </>
-                )}
-            </h1>
-        </div>
-    )
+/**
+ * Decorative rotating role labels. The full-stack role is stated in the hero
+ * paragraph, so this element is hidden from assistive technology and may
+ * cycle freely without changing the accessible name of the page.
+ */
+export function HeroTypewriterTitle({ title }: HeroTypewriterTitleProps) {
+  return (
+    <div
+      aria-hidden="true"
+      className="animate-fade-in-up motion-reduce:animate-none"
+      style={{ animationDelay: "120ms" }}
+    >
+      <p className="mb-6 min-h-[60px] text-3xl font-bold leading-tight text-foreground sm:min-h-[80px] sm:text-4xl md:min-h-[120px] md:text-6xl">
+        <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+          {title}
+        </span>
+        <span className="ml-1 animate-pulse text-yellow-400">|</span>
+      </p>
+    </div>
+  );
 }
 
-export default HeroTypewriterTitle
+export default HeroTypewriterTitle;

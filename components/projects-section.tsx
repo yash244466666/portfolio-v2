@@ -1,11 +1,12 @@
 "use client"
 
 import { useCallback } from "react"
-import { getSectionContent, getProjects, getButtonTexts } from "@/lib/content/utils"
+import { getSectionContent, getProjects, getButtonTexts, getAdditionalWork } from "@/lib/content/utils"
 import { useSectionVisibility } from "@/hooks/use-section-visibility"
 import { ProjectsBackground } from "@/components/projects-section/projects-background"
 import { ProjectsSectionHeader } from "@/components/projects-section/projects-section-header"
 import { ProjectsGrid } from "@/components/projects-section/projects-grid"
+import { MoreEngineeringWork } from "@/components/projects-section/more-engineering-work"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
 
@@ -28,15 +29,13 @@ export default function ProjectsSection() {
   const sectionContent = getSectionContent("projects")
   const projects = getProjects()
   const buttonTexts = getButtonTexts()
-  const projectButtonTexts = {
-    code: buttonTexts.code,
-    liveDemo: buttonTexts.liveDemo,
-  }
+  const additionalWork = getAdditionalWork()
 
   useComponentInstrumentation("ProjectsSection", {
     metricsSnapshot: () => ({
       isVisible,
       projectCount: projects.length,
+      additionalWorkCount: additionalWork.length,
     }),
     trackValues: () => ({ isVisible }),
     throttleMs: 1500,
@@ -49,7 +48,12 @@ export default function ProjectsSection() {
   })
 
   return (
-    <section id="projects" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden">
+    <section
+      id="projects"
+      aria-labelledby="projects-heading"
+      ref={sectionRef}
+      className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden"
+    >
       <ProjectsBackground />
 
       <div className="max-w-6xl mx-auto relative z-10">
@@ -59,7 +63,17 @@ export default function ProjectsSection() {
           isVisible={isVisible}
         />
 
-        <ProjectsGrid projects={projects} buttonTexts={projectButtonTexts} isVisible={isVisible} />
+        <ProjectsGrid
+          projects={projects}
+          viewDetailsLabel={buttonTexts.viewDetails}
+          isVisible={isVisible}
+        />
+
+        <MoreEngineeringWork
+          heading={sectionContent.moreWorkHeading}
+          items={additionalWork}
+          isVisible={isVisible}
+        />
       </div>
     </section>
   )

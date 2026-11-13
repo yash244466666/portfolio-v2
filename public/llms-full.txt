@@ -1,0 +1,79 @@
+# MD. Mohi Minul Islam Yash – Full Context Profile (YashCodes)
+
+> Canonical portfolio and developer utility catalog at https://yashcodes.com/. Concise index: https://yashcodes.com/llms.txt.
+
+## 1. Identity & Summary
+
+- **Name**: MD. Mohi Minul Islam Yash
+- **Commonly Known As**: Yash, Yash Sikdar, Mohi Minul Islam Yash, YashCodes
+- **Title**: Full-Stack Software Engineer
+- **Location**: Barisal, Bangladesh
+- **Website**: https://yashcodes.com/
+- **Resume**: https://yashcodes.com/resume.pdf
+- **Contact Email**: info@yashcodes.com
+- **Phone**: +8801710008502
+- **GitHub**: https://github.com/yash244466666
+- **LinkedIn**: https://www.linkedin.com/in/md-mohi-minul-islam-yash/
+- **X (Twitter)**: https://twitter.com/yash_solo000
+
+Summary:
+MD. Mohi Minul Islam Yash is a full-stack software engineer who builds web applications, platform integrations, and custom AI agents. He built a marketplace booking and scheduling system with connected calendars, added scheduled notifications for admins on a Ruby on Rails lost-and-found application, reverse-engineered parts of social platforms to build AI-assisted automation, and built cybersecurity and open-source intelligence (OSINT) automation tools for clients and employers.
+
+## 2. Core Engineering Skills
+
+- **Frontend Development**: CRM and admin screens, provider booking and calendar interfaces, social media automation frontends, search-friendly landing pages. Stack: React, Next.js, TypeScript, Ruby on Rails ERB, HTML, CSS, JavaScript.
+- **Backend Development**: APIs and backend services with NestJS, Node.js, Python, Rust, and Ruby on Rails. Relational and document databases: PostgreSQL, MySQL, Oracle Database, and MongoDB.
+- **AI Agents & Automation**: Custom AI agents and workflow automation, including a screenshot-driven desktop prototype that plans mouse and keyboard actions from plain-language instructions.
+- **Social Media Automation**: Cross-stack product features, platform behavior reverse-engineering, custom integrations, and AI-automated social workflows.
+- **Mobile Apps, Games, and Utilities**: Android and iOS applications, download managers, and Unity games in C#.
+- **Testing and Delivery**: Automated checks, browser-based end-to-end tests, manual staging verification, and CI/CD pipelines with GitHub Actions, GitLab, and Bitbucket.
+
+## 3. Featured Projects
+
+### Provider Scheduling and AI Marketplace
+- **Role**: Software Engineer
+- **Focus**: Appointment Scheduling, Calendar Integrations, Payments, AI Voice Calling
+- **Summary**: Built provider appointment-management interfaces and backend integrations supporting multiple external calendars. For the AI marketplace iteration, built the payment system, worked on an AI voice feature that called providers to arrange bookings, and built a discovery system from scratch to find potential providers online.
+
+### AI Social Media Automation
+- **Role**: Full-Stack Developer
+- **Focus**: SaaS, AI Automation, Platform Integrations
+- **Summary**: Built frontend and backend features for an AI SaaS product automating workflows across social and professional networks, including reverse-engineering undocumented platform behavior to create reliable integrations.
+
+### ERP, CRM, and POS Systems
+- **Role**: Full-Stack Developer
+- **Focus**: ERP, CRM, Point of Sale, Ticketing
+- **Summary**: Built React interfaces and Node.js, Express, and MongoDB backends for ERP, CRM, and ticketing applications, plus custom point-of-sale systems and a public Next.js POS demo (`https://github.com/yash244466666/ospos-nextjs`).
+
+### Lost and Found App
+- **Role**: Software Developer
+- **Focus**: Ruby on Rails, Scheduled Notifications
+- **Summary**: Built a scheduled notification system in an existing Ruby on Rails application that sends administrators timed updates on site activity.
+
+### Open-World Puzzle Game
+- **Role**: Game Development
+- **Focus**: Unity, C#, Open-World Game
+- **Summary**: Built the open-world city, game menus, and character-environment interactions for a multi-level puzzle game where players collect pieces and solve puzzles at the city center.
+
+### Vision Desktop Agent
+- **Role**: AI Agent Development
+- **Focus**: Python, Vision Models, GNOME / Wayland
+- **Public Prototype**: https://github.com/yash244466666/vision-desktop-agent
+- **Summary**: Built a desktop agent for an employer and created a separate public prototype illustrating the architecture: a GNOME Shell extension exposes screen capture over D-Bus on Wayland, and a Python loop sends each screenshot and task to a cloud vision model, reads the structured action returned, and captures the next state.
+
+## 4. Additional Engineering Work
+
+- **Mobile Applications**: Built applications for Android and iOS alongside web systems.
+- **Download Managers**: Built download managers for handling file downloads.
+- **AI Agent Workflows**: Uses AI agents in daily engineering work and builds automations for teams and clients.
+- **Cybersecurity and OSINT Tools**: Built automation tools for cybersecurity and open-source intelligence workflows for clients and employers.
+
+## 5. YashCodes Developer Tools & Architecture
+
+- **Directory**: https://yashcodes.com/tools/ (88 client-side browser utilities across Core, Dev, Text, Media, Security, and Math & Logic categories)
+- **Case Study**: https://yashcodes.com/projects/yashcodes/ (Repository: https://github.com/yash244466666/portfolio-v2)
+- **Key Published Tool Guides & Interactive Utilities**:
+  - **JSON Editor** (`https://yashcodes.com/tools/json-editor/`): Formats, minifies, validates, and renders JSON as an editable tree locally in the browser; catches trailing commas such as `{"active":true,}`.
+  - **Unix Timestamp Converter** (`https://yashcodes.com/tools/timestamp-converter/`): Converts seconds (`946684800`) and milliseconds (`946684800000`) cleanly to `2000-01-01T00:00:00.000Z` and local time without silent unit guessing.
+  - **Image Compressor** (`https://yashcodes.com/tools/image-compressor/`): Compresses, resizes, and converts PNG, JPEG, WebP, and AVIF images locally while probing browser AVIF encoder support and verifying output MIME bytes.
+  - **Meta Tag Generator** (`https://yashcodes.com/tools/meta-tag-generator/`): Generates HTML-escaped `<title>`, `<meta name="description">`, canonical, Open Graph, and Twitter Card tags with proper entity escaping for `&`, `<`, `>`, and `"`.

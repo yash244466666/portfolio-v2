@@ -1,5 +1,6 @@
 "use client"
 
+import type { MouseEvent } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { NavigationItem } from "@/lib/content"
@@ -12,6 +13,22 @@ interface DesktopNavLinksProps {
 
 export function DesktopNavLinks({ items, onNavigate, activeSection }: DesktopNavLinksProps) {
     const pathname = usePathname()
+    const isHome = pathname === "/"
+
+    const handleSectionClick = (event: MouseEvent<HTMLAnchorElement>, target: string) => {
+        if (
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return
+        }
+        event.preventDefault()
+        onNavigate(target)
+    }
 
     return (
         <div className="hidden md:flex items-center space-x-8">
@@ -20,41 +37,43 @@ export function DesktopNavLinks({ items, onNavigate, activeSection }: DesktopNav
                 const isToolsActive = isToolsPage && (pathname === item.href || pathname === item.href?.replace(/\/$/, ""))
                 const isSectionActive = !isToolsPage && activeSection === item.target
                 const isActive = isToolsActive || isSectionActive
+                const linkClass = `nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`
 
                 if (item.href) {
                     return (
                         <Link
                             key={item.label}
                             href={item.href}
-                            className={`nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                            aria-current={isToolsActive ? "page" : undefined}
+                            className={linkClass}
                         >
                             {item.label}
                         </Link>
                     )
                 }
 
-                const href = pathname !== "/" ? `/#${item.target}` : undefined
-
-                if (href) {
+                if (isHome) {
                     return (
-                        <Link
+                        <a
                             key={item.label}
-                            href={href}
-                            className={`nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                            href={`#${item.target}`}
+                            aria-current={isSectionActive ? "true" : undefined}
+                            onClick={(event) => handleSectionClick(event, item.target)}
+                            className={linkClass}
                         >
                             {item.label}
-                        </Link>
+                        </a>
                     )
                 }
 
                 return (
-                    <button
+                    <Link
                         key={item.label}
-                        onClick={() => onNavigate(item.target)}
-                        className={`nav-link text-sm font-medium transition-colors active:scale-95 active:text-primary ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        href={`/#${item.target}`}
+                        className={linkClass}
                     >
                         {item.label}
-                    </button>
+                    </Link>
                 )
             })}
         </div>

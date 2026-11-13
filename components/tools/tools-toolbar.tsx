@@ -18,9 +18,9 @@ interface ToolsToolbarProps {
 /**
  * Persistent sticky command bar for the tools page.
  *
- * The toolbar is anchored directly below the fixed nav and stays reachable while
- * the user scrolls through the pinned filmstrip sections or the flat search
- * results. It combines a compact search combobox and category chips in a centered,
+ * The toolbar is the first content below the fixed nav and stays reachable while
+ * the user scrolls through the continuous pinned track or the flat search
+ * results. It combines a compact search combobox and category chips in a centered
  * strip that wraps gracefully on narrow screens.
  */
 export default function ToolsToolbar({

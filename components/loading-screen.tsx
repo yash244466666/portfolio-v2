@@ -68,7 +68,10 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
   if (!isLoading) return null
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-150 ${isFadingOut ? "opacity-0" : "opacity-100"}`}>
+    <div
+      aria-hidden="true"
+      className={`loading-screen pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-150 ${isFadingOut ? "opacity-0" : "opacity-100"}`}
+    >
       <div className="text-center">
         <div className="relative mb-8">
           <div className="w-20 h-20 border-4 border-zinc-800 rounded-full animate-spin border-t-yellow-400 mx-auto"></div>
