@@ -15,8 +15,6 @@ export function generateStaticParams() {
   return TOOL_PAGE_SLUGS.map((slug) => ({ slug }))
 }
 
-// Only the four published tool pages exist. Every other /tools/<slug> path is
-// a real 404 from the static host.
 export const dynamicParams = false
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
@@ -36,6 +34,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const { slug } = await params
   const page = getToolPage(slug)
   if (!page) notFound()
+  const example = page.example
 
   return (
     <PageShell contentId="tool-page-content" skipLabel="Skip to tool content">
@@ -67,64 +66,64 @@ export default async function ToolPage({ params }: ToolPageProps) {
           </p>
         </header>
 
-        <div className="mt-8 max-w-3xl space-y-4">
-          {page.answer.map((paragraph, index) => (
-            <p key={index} className="text-base leading-relaxed text-muted-foreground">
-              {paragraph}
-            </p>
-          ))}
-          <p className="text-sm text-muted-foreground/80">
-            This page is part of the YashCodes developer tools collection. The
-            widget below runs in your browser.
-          </p>
-        </div>
+        {page.answer.length > 0 && (
+          <div className="mt-8 max-w-3xl space-y-4">
+            {page.answer.map((paragraph, index) => (
+              <p key={index} className="text-base leading-relaxed text-muted-foreground">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
 
-        <section
-          aria-labelledby="worked-example-heading"
-          className="mt-10 max-w-3xl rounded-2xl border border-border/50 bg-muted/20 p-5 sm:p-6"
-        >
-          <h2
-            id="worked-example-heading"
-            className="text-xl font-semibold text-foreground sm:text-2xl"
+        {example && (
+          <section
+            aria-labelledby="worked-example-heading"
+            className="mt-10 max-w-3xl rounded-2xl border border-border/50 bg-muted/20 p-5 sm:p-6"
           >
-            {page.example.title}
-          </h2>
+            <h2
+              id="worked-example-heading"
+              className="text-xl font-semibold text-foreground sm:text-2xl"
+            >
+              {example.title}
+            </h2>
 
-          {page.example.rows ? (
-            <dl className="mt-5 divide-y divide-border/40 rounded-xl border border-border/40 bg-background/40">
-              {page.example.rows.map((row) => (
-                <div
-                  key={row.label}
-                  className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:items-baseline sm:gap-6"
-                >
-                  <dt className="text-sm font-medium text-foreground/80">{row.label}</dt>
-                  <dd className="break-words font-mono text-sm text-foreground">{row.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
+            {example.rows ? (
+              <dl className="mt-5 divide-y divide-border/40 rounded-xl border border-border/40 bg-background/40">
+                {example.rows.map((row) => (
+                  <div
+                    key={row.label}
+                    className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:items-baseline sm:gap-6"
+                  >
+                    <dt className="text-sm font-medium text-foreground/80">{row.label}</dt>
+                    <dd className="break-words font-mono text-sm text-foreground">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
 
-          {page.example.code ? (
-            <div className="mt-5 space-y-4">
-              {page.example.code.map((block) => (
-                <div key={block.label}>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {block.label}
-                  </p>
-                  <pre className="overflow-x-auto rounded-xl border border-border/40 bg-background/60 p-4 text-sm text-foreground">
-                    <code className="whitespace-pre-wrap break-words font-mono">{block.value}</code>
-                  </pre>
-                </div>
-              ))}
-            </div>
-          ) : null}
+            {example.code ? (
+              <div className="mt-5 space-y-4">
+                {example.code.map((block) => (
+                  <div key={block.label}>
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {block.label}
+                    </p>
+                    <pre className="overflow-x-auto rounded-xl border border-border/40 bg-background/60 p-4 text-sm text-foreground">
+                      <code className="whitespace-pre-wrap break-words font-mono">{block.value}</code>
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
-          {page.example.note ? (
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              {page.example.note}
-            </p>
-          ) : null}
-        </section>
+            {example.note ? (
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                {example.note}
+              </p>
+            ) : null}
+          </section>
+        )}
 
         <ToolPlayground toolId={page.toolId} />
 

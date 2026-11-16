@@ -221,6 +221,7 @@ export const projects: Project[] = [
     artworkLabel: "Illustration",
     tech: ["SaaS", "AI Automation", "Platform Integrations"],
     role: "Full-Stack Developer",
+    links: [{ label: "Read Case Study", href: "/projects/ai-social-media-automation/", showOnCard: true }],
   },
   {
     title: "ERP, CRM, and POS Systems",
@@ -235,6 +236,7 @@ export const projects: Project[] = [
     tech: ["ERP", "CRM", "Point of Sale", "Ticketing"],
     role: "Full-Stack Developer",
     links: [
+      { label: "Read Case Study", href: "/projects/erp-crm-pos-systems/", showOnCard: true },
       {
         label: "View POS Demo Code",
         href: "https://github.com/yash244466666/ospos-nextjs",
@@ -254,6 +256,7 @@ export const projects: Project[] = [
     artworkLabel: "Illustration",
     tech: ["Ruby on Rails", "Scheduled Notifications"],
     role: "Software Developer",
+    links: [{ label: "Read Case Study", href: "/projects/lost-and-found-app/", showOnCard: true }],
   },
   {
     title: "Open-World Puzzle Game",
@@ -267,6 +270,7 @@ export const projects: Project[] = [
     artworkLabel: "Illustration",
     tech: ["Unity", "C#", "Open-World Game"],
     role: "Game Development",
+    links: [{ label: "Read Case Study", href: "/projects/open-world-puzzle-game/", showOnCard: true }],
   },
   {
     title: "Vision Desktop Agent",

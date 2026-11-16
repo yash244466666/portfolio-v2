@@ -9,7 +9,6 @@ import { getToolPagePath } from "@/lib/content/tool-pages"
 
 interface ToolCardProps {
   tool: ToolDefinition
-  onSelect: (id: string) => void
 }
 
 /**
@@ -19,7 +18,7 @@ interface ToolCardProps {
  * URL is shareable and crawlable. Every other tool keeps the directory's
  * hash-driven in-place behaviour.
  */
-export default function ToolCard({ tool, onSelect }: ToolCardProps) {
+export default function ToolCard({ tool }: ToolCardProps) {
   const IconComponent = iconMap[tool.icon] || Braces
 
   const categoryAccent: Record<string, string> = {
@@ -67,7 +66,7 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
 
       <div className="tool-card__footer flex items-center justify-between text-sm font-medium text-primary pt-2 border-t border-white/[0.06]">
         <span className="tool-card__footer-label">
-          {standaloneHref ? "Open page" : "Open tool"}
+          Open tool
         </span>
         <ArrowRight
           className="tool-card__footer-arrow h-4 w-4"
@@ -77,32 +76,15 @@ export default function ToolCard({ tool, onSelect }: ToolCardProps) {
     </>
   )
 
-  if (standaloneHref) {
-    return (
-      <Link
-        href={standaloneHref}
-        data-tool-card={tool.id}
-        aria-label={`Open ${tool.label} page`}
-        className={className}
-      >
-        {content}
-      </Link>
-    )
-  }
-
   return (
-    <a
-      href={`#${tool.id}`}
+    <Link
+      href={standaloneHref}
+      prefetch={false}
       data-tool-card={tool.id}
-      aria-label={`Open ${tool.label} tool`}
+      aria-label={"Open " + tool.label + " page"}
       className={className}
-      onClick={(e) => {
-        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
-        e.preventDefault()
-        onSelect(tool.id)
-      }}
     >
       {content}
-    </a>
+    </Link>
   )
 }

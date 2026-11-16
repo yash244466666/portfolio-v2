@@ -318,7 +318,7 @@ export function buildToolsDirectoryStructuredData() {
       },
       {
         "@type": "ItemList",
-        name: "Featured Standalone Developer Tools",
+        name: "YashCodes Developer Tools Catalog",
         numberOfItems: toolPages.length,
         itemListElement: toolPages.map((page, index) => ({
           "@type": "ListItem",
@@ -337,7 +337,7 @@ export function buildToolsDirectoryStructuredData() {
 
 /**
  * Structured data graph for each standalone /tools/[slug]/ page:
- * WebApplication + FAQPage (using the page's worked answer) + BreadcrumbList.
+ * WebApplication and BreadcrumbList.
  */
 export function buildToolPageStructuredData(page: ToolPageContent) {
   const personId = `${SITE_URL}/#person`;
@@ -354,7 +354,7 @@ export function buildToolPageStructuredData(page: ToolPageContent) {
         url: pageUrl,
         applicationCategory: "DeveloperApplication",
         operatingSystem: "Any",
-        browserRequirements: "Requires JavaScript. Runs locally in a modern web browser.",
+        browserRequirements: "Requires JavaScript and a modern web browser.",
         isAccessibleForFree: true,
         offers: FREE_OFFER,
         mainEntityOfPage: pageUrl,
@@ -365,31 +365,6 @@ export function buildToolPageStructuredData(page: ToolPageContent) {
           name: personalInfo.fullName,
           url: `${SITE_URL}/`,
         },
-      },
-      {
-        "@type": "FAQPage",
-        mainEntity: [
-          {
-            "@type": "Question",
-            name: `How does the YashCodes ${page.heading} work?`,
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: `${page.intro} ${page.answer.join(" ")}`,
-            },
-          },
-          ...(page.example.note
-            ? [
-                {
-                  "@type": "Question",
-                  name: `${page.example.title} — what should I expect?`,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: page.example.note,
-                  },
-                },
-              ]
-            : []),
-        ],
       },
       buildBreadcrumbStructuredData([
         { name: "Home", path: "/" },
