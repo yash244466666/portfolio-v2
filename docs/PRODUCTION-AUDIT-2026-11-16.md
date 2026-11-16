@@ -52,3 +52,7 @@ Search Console indexing and selected canonicals, Bing indexing, answer-engine ci
 - Moved Featured Projects before About and shortened the introduction. Added stable case-study routes for the Marketplace and Vision projects using already public project descriptions and artwork. The Vision page links to the public prototype and records its limitations.
 - Removed the homepage FAQ graph, updated case-study previews, and removed global sitemap modification dates.
 - The apex remains the canonical hostname. A www redirect requires DNS and hosting configuration outside the static export.
+
+## Staging follow-up
+
+The first staging pass exposed two release gaps. Both case-study pages returned HTTP 200 but were absent from the sitemap, and the Meta Tag Generator labels had no matching input IDs. The follow-up generates sitemap entries from the published case-study inventory and assigns matching IDs to the 14 inputs. The same pass found no contrast or unnamed-button failures in the tested homepage and standalone tool states at desktop and mobile widths.

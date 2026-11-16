@@ -104,6 +104,7 @@ export default function MetaTagGenerator() {
             <div key={f.label}>
               <label htmlFor={fieldId + f.label.replaceAll(" ", "-")} className="text-xs text-muted-foreground block mb-1">{f.label}</label>
               <Input
+                id={fieldId + f.label.replaceAll(" ", "-")}
                 value={f.value}
                 onChange={(e) => f.setter(e.target.value)}
                 placeholder={f.placeholder}
@@ -134,6 +135,7 @@ export default function MetaTagGenerator() {
             <div key={f.label}>
               <label htmlFor={fieldId + f.label.replaceAll(" ", "-")} className="text-xs text-muted-foreground block mb-1">{f.label}</label>
               <Input
+                id={fieldId + f.label.replaceAll(" ", "-")}
                 value={f.value}
                 onChange={(e) => f.setter(e.target.value)}
                 placeholder={f.placeholder}
@@ -164,6 +166,7 @@ export default function MetaTagGenerator() {
             <div key={f.label}>
               <label htmlFor={fieldId + f.label.replaceAll(" ", "-")} className="text-xs text-muted-foreground block mb-1">{f.label}</label>
               <Input
+                id={fieldId + f.label.replaceAll(" ", "-")}
                 value={f.value}
                 onChange={(e) => f.setter(e.target.value)}
                 placeholder={f.placeholder}
