@@ -18,7 +18,6 @@ import ToolCard from "@/components/tools/tool-card"
 
 interface ToolsSectionsProps {
   categories: ToolCategory[]
-  onSelect: (id: string) => void
   onActiveCategoryChange?: (categoryId: string | null) => void
 }
 
@@ -74,7 +73,7 @@ function clamp(value: number, min: number, max: number): number {
  * headings.
  */
 const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(function ToolsSections(
-  { categories, onSelect, onActiveCategoryChange },
+  { categories, onActiveCategoryChange },
   ref
 ) {
   const { toolbarOffset } = useStickyOffset()
@@ -696,7 +695,7 @@ const ToolsSections = forwardRef<ToolsSectionsHandle, ToolsSectionsProps>(functi
                           : "tools-track__card-slot"
                       }
                     >
-                      <ToolCard tool={tool} onSelect={onSelect} />
+                      <ToolCard tool={tool} />
                     </div>
                   ))}
                 </div>

@@ -609,6 +609,7 @@ export default function SpeedTest() {
   const [protocol, setProtocol] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [warning, setWarning] = useState("")
+  const [connection, setConnection] = useState<NetworkInformationLike | null>(null)
 
   const runRef = useRef<AbortController | null>(null)
   const runIdRef = useRef(0)
@@ -617,6 +618,8 @@ export default function SpeedTest() {
 
   useEffect(() => {
     mountedRef.current = true
+    // Browser network information is only available after hydration.
+    setConnection(readConnection())
     return () => {
       mountedRef.current = false
       runRef.current?.abort()
@@ -778,7 +781,6 @@ export default function SpeedTest() {
 
   const running = phase === "running"
   const started = phase !== "idle"
-  const connection = typeof navigator === "undefined" ? null : readConnection()
   const dialValue = running ? liveMbps : results.downloadMbps ?? null
 
   const statusText = running && stage

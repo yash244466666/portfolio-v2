@@ -27,13 +27,12 @@ interface ToolsGridProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   searchPlaceholder: string
-  onSelectTool: (id: string) => void
 }
 
 const POPULAR_SUGGESTIONS = ["json", "base64", "markdown", "regex", "uuid", "password"]
 
 const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid(
-  { tools, searchQuery, onSearchChange, searchPlaceholder, onSelectTool },
+  { tools, searchQuery, onSearchChange, searchPlaceholder },
   ref
 ) {
   const categories = getToolCategories()
@@ -109,7 +108,6 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
           <ToolsSections
             ref={sectionsRef}
             categories={categories}
-            onSelect={onSelectTool}
             onActiveCategoryChange={setActiveCategoryId}
           />
           <p className="mt-10 text-center text-sm text-muted-foreground">
@@ -200,7 +198,7 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
                         className="animate-fade-in-up motion-reduce:animate-none"
                         style={{ animationDelay: `${Math.min(toolIndex * 50, 400)}ms` }}
                       >
-                        <ToolCard tool={tool} onSelect={onSelectTool} />
+                        <ToolCard tool={tool} />
                       </div>
                     ))}
                   </div>

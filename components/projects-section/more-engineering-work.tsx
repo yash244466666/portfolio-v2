@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { aiWorkPath } from "@/lib/content/project-pages"
 import type { AdditionalWorkItem } from "@/lib/content"
 
 interface MoreEngineeringWorkProps {
@@ -55,6 +56,10 @@ export function MoreEngineeringWork({
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border/30 pt-6 text-sm text-muted-foreground">
                 <span>{toolsPrompt}</span>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <Link href={aiWorkPath} className={linkClass}>
+                        AI agents and automation projects
+                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
                     <Link href="/tools/" className={`${linkClass} text-primary`}>
                         {toolsLinkLabel}
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
