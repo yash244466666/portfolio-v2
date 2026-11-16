@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ProjectDemo } from "@/components/projects-section/project-demo"
 import PageShell from "@/components/page-shell"
 import { projectPages, projectPagePath } from "@/lib/content/project-pages"
 import { buildPageMetadata } from "@/lib/seo"
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProjectCaseStudy({ params }: Props) {
-  const { project } = await getPage(params)
+  const { slug, project } = await getPage(params)
   return (
     <PageShell contentId="case-study-content" skipLabel="Skip to case study">
       <article className="mx-auto max-w-4xl space-y-6 px-4 pb-12 sm:px-6">
@@ -59,6 +60,7 @@ export default async function ProjectCaseStudy({ params }: Props) {
             ))}
           </ul>
         </section>
+        <ProjectDemo slug={slug} />
         {project.links?.filter((link) => link.external).map((link) => (
           <a key={link.href} href={link.href} className="block underline underline-offset-4">{link.label}</a>
         ))}

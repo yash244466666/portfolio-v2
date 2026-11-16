@@ -39,6 +39,9 @@ export default function AIWorkPage() {
                   {project.title}
                 </Link>
               </h2>
+              <Link href={projectPagePath(slug) + "#demo"} className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4">
+                Try the {project.title} demo
+              </Link>
               {(project.longDescription ?? project.description).split("\n\n").map((paragraph) => (
                 <p key={paragraph} className="leading-relaxed text-muted-foreground">{paragraph}</p>
               ))}
