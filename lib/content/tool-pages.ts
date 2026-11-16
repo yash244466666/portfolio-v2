@@ -40,6 +40,34 @@ export interface ToolPageContent {
 
 export const toolPages: ToolPageContent[] = [
   {
+    slug: "base64",
+    toolId: "base64-tool",
+    label: "Base64 Encoder and Decoder",
+    heading: "Base64 Encoder and Decoder",
+    metaTitle: "Base64 Encoder and Decoder for Text and Files | YashCodes",
+    metaDescription:
+      "Encode text or files as Base64, or decode Base64 back to text in your browser.",
+    intro:
+      "Convert text and files to Base64, or decode an existing Base64 string back to text.",
+    answer: [
+      "Choose text mode to encode UTF-8 text or decode a Base64 string. Use File mode to encode a local file and copy the resulting Base64 text.",
+      "Base64 represents binary data with printable characters. It is reversible and provides no encryption. An equals sign at the end is padding used to complete an encoding group.",
+    ],
+    example: {
+      title: "Encode and decode a short message",
+      rows: [
+        { label: "Text input", value: "Hello!" },
+        { label: "Base64 output", value: "SGVsbG8h" },
+      ],
+      note: "Paste SGVsbG8h into the decoder to recover Hello!.",
+    },
+    related: [
+      { label: "JSON Editor", href: "/tools/json-editor/" },
+      { label: "All developer tools", href: "/tools/" },
+    ],
+  },
+
+  {
     slug: "json-editor",
     toolId: "json-editor",
     label: "JSON Editor",
