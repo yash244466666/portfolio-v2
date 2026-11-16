@@ -11,6 +11,7 @@ import {
 } from "react"
 import { getToolCategories } from "@/lib/content/tools/utils"
 import type { ToolDefinition } from "@/lib/content/tools/types"
+import Link from "next/link"
 import { SearchX } from "lucide-react"
 import ToolCard from "@/components/tools/tool-card"
 import ToolsSections, { ToolsSectionsHandle } from "@/components/tools/tools-sections"
@@ -110,12 +111,24 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
       />
 
       {showSections ? (
-        <ToolsSections
-          ref={sectionsRef}
-          categories={categories}
-          onSelect={onSelectTool}
-          onActiveCategoryChange={setActiveCategoryId}
-        />
+        <>
+          <ToolsSections
+            ref={sectionsRef}
+            categories={categories}
+            onSelect={onSelectTool}
+            onActiveCategoryChange={setActiveCategoryId}
+          />
+          <p className="mt-10 text-center text-sm text-muted-foreground">
+            Curious how this 88-tool directory loads widgets on demand without a server?{" "}
+            <Link
+              href="/projects/yashcodes/"
+              className="inline-flex min-h-[44px] items-center font-medium text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+            >
+              Read the YashCodes case study
+            </Link>
+            .
+          </p>
+        </>
       ) : (
         <div className="tools-grid__results">
           <div className="tools-grid__results-header mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">

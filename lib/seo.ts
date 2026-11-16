@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import {
   additionalWork,
+  contactInfo,
   personalInfo,
   projects,
   skills,
   siteMetadata,
+  socialLinks,
 } from "@/lib/content";
 import { toolPages, type ToolPageContent } from "@/lib/content/tool-pages";
 import { getPersonSameAsLinks } from "@/lib/content/utils";
@@ -20,7 +22,13 @@ export const HOME_TITLE = siteMetadata.title;
 export const HOME_DESCRIPTION = siteMetadata.description;
 export const TOOLS_TITLE = "Free Online Developer Tools – YashCodes";
 export const TOOLS_DESCRIPTION =
-  "Use free browser-based developer tools from YashCodes: format JSON, convert Unix timestamps, compress images, generate meta tags, and more. The directory loads each utility on demand.";
+  "Use 88 free browser-based developer tools from YashCodes: format JSON, convert timestamps, compress images, generate meta tags, and more.";
+
+const FREE_OFFER = {
+  "@type": "Offer",
+  price: "0",
+  priceCurrency: "USD",
+} as const;
 
 interface PageMetadataInput {
   title: string;
@@ -71,6 +79,12 @@ export function buildPageMetadata({
     },
     alternates: {
       canonical: url,
+      types: {
+        "text/plain": [
+          { url: absoluteUrl("/llms.txt"), title: "LLMs Summary" },
+          { url: absoluteUrl("/llms-full.txt"), title: "LLMs Full Context" },
+        ],
+      },
     },
     openGraph: {
       type,
@@ -182,6 +196,11 @@ export function buildHomeStructuredData() {
     },
   ];
 
+  const brandSameAs = socialLinks
+    .filter((link) => !link.sameAs && /^https?:\/\//i.test(link.url))
+    .map((link) => link.url);
+  const phone = contactInfo.find((info) => info.type === "phone")?.value;
+
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -203,7 +222,7 @@ export function buildHomeStructuredData() {
         isPartOf: { "@id": websiteId },
         mainEntity: { "@id": personId },
         about: { "@id": projectsListId },
-        dateModified: "2026-11-12",
+        dateModified: "2026-11-16",
         inLanguage: "en",
       },
       {
@@ -222,11 +241,13 @@ export function buildHomeStructuredData() {
         mainEntityOfPage: `${SITE_URL}/`,
         image: absoluteUrl(siteMetadata.ogImage),
         email: "mailto:info@yashcodes.com",
+        ...(phone ? { telephone: phone } : {}),
         sameAs: getPersonSameAsLinks(),
         brand: {
           "@type": "Brand",
           name: personalInfo.name,
           url: `${SITE_URL}/`,
+          ...(brandSameAs.length ? { sameAs: brandSameAs } : {}),
         },
         hasOccupation: {
           "@type": "Occupation",
@@ -281,8 +302,10 @@ export function buildHomeStructuredData() {
         url: absoluteUrl("/tools/"),
         applicationCategory: "DeveloperApplication",
         operatingSystem: "Any",
-        browserRequirements: "Requires JavaScript. Runs locally in a modern web browser.",
+        browserRequirements:
+          "Requires JavaScript. Runs in a modern web browser; most tools run locally on your device.",
         isAccessibleForFree: true,
+        offers: FREE_OFFER,
         author: { "@id": personId },
       },
       {
@@ -325,8 +348,10 @@ export function buildToolsDirectoryStructuredData() {
         url: absoluteUrl("/tools/"),
         applicationCategory: "DeveloperApplication",
         operatingSystem: "Any",
-        browserRequirements: "Requires JavaScript. Runs locally in a modern web browser.",
+        browserRequirements:
+          "Requires JavaScript. Runs in a modern web browser; most tools run locally on your device.",
         isAccessibleForFree: true,
+        offers: FREE_OFFER,
         author: { "@id": personId },
       },
       {
@@ -369,6 +394,7 @@ export function buildToolPageStructuredData(page: ToolPageContent) {
         operatingSystem: "Any",
         browserRequirements: "Requires JavaScript. Runs locally in a modern web browser.",
         isAccessibleForFree: true,
+        offers: FREE_OFFER,
         mainEntityOfPage: pageUrl,
         isPartOf: { "@id": `${SITE_URL}/tools/#app` },
         author: {
@@ -427,7 +453,7 @@ export function buildCaseStudyStructuredData() {
         description:
           "How YashCodes combines 88 browser utilities in one static Next.js site.",
         datePublished: "2026-11-10",
-        dateModified: "2026-11-12",
+        dateModified: "2026-11-16",
         inLanguage: "en",
         isAccessibleForFree: true,
         author: {

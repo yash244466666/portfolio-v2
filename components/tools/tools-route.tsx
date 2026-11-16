@@ -43,7 +43,7 @@ export default function ToolsRoute() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
       <AnimatedBackground />
       <div className="relative z-10 flex flex-col min-h-screen">
         <a
@@ -53,12 +53,12 @@ export default function ToolsRoute() {
           Skip to tools content
         </a>
         <Navigation />
-        <div id="tools-content" className="tools-page-content pt-[calc(var(--nav-height,4.25rem)+0.5rem)] pb-16 flex-grow">
+        <main id="tools-content" className="tools-page-content pt-[calc(var(--nav-height,4.25rem)+0.5rem)] pb-16 flex-grow">
           <ToolsPage />
-        </div>
+        </main>
         <Footer />
         <BackToTop />
       </div>
-    </main>
+    </div>
   )
 }

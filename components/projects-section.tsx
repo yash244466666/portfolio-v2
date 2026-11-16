@@ -72,6 +72,9 @@ export default function ProjectsSection() {
         <MoreEngineeringWork
           heading={sectionContent.moreWorkHeading}
           items={additionalWork}
+          toolsPrompt={sectionContent.toolsPrompt}
+          toolsLinkLabel={sectionContent.toolsLinkLabel}
+          caseStudyLinkLabel={sectionContent.caseStudyLinkLabel}
           isVisible={isVisible}
         />
       </div>

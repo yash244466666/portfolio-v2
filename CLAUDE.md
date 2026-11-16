@@ -1,6 +1,6 @@
 # Repository Context for Coding Agents
 
-> Last verified: 2026-11-10
+> Last verified: 2026-11-16
 > Applies to: AGENT.md and CLAUDE.md
 > These two files intentionally contain the same repository guidance. Keep them synchronized.
 
@@ -616,7 +616,7 @@ Deployment credentials are stored only in GitHub Actions secrets. The VPS deploy
 5. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
 6. Dynamic tool import failures are converted into a generic unavailable state, which can obscure the original loading error.
 7. The contact Worker's live Brevo delivery, Worker secrets, and KV rate limiting still need an end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
-8. Production still serves the pre-2026-11-10 build. The new home content, standalone tool pages, case study, crawl files, and tool-page/case-study Caddy aliases reach production only after a release PR merges and deploys.
+8. Ensure release PRs from `develop` to `main` are merged through GitHub Actions so production stays aligned with `main` (avoid manual `rsync` bypasses).
 9. The staging host must stay `X-Robots-Tag: noindex`; production must stay indexable. Both are enforced in the live vps-2 Caddyfile, not in the Next build.
 10. Caddy bind-mounts the Caddyfile as a single file. Editing it in place preserves the inode; replacing it (for example with `install`) leaves the running container on the old file until the container is restarted.
 11. The home page loads Cloudflare Turnstile for the contact form. Its third-party script emits several formatted console messages; they are not application errors.
@@ -701,18 +701,15 @@ Do not send live email or deploy external changes without explicit user authoriz
 
 ### Build notes
 
-At the last documentation update (2026-11-10):
+At the last documentation update (2026-11-16):
 
-- Strict TypeScript checking passed.
-- The static build passed. The exported routes are **/**, **/tools/**, **/tools/json-editor/**, **/tools/timestamp-converter/**, **/tools/image-compressor/**, **/tools/meta-tag-generator/**, **/projects/yashcodes/**, **/robots.txt**, **/sitemap.xml**, and the not-found route.
-- A 102-check Playwright suite (`handoff/verify.mjs`, gitignored) passed against both the local export and `https://beta.yashcodes.com/`: static content, metadata, modal keyboard behavior, anchors, mobile menu, no-JS, reduced motion, failed-bundle fallback, 88 cards, hash behavior, timestamp edge cases, JSON validation, meta-tag escaping, image compression, and console errors.
+- Strict TypeScript checking and the static build passed. The exported routes are **/**, **/tools/**, **/tools/json-editor/**, **/tools/timestamp-converter/**, **/tools/image-compressor/**, **/tools/meta-tag-generator/**, **/projects/yashcodes/**, **/robots.txt**, **/sitemap.xml**, and the not-found route; `/llms.txt` and `/llms-full.txt` are served as static assets and linked via `<link rel="alternate" type="text/plain">`.
 - ESLint is still blocked by the missing flat configuration.
-- No committed automated tests exist; the Playwright suite is a local handoff artifact.
-- The 2026-11-10 build was deployed directly to staging (vps-2 `/opt/stacks/caddy/html/beta`) because GitHub API access was rate-limited in this environment. The feature branch is pushed separately for the normal PR flow.
-- The staging Caddy block now has one-hop redirects for `/index.html`, `/tools`, `/tools/index.html`, the four `/tools/<slug>` aliases, and `/projects/yashcodes`; it preserves query strings and sets `X-Robots-Tag: noindex`. Production received the generic `/index.html` and `/tools` redirects and remains indexable. The pre-change Caddyfile backup is `/opt/stacks/caddy/Caddyfile.bak-20261110-104251`.
-- `public/resume.pdf` was removed and the resume action stays hidden until an approved PDF exists; staging `/resume.pdf` returns 404.
+- No committed automated tests exist; the Playwright suite (`handoff/verify.mjs`) is a local handoff artifact.
+- Both staging and production Caddy blocks redirect `/index.html`, `/tools`, `/tools/index.html`, the four `/tools/<slug>` aliases, and `/projects/yashcodes`; staging sets `X-Robots-Tag: noindex`, while production remains indexable. The pre-change Caddyfile backup is `/opt/stacks/caddy/Caddyfile.bak-20261110-104251`.
+- `public/resume.pdf` is attached and the navigation download button is active.
 - The contact Worker, secrets, and KV setup were not changed. No live email was sent.
-- The `develop` (staging) and `main` (production) GitHub Actions runs and vps-2 certificate setup from 2026-10-30/31 remain valid; production content is still the pre-rewrite build until a release PR merges.
+- Both `develop` (staging) and `main` (production) deploy through `.github/workflows/deploy.yml` after PR checks pass.
 
 These are observations, not permanent guarantees. Re-run relevant checks after changes.
 
