@@ -1,8 +1,17 @@
 "use client"
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react"
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { getToolCategories } from "@/lib/content/tools/utils"
 import type { ToolDefinition } from "@/lib/content/tools/types"
+import Link from "next/link"
 import { SearchX } from "lucide-react"
 import ToolCard from "@/components/tools/tool-card"
 import ToolsSections, { ToolsSectionsHandle } from "@/components/tools/tools-sections"
@@ -30,6 +39,7 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
   const categories = getToolCategories()
   const sectionsRef = useRef<ToolsSectionsHandle>(null)
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
+  const pendingCategoryRef = useRef<string | null>(null)
 
   useImperativeHandle(
     ref,
@@ -67,8 +77,10 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
   const handleCategoryClick = useCallback(
     (id: string) => {
       if (searchQuery) {
+        // Clear the query first. The effect below jumps to the category once
+        // the browse track has mounted and taken its measurements.
+        pendingCategoryRef.current = id
         onSearchChange("")
-        requestAnimationFrame(() => sectionsRef.current?.scrollToCategory(id))
       } else {
         sectionsRef.current?.scrollToCategory(id)
       }
@@ -76,8 +88,18 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
     [searchQuery, onSearchChange]
   )
 
+  useEffect(() => {
+    if (searchQuery || !pendingCategoryRef.current) return
+    const id = pendingCategoryRef.current
+    pendingCategoryRef.current = null
+    // ToolsSections queues the jump itself until its pinned measurements are
+    // ready, so a single frame is enough to let the browse layout mount.
+    requestAnimationFrame(() => sectionsRef.current?.scrollToCategory(id))
+  }, [searchQuery])
+
   return (
     <section className="tools-grid tools-grid--root max-w-6xl mx-auto px-4 sm:px-6 animate-fade-in-up">
+      <h1 className="sr-only">Free Online Developer Tools</h1>
       <ToolsToolbar
         categories={categories}
         activeCategoryId={activeCategoryId}
@@ -89,12 +111,24 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
       />
 
       {showSections ? (
-        <ToolsSections
-          ref={sectionsRef}
-          categories={categories}
-          onSelect={onSelectTool}
-          onActiveCategoryChange={setActiveCategoryId}
-        />
+        <>
+          <ToolsSections
+            ref={sectionsRef}
+            categories={categories}
+            onSelect={onSelectTool}
+            onActiveCategoryChange={setActiveCategoryId}
+          />
+          <p className="mt-10 text-center text-sm text-muted-foreground">
+            Curious how this 88-tool directory loads widgets on demand without a server?{" "}
+            <Link
+              href="/projects/yashcodes/"
+              className="inline-flex min-h-[44px] items-center font-medium text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+            >
+              Read the YashCodes case study
+            </Link>
+            .
+          </p>
+        </>
       ) : (
         <div className="tools-grid__results">
           <div className="tools-grid__results-header mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">

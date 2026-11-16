@@ -1,9 +1,17 @@
 "use client"
 
-import { Github, Linkedin, Mail, Twitter } from "lucide-react"
+import { Facebook, Github, Linkedin, Mail, Twitter, type LucideIcon } from "lucide-react"
 import { getPersonalInfo, getSocialLinks, getFooterContent } from "@/lib/content/utils"
 import { useComponentInstrumentation } from "@/hooks/use-instrumentation"
 import { logComponentEvent } from "@/lib/instrumentation"
+
+const iconMap: Record<string, LucideIcon> = {
+  Github,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Mail,
+}
 
 export default function Footer() {
   const personalInfo = getPersonalInfo()
@@ -22,32 +30,32 @@ export default function Footer() {
     detail: { hasSocialLinks: socialLinks.length > 0 },
     throttleMs: 3000,
   })
+
   return (
     <footer className="py-12 px-6 border-t border-border">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          <div className="mb-6 md:mb-0">
-            <h3 className="text-xl font-bold text-foreground mb-2">{personalInfo.fullName}</h3>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-center md:text-left">
+            <p className="text-xl font-bold text-foreground mb-1">{personalInfo.fullName}</p>
             <p className="text-muted-foreground">{personalInfo.title}</p>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {socialLinks.map((link) => {
-              const IconComponent =
-                link.icon === "Github" ? Github :
-                  link.icon === "Linkedin" ? Linkedin :
-                    link.icon === "Twitter" ? Twitter :
-                      link.icon === "Mail" ? Mail : Github
+              const IconComponent = iconMap[link.icon] ?? Github
+              const isMail = link.url.startsWith("mailto:")
 
               return (
                 <a
                   key={link.name}
                   href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  aria-label={link.label}
+                  {...(isMail
+                    ? {}
+                    : { target: "_blank", rel: "noopener noreferrer" })}
+                  className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <IconComponent size={20} />
+                  <IconComponent size={20} aria-hidden="true" />
                 </a>
               )
             })}

@@ -35,9 +35,9 @@ export default function SpotlightBackground() {
 
     // Secondary ambient lights
     const ambients = [
-      { x: 0.2, y: 0.3, r: 300, color: [99, 102, 241], phase: 0, speed: 0.3 },
-      { x: 0.75, y: 0.6, r: 250, color: [139, 92, 246], phase: 1.5, speed: 0.4 },
-      { x: 0.5, y: 0.8, r: 280, color: [56, 189, 248], phase: 3, speed: 0.35 },
+      { x: 0.2, y: 0.3, r: 300, color: [250, 204, 21], phase: 0, speed: 0.3 },
+      { x: 0.75, y: 0.6, r: 250, color: [245, 158, 11], phase: 1.5, speed: 0.4 },
+      { x: 0.5, y: 0.8, r: 280, color: [217, 119, 6], phase: 3, speed: 0.35 },
     ]
 
     // Dust particles
@@ -62,7 +62,7 @@ export default function SpotlightBackground() {
       current.y += (target.y - current.y) * 0.05
 
       // Dark base
-      ctx.fillStyle = "rgba(2,2,8,1)"
+      ctx.fillStyle = "rgba(9,9,11,1)"
       ctx.fillRect(0, 0, w, h)
 
       // Ambient lights
@@ -81,9 +81,9 @@ export default function SpotlightBackground() {
       // Main spotlight — large soft radial gradient
       const spotR = 350 + Math.sin(elapsed * 0.5) * 30
       const spotGrad = ctx.createRadialGradient(current.x, current.y, 0, current.x, current.y, spotR)
-      spotGrad.addColorStop(0, `rgba(200,210,255,${0.12 * fadeIn})`)
-      spotGrad.addColorStop(0.2, `rgba(99,102,241,${0.08 * fadeIn})`)
-      spotGrad.addColorStop(0.5, `rgba(99,102,241,${0.03 * fadeIn})`)
+      spotGrad.addColorStop(0, `rgba(254,240,138,${0.12 * fadeIn})`)
+      spotGrad.addColorStop(0.2, `rgba(250,204,21,${0.08 * fadeIn})`)
+      spotGrad.addColorStop(0.5, `rgba(245,158,11,${0.03 * fadeIn})`)
       spotGrad.addColorStop(1, "transparent")
       ctx.fillStyle = spotGrad
       ctx.fillRect(0, 0, w, h)
@@ -91,7 +91,7 @@ export default function SpotlightBackground() {
       // Inner bright core
       const coreGrad = ctx.createRadialGradient(current.x, current.y, 0, current.x, current.y, 80)
       coreGrad.addColorStop(0, `rgba(255,255,255,${0.05 * fadeIn})`)
-      coreGrad.addColorStop(0.5, `rgba(99,102,241,${0.04 * fadeIn})`)
+      coreGrad.addColorStop(0.5, `rgba(250,204,21,${0.04 * fadeIn})`)
       coreGrad.addColorStop(1, "transparent")
       ctx.fillStyle = coreGrad
       ctx.fillRect(0, 0, w, h)
@@ -118,7 +118,7 @@ export default function SpotlightBackground() {
         ctx.closePath()
 
         const rayAlpha = (Math.sin(elapsed + i * 0.8) * 0.3 + 0.5) * 0.02 * fadeIn
-        ctx.fillStyle = `rgba(99,102,241,${rayAlpha})`
+        ctx.fillStyle = `rgba(250,204,21,${rayAlpha})`
         ctx.fill()
       }
       ctx.restore()

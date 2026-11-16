@@ -100,7 +100,7 @@ export default function ConstellationBackground() {
         ctx.beginPath()
         ctx.moveTo(ax, ay)
         ctx.lineTo(bx, by)
-        ctx.strokeStyle = `rgba(99,102,241,${alpha})`
+        ctx.strokeStyle = `rgba(217,119,6,${alpha})`
         ctx.stroke()
       }
 
@@ -127,7 +127,7 @@ export default function ConstellationBackground() {
           ctx.beginPath()
           ctx.moveTo(ax, ay)
           ctx.lineTo(bx, by)
-          ctx.strokeStyle = `rgba(56,189,248,${alpha})`
+          ctx.strokeStyle = `rgba(250,204,21,${alpha})`
           ctx.stroke()
         }
       }
@@ -147,7 +147,7 @@ export default function ConstellationBackground() {
         // Glow
         if (r > 1 || mouseGlow > 0.1) {
           const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 4)
-          grad.addColorStop(0, `rgba(99,102,241,${alpha * 0.3})`)
+          grad.addColorStop(0, `rgba(250,204,21,${alpha * 0.3})`)
           grad.addColorStop(1, "transparent")
           ctx.fillStyle = grad
           ctx.beginPath()
@@ -158,7 +158,7 @@ export default function ConstellationBackground() {
         // Core
         ctx.beginPath()
         ctx.arc(sx, sy, r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(200,210,255,${alpha})`
+        ctx.fillStyle = `rgba(254,240,138,${alpha})`
         ctx.fill()
       }
 

@@ -32,11 +32,11 @@ export default function NeonRingsBackground() {
     const mouse = { x: w / 2, y: h / 2 }
 
     const RING_GROUPS = [
-      { cx: 0.3, cy: 0.35, rings: 6, baseR: 30, gap: 45, color: [99, 102, 241], speed: 0.6 },
-      { cx: 0.7, cy: 0.55, rings: 5, baseR: 40, gap: 50, color: [56, 189, 248], speed: 0.8 },
-      { cx: 0.5, cy: 0.25, rings: 4, baseR: 25, gap: 40, color: [139, 92, 246], speed: 0.5 },
-      { cx: 0.2, cy: 0.75, rings: 3, baseR: 50, gap: 55, color: [236, 72, 153], speed: 0.7 },
-      { cx: 0.8, cy: 0.2, rings: 4, baseR: 35, gap: 42, color: [34, 211, 238], speed: 0.9 },
+      { cx: 0.3, cy: 0.35, rings: 6, baseR: 30, gap: 45, color: [250, 204, 21], speed: 0.6 },
+      { cx: 0.7, cy: 0.55, rings: 5, baseR: 40, gap: 50, color: [245, 158, 11], speed: 0.8 },
+      { cx: 0.5, cy: 0.25, rings: 4, baseR: 25, gap: 40, color: [253, 224, 71], speed: 0.5 },
+      { cx: 0.2, cy: 0.75, rings: 3, baseR: 50, gap: 55, color: [217, 119, 6], speed: 0.7 },
+      { cx: 0.8, cy: 0.2, rings: 4, baseR: 35, gap: 42, color: [161, 161, 170], speed: 0.9 },
     ]
 
     const draw = (time: number) => {
@@ -103,7 +103,7 @@ export default function NeonRingsBackground() {
             ctx.beginPath()
             ctx.moveTo(ax, ay)
             ctx.lineTo(bx, by)
-            ctx.strokeStyle = `rgba(139,92,246,${lineAlpha})`
+            ctx.strokeStyle = `rgba(250,204,21,${lineAlpha})`
             ctx.stroke()
           }
         }

@@ -54,7 +54,12 @@ export default function AboutSection() {
   })
 
   return (
-    <section id="about" ref={sectionRef} className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30 relative overflow-hidden">
+    <section
+      id="about"
+      aria-labelledby="about-heading"
+      ref={sectionRef}
+      className="py-16 sm:py-20 px-4 sm:px-6 bg-muted/30 relative overflow-hidden"
+    >
       <AboutBackground />
 
       <div className="max-w-6xl mx-auto relative z-10">

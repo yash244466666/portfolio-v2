@@ -14,13 +14,13 @@ import type { Scope } from "animejs"
 const BOKEH_COUNT = 28
 
 const BOKEH_COLORS = [
-  "rgba(99,102,241,VAR)",
-  "rgba(139,92,246,VAR)",
-  "rgba(56,189,248,VAR)",
-  "rgba(244,114,182,VAR)",
-  "rgba(52,211,153,VAR)",
+  "rgba(250,204,21,VAR)",
+  "rgba(245,158,11,VAR)",
+  "rgba(253,224,71,VAR)",
+  "rgba(217,119,6,VAR)",
+  "rgba(234,179,8,VAR)",
+  "rgba(161,161,170,VAR)",
   "rgba(251,191,36,VAR)",
-  "rgba(168,85,247,VAR)",
 ]
 
 function generateBokeh() {

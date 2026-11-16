@@ -25,9 +25,9 @@ const NODE_COUNT = 40
 const CONNECTION_DIST = 200
 const MOUSE_RADIUS = 280
 const PULSE_WAVE_SPEED = 300
-const NODE_COLOR = { r: 99, g: 102, b: 241 }
-const ACTIVE_COLOR = { r: 56, g: 189, b: 248 }
-const ENERGY_COLOR = { r: 168, g: 85, b: 247 }
+const NODE_COLOR = { r: 202, g: 138, b: 4 }
+const ACTIVE_COLOR = { r: 250, g: 204, b: 21 }
+const ENERGY_COLOR = { r: 253, g: 224, b: 71 }
 
 export default function NeuralNetworkBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)

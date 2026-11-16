@@ -10,9 +10,9 @@ import { useEffect, useRef } from "react"
  */
 
 const PARTICLE_COUNT = 400
-const BASE_COLOR = { r: 99, g: 102, b: 241 }
-const ACCENT_COLOR = { r: 139, g: 92, b: 246 }
-const FAR_COLOR = { r: 56, g: 189, b: 248 }
+const BASE_COLOR = { r: 250, g: 204, b: 21 }
+const ACCENT_COLOR = { r: 245, g: 158, b: 11 }
+const FAR_COLOR = { r: 217, g: 119, b: 6 }
 
 interface VortexParticle {
   angle: number
@@ -62,7 +62,7 @@ export default function VortexBackground() {
       fadeRef.current = Math.min(1, (time - startTime) / 2000)
       boostRef.current += (1 - boostRef.current) * 0.02 // decay back to 1
 
-      ctx.fillStyle = `rgba(3,7,18,0.15)`
+      ctx.fillStyle = `rgba(9,9,11,0.15)`
       ctx.fillRect(0, 0, w, h)
 
       const cx = w * (0.5 + (mouseRef.current.x - 0.5) * 0.2)
@@ -147,7 +147,7 @@ export default function VortexBackground() {
   }, [])
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden bg-[#030712]">
+    <div ref={containerRef} className="absolute inset-0 overflow-hidden bg-[#09090b]">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>
   )

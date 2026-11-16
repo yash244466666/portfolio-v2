@@ -9,8 +9,8 @@ import { useEffect, useRef } from "react"
  * Trending 2026 — Tron / neon / web3 style.
  */
 
-const GRID_COLOR = { r: 99, g: 102, b: 241 }
-const ACCENT_COLOR = { r: 56, g: 189, b: 248 }
+const GRID_COLOR = { r: 217, g: 119, b: 6 }
+const ACCENT_COLOR = { r: 250, g: 204, b: 21 }
 const HORIZON = 0.38
 const GRID_LINES_X = 30
 const GRID_LINES_Z = 40

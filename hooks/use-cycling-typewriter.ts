@@ -18,7 +18,10 @@ export function useCyclingTypewriter(
     startDelay = 0,
   }: UseCyclingTypewriterOptions = {}
 ) {
-  const [displayText, setDisplayText] = useState("");
+  // Start with the first phrase fully typed: the server render and the first
+  // client render therefore show a complete, meaningful label instead of an
+  // empty line. The cycle deletes and retypes it after `pauseDuration`.
+  const [displayText, setDisplayText] = useState(phrases[0] ?? "");
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [shouldStart, setShouldStart] = useState(startDelay === 0);

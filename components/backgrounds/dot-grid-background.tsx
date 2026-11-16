@@ -14,9 +14,9 @@ const DOT_BASE_RADIUS = 1.5
 const DOT_MAX_RADIUS = 5
 const MOUSE_RADIUS = 240
 const WAVE_RADIUS = 280
-const BASE_COLOR = { r: 100, g: 110, b: 140 }
-const GLOW_COLOR = { r: 99, g: 102, b: 241 }
-const ACCENT_COLOR = { r: 56, g: 189, b: 248 }
+const BASE_COLOR = { r: 82, g: 82, b: 91 }
+const GLOW_COLOR = { r: 245, g: 158, b: 11 }
+const ACCENT_COLOR = { r: 250, g: 204, b: 21 }
 
 interface Dot {
   x: number

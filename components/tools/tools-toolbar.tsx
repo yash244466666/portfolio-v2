@@ -18,9 +18,9 @@ interface ToolsToolbarProps {
 /**
  * Persistent sticky command bar for the tools page.
  *
- * The toolbar is anchored directly below the fixed nav and stays reachable while
- * the user scrolls through the pinned filmstrip sections or the flat search
- * results. It combines a compact search combobox and category chips in a centered,
+ * The toolbar is the first content below the fixed nav and stays reachable while
+ * the user scrolls through the continuous pinned track or the flat search
+ * results. It combines a compact search combobox and category chips in a centered
  * strip that wraps gracefully on narrow screens.
  */
 export default function ToolsToolbar({
@@ -85,7 +85,7 @@ export default function ToolsToolbar({
           <div
             className={`tools-toolbar__search-combobox w-full flex items-center h-11 rounded-full border transition-all duration-200 ease-out ${
               isOpen
-                ? "bg-background/80 border-primary/40 pr-1 shadow-[0_0_0_4px_rgba(124,58,237,0.08)]"
+                ? "bg-background/80 border-primary/40 pr-1 shadow-[0_0_0_4px_rgba(250,204,21,0.12)]"
                 : "bg-muted/50 border-white/[0.08] hover:bg-muted/70 hover:border-white/[0.12] cursor-pointer"
             }`}
             onClick={isOpen ? undefined : () => setIsOpen(true)}
@@ -242,7 +242,7 @@ export default function ToolsToolbar({
                 aria-disabled={!hasMatches}
                 className={`tools-toolbar__chip snap-start min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 ${
                   isActive
-                    ? "is-active bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-4px_rgba(124,58,237,0.45)]"
+                    ? "is-active bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-4px_rgba(250,204,21,0.45)]"
                     : hasMatches
                       ? "bg-muted/50 text-foreground/80 border-white/[0.08] hover:bg-muted hover:border-white/[0.14] hover:text-foreground"
                       : "bg-muted/30 text-muted-foreground/50 border-white/[0.06] cursor-not-allowed"

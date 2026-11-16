@@ -2,43 +2,45 @@
 
 import * as React from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { ArrowRight, ExternalLink } from "lucide-react"
 
 import { Dialog } from "@/components/ui/dialog"
 import type { Project, ProjectModalContent } from "@/lib/content"
-import { ProjectActions } from "./project-actions"
 
 interface ProjectModalProps {
     project: Project
     /** Card button that opened the modal; focus returns here on close. */
     trigger: HTMLElement | null
     onClose: () => void
-    buttonTexts: {
-        code: string
-        liveDemo: string
-    }
     modalContent: ProjectModalContent
 }
 
 /**
  * Detail view for a single project. Every string comes from lib/content so
  * copy can be edited in one place. Optional fields (longDescription,
- * highlights, role, year) degrade gracefully when absent.
+ * highlights, role, year, links) degrade gracefully when absent.
  */
 export function ProjectModal({
     project,
     trigger,
     onClose,
-    buttonTexts,
     modalContent,
 }: ProjectModalProps) {
     const baseId = React.useId()
     const titleId = `${baseId}-title`
     const descriptionId = `${baseId}-description`
     const highlightsId = `${baseId}-highlights`
+    const linksId = `${baseId}-links`
 
     const hasMeta = Boolean(project.role || project.year)
     const highlights =
         project.highlights && project.highlights.length > 0 ? project.highlights : null
+    const paragraphs = (project.longDescription || project.description)
+        .split(/\n\s*\n/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+    const links = project.links?.length ? project.links : null
 
     return (
         <Dialog
@@ -60,11 +62,16 @@ export function ProjectModal({
                     <div className="relative aspect-video max-h-[30dvh] w-full overflow-hidden bg-muted [@media(min-width:640px)_and_(min-height:600px)]:max-h-none">
                         <Image
                             src={project.image || "/placeholder.svg"}
-                            alt={project.title}
+                            alt={project.imageAlt}
                             fill
                             className="object-cover"
                             sizes="(max-width: 768px) 100vw, 768px"
                         />
+                        {project.artworkLabel ? (
+                            <span className="absolute bottom-3 left-3 rounded-full bg-background/80 px-3 py-1 text-xs font-medium uppercase tracking-wide text-muted-foreground backdrop-blur-sm">
+                                {project.artworkLabel}
+                            </span>
+                        ) : null}
                     </div>
 
                     <div className="space-y-6 px-5 pt-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] sm:px-8 sm:pt-8 sm:pb-[calc(2rem_+_env(safe-area-inset-bottom))]">
@@ -93,16 +100,16 @@ export function ProjectModal({
                             ) : null}
                         </header>
 
-                        <p id={descriptionId} className="leading-relaxed text-muted-foreground">
-                            {project.description}
-                        </p>
-
-                        {project.longDescription &&
-                        project.longDescription !== project.description ? (
-                            <p className="leading-relaxed text-muted-foreground">
-                                {project.longDescription}
-                            </p>
-                        ) : null}
+                        <div id={descriptionId} className="space-y-4">
+                            {paragraphs.map((paragraph, index) => (
+                                <p
+                                    key={`${titleId}-paragraph-${index}`}
+                                    className="leading-relaxed text-muted-foreground"
+                                >
+                                    {paragraph}
+                                </p>
+                            ))}
+                        </div>
 
                         {highlights ? (
                             <section aria-labelledby={highlightsId} className="space-y-3">
@@ -142,12 +149,45 @@ export function ProjectModal({
                             </div>
                         ) : null}
 
-                        <ProjectActions
-                            project={project}
-                            buttonTexts={buttonTexts}
-                            unavailableLabel={modalContent.unavailableLabel}
-                            className="border-t border-border/60 pt-5"
-                        />
+                        {links ? (
+                            <section
+                                aria-labelledby={linksId}
+                                className="space-y-3 border-t border-border/60 pt-5"
+                            >
+                                <h3
+                                    id={linksId}
+                                    className="text-sm font-semibold uppercase tracking-wide text-foreground/80"
+                                >
+                                    {modalContent.linksHeading}
+                                </h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {links.map((link) => {
+                                        const classes =
+                                            "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                                        if (link.external) {
+                                            return (
+                                                <a
+                                                    key={link.href}
+                                                    href={link.href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={classes}
+                                                >
+                                                    {link.label}
+                                                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                                                </a>
+                                            )
+                                        }
+                                        return (
+                                            <Link key={link.href} href={link.href} className={classes}>
+                                                {link.label}
+                                                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                                            </Link>
+                                        )
+                                    })}
+                                </div>
+                            </section>
+                        ) : null}
                     </div>
                 </div>
             </div>

@@ -71,7 +71,7 @@ export default function RainBackground() {
       }
 
       // Background with flash
-      ctx.fillStyle = `rgba(3,7,18,${1 - flashRef.current * 0.6})`
+      ctx.fillStyle = `rgba(9,9,11,${1 - flashRef.current * 0.6})`
       ctx.fillRect(0, 0, w, h)
 
       // Lightning flash overlay

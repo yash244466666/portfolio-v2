@@ -104,9 +104,9 @@ export default function HexagonGridBackground() {
         // Fill
         if (alpha > 0.01) {
           drawHex(hex.cx, hex.cy, SIZE)
-          const r = Math.round(99 + pulseGlow * 60)
-          const g = Math.round(102 + hover * 80 + pulseGlow * 50)
-          const b = Math.round(241)
+          const r = Math.round(202 + hover * 48 + pulseGlow * 51)
+          const g = Math.round(138 + hover * 66 + pulseGlow * 86)
+          const b = Math.round(4 + hover * 17 + pulseGlow * 67)
           ctx.fillStyle = `rgba(${r},${g},${b},${alpha * 0.25})`
           ctx.fill()
         }
@@ -114,7 +114,7 @@ export default function HexagonGridBackground() {
         // Stroke
         drawHex(hex.cx, hex.cy, SIZE)
         const strokeAlpha = (0.08 + hover * 0.25 + pulseGlow * 0.4) * fadeIn
-        ctx.strokeStyle = `rgba(99,102,241,${strokeAlpha})`
+        ctx.strokeStyle = `rgba(250,204,21,${strokeAlpha})`
         ctx.lineWidth = hover > 0.3 ? 1.2 : 0.5
         ctx.stroke()
       }

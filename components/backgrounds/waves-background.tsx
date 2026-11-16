@@ -11,11 +11,11 @@ import type { Scope } from "animejs"
  */
 
 const WAVE_LAYERS = [
-  { color: "rgba(99,102,241,0.22)", amplitude: 45, frequency: 0.008, speed: 0.3, yOffset: 0.55 },
-  { color: "rgba(139,92,246,0.18)", amplitude: 40, frequency: 0.010, speed: -0.4, yOffset: 0.60 },
-  { color: "rgba(56,189,248,0.15)", amplitude: 55, frequency: 0.006, speed: 0.5, yOffset: 0.50 },
-  { color: "rgba(6,182,212,0.12)", amplitude: 35, frequency: 0.012, speed: -0.35, yOffset: 0.65 },
-  { color: "rgba(236,72,153,0.10)", amplitude: 50, frequency: 0.007, speed: 0.25, yOffset: 0.45 },
+  { color: "rgba(250,204,21,0.20)", amplitude: 45, frequency: 0.008, speed: 0.3, yOffset: 0.55 },
+  { color: "rgba(245,158,11,0.16)", amplitude: 40, frequency: 0.010, speed: -0.4, yOffset: 0.60 },
+  { color: "rgba(253,224,71,0.14)", amplitude: 55, frequency: 0.006, speed: 0.5, yOffset: 0.50 },
+  { color: "rgba(217,119,6,0.12)", amplitude: 35, frequency: 0.012, speed: -0.35, yOffset: 0.65 },
+  { color: "rgba(161,161,170,0.09)", amplitude: 50, frequency: 0.007, speed: 0.25, yOffset: 0.45 },
 ]
 
 export default function WavesBackground() {
@@ -130,7 +130,7 @@ export default function WavesBackground() {
         const gx = mx * w
         const gy = my * h
         const gradient = ctx.createRadialGradient(gx, gy, 0, gx, gy, 250)
-        gradient.addColorStop(0, `rgba(99,102,241,${0.06 * fadeRef.current})`)
+        gradient.addColorStop(0, `rgba(250,204,21,${0.05 * fadeRef.current})`)
         gradient.addColorStop(1, "transparent")
         ctx.fillStyle = gradient
         ctx.fillRect(gx - 250, gy - 250, 500, 500)
@@ -200,7 +200,7 @@ export default function WavesBackground() {
             top: `${dot.y}%`,
             width: dot.size,
             height: dot.size,
-            backgroundColor: "rgba(99,102,241,0.5)",
+            backgroundColor: "rgba(250,204,21,0.45)",
             opacity: 0,
           }}
         />

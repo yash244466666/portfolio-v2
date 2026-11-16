@@ -1,6 +1,6 @@
 # MD. Mohi Minul Islam Yash — Portfolio & Browser Tools
 
-The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sikdar**) and a catalog of **88 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
+The personal portfolio of **MD. Mohi Minul Islam Yash** (site brand **YashCodes**) and a catalog of **88 browser-based developer utilities**, built with Next.js App Router and exported as a fully static site.
 
 - **Production:** https://yashcodes.com
 - **Staging:** https://beta.yashcodes.com
@@ -30,14 +30,17 @@ The personal portfolio of **MD. Mohi Minul Islam Yash** (display name **Yash Sik
 
 ## Overview
 
-This repository contains one application with two public routes:
+This repository contains one application with these public routes:
 
-- **`/`** — an animated, dark-themed single-page portfolio with loading, navigation, hero, about, projects, contact, footer, and back-to-top sections.
-- **`/tools/`** — a searchable catalog of 88 client-side utilities with category navigation, a cinematic horizontal desktop scroller, a normal stacked mobile layout, hash-addressable tool views, and lazy-loaded implementations.
+- **`/`** — an animated, dark-themed single-page portfolio with navigation, hero, about, projects, contact, footer, and back-to-top sections. The full visible content is server-rendered; the loading screen is a decorative overlay.
+- **`/tools/`** — a searchable catalog of 88 client-side utilities with category navigation, one continuous pinned horizontal desktop track, a normal stacked mobile/reduced-motion layout, hash-addressable tool views, lazy-loaded implementations, a visually hidden directory `h1`, and links to the first published tool pages.
+- **`/tools/json-editor/`, `/tools/timestamp-converter/`, `/tools/image-compressor/`, `/tools/meta-tag-generator/`** — standalone pages with server-rendered answer copy, worked examples, the live widget, and related links.
+- **`/projects/yashcodes/`** — the YashCodes developer-tools case study.
+- **`/robots.txt`** and **`/sitemap.xml`** — generated at build time.
 
 The frontend is designed to be exported as static files. There is **no Next.js server runtime or API route**. The contact form POSTs to a separate Cloudflare Worker (`workers/contact`) that sends owner and visitor emails through Brevo; a prefilled `mailto:` link is the fallback.
 
-The UI is animation-heavy and predominantly client-rendered. Reduced-motion behavior, keyboard navigation, mobile layouts, and static-export compatibility are first-class requirements.
+Visible content is server-rendered, while backgrounds, the loader, the typewriter, reveals, and interactions are client-side. Reduced-motion behavior, keyboard navigation, mobile layouts, no-JS visibility, and static-export compatibility are first-class requirements.
 
 ## Live sites and branch model
 
@@ -61,15 +64,17 @@ The old `master` branch was renamed to `main`; the remote `master` no longer exi
 
 ### Portfolio (`/`)
 
-- Full-screen loading screen with animated progress and a short fade.
-- Fixed navigation with active-section tracking, a mobile menu, and a content-driven resume download.
-- Hero section with a cycling typewriter, CSS entrance animations, and scroll-to-section actions.
-- About section with six skill groups and gradient background elements.
-- Projects section with six featured project cards and image previews.
-- Contact section with a Worker-backed form (Turnstile, honeypot, sending/success/error states, `mailto:` fallback) and contact detail cards.
-- Footer with the computed current year.
+- Decorative full-screen loading overlay with animated progress and a short fade, released with CSS fallbacks when JavaScript is unavailable or a bundle fails.
+- Static, crawlable body content: a stable full-name `h1`, the full-stack role, six expertise cards, six project summaries, contact details, and footer identity.
+- Fixed navigation with active-section tracking, a labelled mobile menu, real anchors, and a resume action that stays hidden until an approved PDF exists.
+- Hero section with a cycling decorative typewriter, CSS entrance animations, and anchor actions.
+- About section with six capability cards and gradient background elements.
+- Projects section with six featured cards, artwork labels, roles, tags, a detail modal, and a text-only "More Engineering Work" subsection.
+- Contact section with one centered panel: a Worker-backed form (Turnstile, honeypot, sending/success/error states, `mailto:` fallback) and a compact direct-contact strip for Email, Phone, and Location below it.
+- Footer with the full name, designation, labelled profile links, and the computed current year.
+- Per-page metadata, absolute canonicals, Open Graph/Twitter cards, a social image, `robots.txt`, `sitemap.xml`, and ProfilePage/Person JSON-LD.
 - Back-to-top control.
-- Custom cursor code exists but is intentionally disabled in `app/page.tsx`.
+- Custom cursor code exists but is intentionally disabled in `components/home-page.tsx`.
 
 ### Tools (`/tools/`)
 
@@ -77,12 +82,15 @@ The old `master` branch was renamed to `main`; the remote `master` no longer exi
 - Category chips and grouped results.
 - Cinematic pinned horizontal scrolling for desktop category sections.
 - Normal stacked grid on screens below 768 px and for reduced-motion users.
-- Hash-addressable tool views (`/tools/#<tool-id>`).
+- Visible directory `h1` and ordinary links to the four published tool pages.
+- Promoted cards link to their standalone pages; legacy `/tools/#<tool-id>` bookmarks still open the in-place widget.
+- Unknown fragments, including the `#tools-content` skip link, leave the directory visible.
 - Browser back restores the catalog scroll position.
 - Lazy-loaded tool implementations with a loading spinner and an unavailable state.
 - Reset remounts the active tool.
 - Wide layout flag for tools that need more horizontal space.
 - 44 px mobile touch targets, focus-visible rings, skip link, and semantic combobox/listbox/breadcrumb/progressbar roles.
+- Four standalone pages with answer copy, worked examples, a live widget (Reset/Capture), and related links.
 
 ### Backgrounds
 
@@ -100,11 +108,18 @@ Backgrounds use Canvas 2D, CSS, and anime.js. Reduced-motion users receive the s
 
 | Route | Description |
 |---|---|
-| `/` | Animated portfolio |
-| `/tools/` | Tools catalog and tool views |
+| `/` | Animated portfolio with server-rendered content |
+| `/tools/` | Tools catalog and in-place tool views |
+| `/tools/json-editor/` | Standalone JSON editor page |
+| `/tools/timestamp-converter/` | Standalone timestamp converter page |
+| `/tools/image-compressor/` | Standalone image compressor page |
+| `/tools/meta-tag-generator/` | Standalone meta tag generator page |
+| `/projects/yashcodes/` | YashCodes developer-tools case study |
+| `/robots.txt` | Crawl policy with the sitemap URL |
+| `/sitemap.xml` | Canonical published-page inventory |
 | `/_not-found` | Static not-found page |
 
-The site uses trailing slashes (`/tools/`, not `/tools`).
+The site uses trailing slashes (`/tools/`, not `/tools`). Caddy redirects `/index.html`, `/tools`, `/tools/index.html`, the standalone tool aliases, and `/projects/yashcodes` to the trailing-slash canonical URL; query strings are preserved.
 
 ## Tech stack
 
@@ -184,13 +199,23 @@ The tools-page description says most tools run on-device while networked tools d
 ```text
 portfolio-v2/
 ├── app/
-│   ├── layout.tsx                 # Font, metadata, favicons, dark mode
-│   ├── page.tsx                   # Home route orchestration and loading lifecycle
-│   ├── globals.css                # Tailwind, tokens, keyframes, reduced motion
-│   └── tools/
-│       ├── page.tsx               # Tools route shell
-│       └── loading.tsx
+│   ├── layout.tsx                 # Font, metadata defaults, favicons, js class
+│   ├── page.tsx                   # Home metadata, JSON-LD, HomePage
+│   ├── globals.css                # Tailwind, tokens, keyframes, reveal/loader fallbacks
+│   ├── robots.ts                  # Build-time robots.txt
+│   ├── sitemap.ts                 # Build-time sitemap.xml
+│   ├── tools/
+│   │   ├── page.tsx               # Tools metadata and route shell
+│   │   ├── loading.tsx
+│   │   └── [slug]/
+│   │       └── page.tsx           # Four standalone tool pages
+│   └── projects/
+│       └── yashcodes/
+│           └── page.tsx           # YashCodes case study
 ├── components/
+│   ├── home-page.tsx              # Client home composition and loader overlay
+│   ├── page-shell.tsx             # Shared shell for content pages
+│   ├── structured-data.tsx        # Server-rendered JSON-LD
 │   ├── hero-section.tsx
 │   ├── hero-section/
 │   ├── about-section.tsx
@@ -211,6 +236,8 @@ portfolio-v2/
 │   │   ├── math/
 │   │   ├── shared/
 │   │   ├── tool-view.tsx
+│   │   ├── tool-playground.tsx
+│   │   ├── tools-route.tsx
 │   │   ├── tools-grid.tsx
 │   │   ├── tools-sections.tsx
 │   │   ├── tools-toolbar.tsx
@@ -220,15 +247,22 @@ portfolio-v2/
 ├── lib/
 │   ├── contact/
 │   ├── content/
+│   │   ├── index.ts
+│   │   ├── types.ts
+│   │   ├── utils.ts
+│   │   └── tool-pages.ts
 │   ├── tools/
 │   ├── instrumentation.ts
 │   ├── react-telemetry.ts
+│   ├── seo.ts
 │   └── utils.ts
 ├── workers/
 │   └── contact/
 │       ├── src/index.js
 │       └── README.md
 ├── public/
+│   ├── og-image.png
+│   ├── project-cards/             # Six WebP project cards
 │   ├── project images, favicons, placeholders
 │   └── pdf.worker.min.mjs
 ├── docs/
@@ -316,7 +350,7 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-turnstile-site-key \
 pnpm build
 ```
 
-The export is written to `out/` (about 14 MB, including project images and the pdf.js worker). The exported routes are `/`, `/tools/`, and the not-found route.
+The export is written to `out/` (about 15 MB, including project images, the social card, and the pdf.js worker). The exported routes are `/`, `/tools/`, `/tools/json-editor/`, `/tools/timestamp-converter/`, `/tools/image-compressor/`, `/tools/meta-tag-generator/`, `/projects/yashcodes/`, `/robots.txt`, `/sitemap.xml`, and the not-found route.
 
 Because there is no server runtime after deployment:
 
@@ -419,20 +453,27 @@ pnpm build
 
 ### Frontend smoke checks
 
-Run the development server and verify:
+Run the development server or serve the static export, and verify:
 
-- `/` returns successfully and the loading screen completes.
-- `/tools/` returns successfully.
-- Navigation scrolls to home sections.
+- `/` returns successfully and the loading overlay releases.
+- The exported `/index.html` contains one full-name `h1`, the role, six expertise cards, six project summaries, contact copy, the footer, and a real Tools link.
+- Navigation scrolls to home sections and the anchors clear the fixed header; the mobile menu opens and closes after navigation.
+- The project modal opens from the keyboard, closes with Escape, and returns focus to the trigger.
+- `/tools/` returns successfully and shows exactly one visually hidden directory `h1`.
+- Search and category chips appear first below the navigation; the removed intro block is absent.
 - Tools search opens, filters, clears, and handles keyboard selection.
-- Category chips scroll to the expected section.
-- Desktop filmstrips advance and reverse without overlap.
-- Mobile tools render as a normal stacked grid.
-- A direct tool hash opens the expected tool.
+- On desktop the single track moves forward and backward; the heading, description, active chip, and progress indicator change in place at category boundaries.
+- Category chips jump to their first card; Previous/Next move about one card and disable at the ends; the final card is fully reachable before the footer.
+- Keyboard focus stays visible across the clipped track and Tab continues out of it.
+- Mobile, short desktop viewports, reduced motion, and no-JS render the normal stacked grid with visible category headings.
+- A direct tool hash opens the expected tool; unknown fragments leave the directory visible.
+- Promoted cards navigate to `/tools/<slug>/`; legacy hashes still open the in-place widget.
 - Reset remounts the active tool.
 - Back restores the grid scroll position.
 - Reduced-motion mode keeps all content usable.
-- The browser console has no unexpected errors.
+- No-JS mode and a failed JS bundle both keep the content visible and remove the loader.
+- `/robots.txt` and `/sitemap.xml` return 200; canonical redirects are one hop and preserve query strings.
+- The browser console has no unexpected application errors.
 
 ### Deployment checks
 
@@ -492,17 +533,19 @@ The deploy key is stored only in GitHub Actions. The `deploy` user has no sudo a
 
 ### Product and quality
 
-1. There are no committed automated test files or Playwright configuration despite Playwright being installed.
+1. There are no committed automated test files or Playwright configuration despite Playwright being installed. The 2026-11-10 102-check verification script lives in the gitignored `handoff/` folder and is not part of CI.
 2. The tools-page local-processing claim conflicts with the Currency Converter, DNS Lookup, and YouTube Downloader integrations.
-3. Most project Code and Live Demo URLs remain `#` placeholders.
-4. Both npm and pnpm lockfiles exist and can drift.
-5. The frontend is heavily client-rendered, including many presentational components.
-6. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
-7. Dynamic tool import failures become a generic unavailable state, which can obscure the original loading error.
-8. Historical planning and bug documents contain obsolete architecture claims.
-9. The contact Worker's live Brevo delivery, secrets, and KV rate limiting still need end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
-10. The site has no analytics; contact submissions are handled by the external Worker.
-11. The build fetches DM Sans from Google Fonts through `next/font/google`. A transient fetch failure can fail the build; the workflow retries the build up to three times. Self-hosting the font with `next/font/local` is the durable fix.
+3. Both npm and pnpm lockfiles exist and can drift.
+4. The home shell and most tool UI remain client components even though the visible content is server-rendered; a future mount gate around the content would break crawlability.
+5. Global automatic telemetry wrapping increases complexity and may affect debugging or performance when enabled.
+6. Dynamic tool import failures become a generic unavailable state, which can obscure the original loading error.
+7. Historical planning and bug documents contain obsolete architecture claims.
+8. The contact Worker's live Brevo delivery, secrets, and KV rate limiting still need end-to-end confirmation; the form falls back to `mailto:` when the Worker is unset or fails.
+9. The site has no analytics; contact submissions are handled by the external Worker.
+10. The build fetches DM Sans from Google Fonts through `next/font/google`. A transient fetch failure can fail the build; the workflow retries the build up to three times. Self-hosting the font with `next/font/local` is the durable fix.
+11. Production still serves the pre-2026-11-10 build until the release PR merges. The new standalone routes, case study, crawl files, and tool-page/case-study Caddy aliases are live on staging only.
+12. The staging host must stay `X-Robots-Tag: noindex`; production must stay indexable. Both are enforced in the vps-2 Caddyfile, not by the Next build.
+13. Caddy bind-mounts the Caddyfile as a single file. Edit it in place (truncate/write); replacing the inode requires restarting the Caddy container to pick up the new file.
 
 ## Conventions
 

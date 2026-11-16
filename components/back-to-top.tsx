@@ -44,11 +44,11 @@ export default function BackToTop() {
       onClick={scrollToTop}
       className={`
         !fixed bottom-8 right-8 z-50 p-3 rounded-full !right-8 !left-auto
-        bg-gradient-to-r from-blue-600 to-cyan-600
-        text-white shadow-lg cursor-pointer
+        bg-yellow-400
+        text-zinc-950 shadow-lg shadow-yellow-400/20 cursor-pointer
         transition-all duration-300 ease-in-out
-        hover:from-blue-500 hover:to-cyan-500
-        hover:shadow-xl hover:scale-110
+        hover:bg-yellow-300
+        hover:shadow-xl hover:shadow-yellow-400/30 hover:scale-110
         active:scale-95
         ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}
       `}

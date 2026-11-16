@@ -14,7 +14,7 @@ export interface SkillCardProps {
 export function SkillCard({ icon, title, description, animationDelay = 0, isVisible = false }: SkillCardProps) {
     return (
         <Card
-            className={`p-6 sm:p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-2 backdrop-blur-sm bg-background/80 ${isVisible ? "animate-fade-in-up" : "opacity-0"
+            className={`p-6 sm:p-8 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-2 backdrop-blur-sm bg-background/80 motion-reduce:animate-none ${isVisible ? "animate-fade-in-up" : "reveal-pending"
                 }`}
             style={{ animationDelay: `${animationDelay}ms` }}
         >
