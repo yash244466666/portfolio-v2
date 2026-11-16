@@ -153,7 +153,8 @@ export function buildHomeStructuredData() {
   const projectsListId = `${SITE_URL}/#projects`;
 
   const projectSummaries = projects.map((project, index) => {
-    const primaryUrl = absoluteUrl(project.links?.[0]?.href ?? "/#projects");
+    const primaryHref = project.links?.[0]?.href ?? "/#projects";
+    const primaryUrl = new URL(primaryHref, SITE_URL).href;
     return {
       "@type": "ListItem",
       position: index + 1,
