@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
+    ...projectPages.map(({ slug }) => ({ url: absoluteUrl(projectPagePath(slug)) })),
     {
       url: absoluteUrl("/projects/yashcodes/"),
       changeFrequency: "monthly",
