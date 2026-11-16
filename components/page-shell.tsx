@@ -31,7 +31,7 @@ export default function PageShell({
   skipLabel = "Skip to content",
 }: PageShellProps) {
   return (
-    <main className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
       <AnimatedBackground />
       <div className="relative z-10 flex min-h-screen flex-col">
         <a
@@ -41,15 +41,15 @@ export default function PageShell({
           {skipLabel}
         </a>
         <Navigation />
-        <div
+        <main
           id={contentId}
           className="flex-grow pb-16 pt-[calc(var(--nav-height,4.25rem)+1.5rem)]"
         >
           {children}
-        </div>
+        </main>
         <Footer />
         <BackToTop />
       </div>
-    </main>
+    </div>
   )
 }

@@ -11,8 +11,12 @@ const AI_AND_SEARCH_USER_AGENTS = [
   "PerplexityBot",
   "ClaudeBot",
   "Claude-SearchBot",
+  "Claude-User",
   "Google-Extended",
   "Applebot-Extended",
+  "Amazonbot",
+  "Meta-ExternalAgent",
+  "DuckAssistBot",
   "bingbot",
 ]
 

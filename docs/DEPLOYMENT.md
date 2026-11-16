@@ -75,8 +75,9 @@ an owner-only team, or a second-reviewer flow is added.
   the four `/tools/<slug>` aliases, and `/projects/yashcodes` to the
   trailing-slash canonical URL in one hop. Query strings are preserved.
 - The beta block sets `X-Robots-Tag: noindex`; production remains indexable.
-- Production received only the generic `/index.html` and `/tools` redirects.
-  Add the tool-page and case-study aliases when the release reaches production.
+- Both beta and production Caddy blocks now redirect `/index.html`, `/tools`,
+  `/tools/index.html`, the four `/tools/<slug>` aliases, and
+  `/projects/yashcodes` to the trailing-slash canonical URLs in one hop.
 - Pre-change backup: `/opt/stacks/caddy/Caddyfile.bak-20261110-104251`.
 - Caddy bind-mounts the Caddyfile as a single file. Edit it **in place**
   (`sudo sh -c 'cat new-Caddyfile > /opt/stacks/caddy/Caddyfile'`) and reload.

@@ -130,38 +130,41 @@ export default function Navigation() {
   }, [])
 
   return (
-    <nav
-      data-nav-root
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled || pathname !== "/"
-          ? "bg-background/95 backdrop-blur-sm border-b border-border"
-          : "bg-transparent"
-        }`}
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            onClick={handleLogoClick}
-            className="inline-flex items-center rounded-md font-bold text-xl text-foreground cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-          >
-            {personalInfo.name}
-          </Link>
+    <header>
+      <nav
+        data-nav-root
+        aria-label="Primary navigation"
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled || pathname !== "/"
+            ? "bg-background/95 backdrop-blur-sm border-b border-border"
+            : "bg-transparent"
+          }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              onClick={handleLogoClick}
+              className="inline-flex items-center rounded-md font-bold text-xl text-foreground cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              {personalInfo.name}
+            </Link>
 
-          <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} activeSection={activeSection} />
+            <DesktopNavLinks items={navigationItems} onNavigate={handleNavigate} activeSection={activeSection} />
 
-          <div className="flex items-center space-x-4">
-            <NavigationActions />
-            <NavigationToggle isOpen={isMobileMenuOpen} onToggle={toggleMobileMenu} />
+            <div className="flex items-center space-x-4">
+              <NavigationActions />
+              <NavigationToggle isOpen={isMobileMenuOpen} onToggle={toggleMobileMenu} />
+            </div>
           </div>
-        </div>
 
-        <MobileNav
-          items={navigationItems}
-          isOpen={isMobileMenuOpen}
-          onNavigate={handleNavigate}
-          activeSection={activeSection}
-        />
-      </div>
-    </nav>
+          <MobileNav
+            items={navigationItems}
+            isOpen={isMobileMenuOpen}
+            onNavigate={handleNavigate}
+            activeSection={activeSection}
+          />
+        </div>
+      </nav>
+    </header>
   )
 }

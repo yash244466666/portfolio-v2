@@ -133,6 +133,9 @@ export interface SectionContent {
     heading: string;
     description: string;
     moreWorkHeading: string;
+    toolsPrompt: string;
+    toolsLinkLabel: string;
+    caseStudyLinkLabel: string;
   };
   contact: {
     heading: string;

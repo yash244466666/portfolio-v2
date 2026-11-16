@@ -8,7 +8,7 @@ import { buildCaseStudyStructuredData, buildPageMetadata } from "@/lib/seo"
 export const metadata: Metadata = buildPageMetadata({
   title: "YashCodes Developer Tools Case Study – 88 Browser Utilities",
   description:
-    "How YashCodes combines 88 browser utilities in one static Next.js site: search, on-demand tool loading, a desktop filmstrip, mobile fallbacks, and the tradeoffs behind the design.",
+    "How YashCodes combines 88 browser utilities in one static Next.js site: search, on-demand tool loading, a desktop filmstrip, and mobile fallbacks.",
   path: "/projects/yashcodes/",
   type: "article",
   imageAlt: "The YashCodes tools directory",

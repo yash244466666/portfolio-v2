@@ -15,6 +15,7 @@
 - **GitHub**: https://github.com/yash244466666
 - **LinkedIn**: https://www.linkedin.com/in/md-mohi-minul-islam-yash/
 - **X (Twitter)**: https://twitter.com/yash_solo000
+- **Facebook (Brand)**: https://www.facebook.com/yashcodes.for.you
 
 Summary:
 MD. Mohi Minul Islam Yash is a full-stack software engineer who builds web applications, platform integrations, and custom AI agents. He built a marketplace booking and scheduling system with connected calendars, added scheduled notifications for admins on a Ruby on Rails lost-and-found application, reverse-engineered parts of social platforms to build AI-assisted automation, and built cybersecurity and open-source intelligence (OSINT) automation tools for clients and employers.
@@ -70,8 +71,15 @@ MD. Mohi Minul Islam Yash is a full-stack software engineer who builds web appli
 
 ## 5. YashCodes Developer Tools & Architecture
 
-- **Directory**: https://yashcodes.com/tools/ (88 client-side browser utilities across Core, Dev, Text, Media, Security, and Math & Logic categories)
+- **Directory**: https://yashcodes.com/tools/ (88 browser-based utilities across Core, Dev, Text, Media, Security, and Math & Logic categories; most run locally on your device, and tools that query external APIs disclose it)
 - **Case Study**: https://yashcodes.com/projects/yashcodes/ (Repository: https://github.com/yash244466666/portfolio-v2)
+- **Directory Categories**:
+  - **Core Tools (7)**: PDF Converter, Currency Converter, Unit Converter, Timestamp Converter, Number Base Converter, Hash Generator, Image Compressor.
+  - **Dev Utilities (46)**: JSON Editor, Base64 Encode/Decode, QR Code Generator, Password Generator, Color Picker, Markdown Preview, Regex Tester, URL Encoder/Decoder, JWT Decoder, SVG Optimizer, SQL/XML/CSV/YAML converters, DNS Lookup, Internet Speed Test, Meta Tag Generator, Open Graph Preview, and more.
+  - **Text Utilities (17)**: Word Counter, Case Converter, Text Diff, Remove Duplicates, Cron Expression Builder, Find & Replace, Invisible Character Detector, and more.
+  - **Media Tools (3)**: Audio Recorder, Video to GIF, File Hash Checker.
+  - **Security Tools (5)**: Password Strength Checker, Data Sanitizer, CSP Generator, CORS Header Builder, Robots.txt Generator.
+  - **Math & Logic (10)**: Percentage Calculator, Age Calculator, Scientific Calculator, Bitwise Calculator, Color Blindness Simulator, Stopwatch, Countdown Timer, and more.
 - **Key Published Tool Guides & Interactive Utilities**:
   - **JSON Editor** (`https://yashcodes.com/tools/json-editor/`): Formats, minifies, validates, and renders JSON as an editable tree locally in the browser; catches trailing commas such as `{"active":true,}`.
   - **Unix Timestamp Converter** (`https://yashcodes.com/tools/timestamp-converter/`): Converts seconds (`946684800`) and milliseconds (`946684800000`) cleanly to `2000-01-01T00:00:00.000Z` and local time without silent unit guessing.

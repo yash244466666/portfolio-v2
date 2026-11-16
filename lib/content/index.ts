@@ -370,6 +370,10 @@ export const sectionContent: SectionContent = {
     description:
       "Here are some of the systems I've built, from provider booking and business applications to AI automation and games. Open a project to see what I worked on and how it fit into the product.",
     moreWorkHeading: "More Engineering Work",
+    toolsPrompt:
+      "Also built the 88-tool YashCodes Developer Tools directory on this site:",
+    toolsLinkLabel: "Explore Developer Tools",
+    caseStudyLinkLabel: "Read Case Study",
   },
   contact: {
     heading: "Let's Talk About Your Team",
