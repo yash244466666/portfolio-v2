@@ -53,6 +53,11 @@ export default async function ProjectCaseStudy({ params }: Props) {
           {project.longDescription?.split("\n\n").map((paragraph) => (
             <p key={paragraph} className="leading-relaxed text-muted-foreground">{paragraph}</p>
           ))}
+          <ul aria-label="Technologies and topics" className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            {project.tech.map((technology) => (
+              <li key={technology} className="rounded-full border border-border px-3 py-1">{technology}</li>
+            ))}
+          </ul>
         </section>
         {project.links?.filter((link) => link.external).map((link) => (
           <a key={link.href} href={link.href} className="block underline underline-offset-4">{link.label}</a>

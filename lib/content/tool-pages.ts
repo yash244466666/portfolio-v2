@@ -1,3 +1,5 @@
+import { tools } from "./tools"
+
 // =============================================================================
 // STANDALONE TOOL PAGES
 // =============================================================================
@@ -29,7 +31,7 @@ export interface ToolPageContent {
   intro: string;
   /** Supporting answer paragraphs, rendered in the initial HTML. */
   answer: string[];
-  example: {
+  example?: {
     title: string;
     rows?: ToolPageExampleRow[];
     code?: ToolPageExampleCode[];
@@ -38,7 +40,7 @@ export interface ToolPageContent {
   related: { label: string; href: string }[];
 }
 
-export const toolPages: ToolPageContent[] = [
+const detailedToolPages: ToolPageContent[] = [
   {
     slug: "base64",
     toolId: "base64-tool",
@@ -191,19 +193,44 @@ export const toolPages: ToolPageContent[] = [
   },
 ];
 
-export const TOOL_PAGE_SLUGS = toolPages.map((page) => page.slug)
+const detailedPagesById = new Map(detailedToolPages.map((page) => [page.toolId, page]))
 
-export const PROMOTED_TOOL_IDS = toolPages.map((page) => page.toolId)
+function toolPageSlug(toolId: string) {
+  return detailedPagesById.get(toolId)?.slug ?? toolId
+}
+
+export const toolPages: ToolPageContent[] = tools.map((tool) => {
+  const detailed = detailedPagesById.get(tool.id)
+  if (detailed) return detailed
+
+  const related = tools
+    .filter((candidate) => candidate.category === tool.category && candidate.id !== tool.id)
+    .sort((a, b) => {
+      const sharedTags = (tags: string[]) => tags.filter((tag) => tool.tags.includes(tag)).length
+      return sharedTags(b.tags) - sharedTags(a.tags)
+    })
+    .slice(0, 3)
+    .map((candidate) => ({ label: candidate.label, href: "/tools/" + toolPageSlug(candidate.id) + "/" }))
+
+  return {
+    slug: toolPageSlug(tool.id),
+    toolId: tool.id,
+    label: tool.label,
+    heading: tool.label,
+    metaTitle: tool.label + " | YashCodes",
+    metaDescription: tool.description,
+    intro: tool.description,
+    answer: [],
+    related: [...related, { label: "All developer tools", href: "/tools/" }],
+  }
+})
+
+export const TOOL_PAGE_SLUGS = toolPages.map((page) => page.slug)
 
 export function getToolPage(slug: string): ToolPageContent | undefined {
   return toolPages.find((page) => page.slug === slug)
 }
 
-export function isPromotedToolId(toolId: string): boolean {
-  return PROMOTED_TOOL_IDS.includes(toolId)
-}
-
-export function getToolPagePath(toolId: string): string | null {
-  const page = toolPages.find((entry) => entry.toolId === toolId)
-  return page ? `/tools/${page.slug}/` : null
+export function getToolPagePath(toolId: string): string {
+  return "/tools/" + toolPageSlug(toolId) + "/"
 }

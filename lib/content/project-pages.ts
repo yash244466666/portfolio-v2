@@ -1,5 +1,7 @@
 import { projects } from "@/lib/content"
 
+export const aiWorkPath = "/projects/ai-agents/"
+
 export function projectPagePath(slug: string) {
   return `/projects/${slug}/`
 }

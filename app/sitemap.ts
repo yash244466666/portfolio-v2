@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 import { absoluteUrl } from "@/lib/seo"
-import { projectPages, projectPagePath } from "@/lib/content/project-pages"
+import { aiWorkPath, projectPages, projectPagePath } from "@/lib/content/project-pages"
 import { toolPages } from "@/lib/content/tool-pages"
 
 // Metadata routes are evaluated at build time for the static export.
@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
+    { url: absoluteUrl(aiWorkPath) },
     ...projectPages.map(({ slug }) => ({ url: absoluteUrl(projectPagePath(slug)) })),
     {
       url: absoluteUrl("/projects/yashcodes/"),

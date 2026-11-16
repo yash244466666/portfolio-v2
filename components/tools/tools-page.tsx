@@ -107,22 +107,6 @@ export default function ToolsPage() {
     return () => window.removeEventListener("popstate", handlePopState)
   }, [])
 
-  const selectTool = useCallback((id: string) => {
-    const scrollY = window.scrollY
-
-    // Create a dedicated grid entry at the exact scroll position of the clicked
-    // card. The next back will land here precisely.
-    window.history.pushState({ scrollY, isGrid: true }, "", window.location.href)
-
-    // Create the tool entry on top of it.
-    window.history.pushState({ toolId: id, scrollY }, "", `#${id}`)
-
-    setActiveToolId(id)
-    requestAnimationFrame(() => {
-      jumpTo(0)
-    })
-  }, [])
-
   const goBack = useCallback(() => {
     window.history.back()
   }, [])
@@ -163,7 +147,6 @@ export default function ToolsPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           searchPlaceholder={content.searchPlaceholder}
-          onSelectTool={selectTool}
         />
       </div>
 
