@@ -21,7 +21,7 @@ export const tools: ToolDefinition[] = [
 
   // === Dev Utilities ===
   { id: "json-editor", label: "JSON Editor", description: "Edit, format, and explore JSON with a professional dual-panel editor featuring code view and interactive tree.", icon: "Braces", category: "dev", tags: ["json", "format", "validate", "minify", "editor", "tree"], wide: true },
-  { id: "base64-tool", label: "Base64 Encode/Decode", description: "Encode and decode text and files to and from Base64 format.", icon: "Binary", category: "dev", tags: ["base64", "encode", "decode"] },
+  { id: "base64-tool", label: "Base64 Encode/Decode", description: "Encode text or files as Base64, or decode Base64 back to text.", icon: "Binary", category: "dev", tags: ["base64", "encode", "decode"] },
   { id: "qr-generator", label: "QR Code Generator", description: "Generate QR codes from text or URLs and download as PNG images.", icon: "QrCode", category: "dev", tags: ["qr", "code", "generate"] },
   { id: "password-generator", label: "Password Generator", description: "Generate secure random passwords with configurable length and character types.", icon: "KeyRound", category: "dev", tags: ["password", "generate", "security"] },
   { id: "color-picker", label: "Color Picker", description: "Pick colors, convert between formats, check contrast, and generate palettes.", icon: "Palette", category: "dev", tags: ["color", "picker", "convert", "palette"] },
