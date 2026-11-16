@@ -43,9 +43,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.svg',
+    icon: { url: "/yashcodes-icon.png", type: "image/png", sizes: "96x96" },
+    shortcut: "/favicon.ico",
+    apple: { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" },
   },
 }
 
