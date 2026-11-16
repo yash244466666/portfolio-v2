@@ -196,7 +196,6 @@ export function buildHomeStructuredData() {
         isPartOf: { "@id": websiteId },
         mainEntity: { "@id": personId },
         about: { "@id": projectsListId },
-        dateModified: "2026-11-16",
         inLanguage: "en",
       },
       {
@@ -390,7 +389,6 @@ export function buildCaseStudyStructuredData() {
         description:
           "How YashCodes combines 88 browser utilities in one static Next.js site.",
         datePublished: "2026-11-10",
-        dateModified: "2026-11-16",
         inLanguage: "en",
         isAccessibleForFree: true,
         author: {
