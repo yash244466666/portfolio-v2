@@ -56,11 +56,6 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
 
   const showSections = !searchQuery
 
-  const matchedCategoryIds = useMemo(() => {
-    if (!searchQuery) return null
-    return new Set(tools.map((tool) => tool.category))
-  }, [searchQuery, tools])
-
   const groupedResults = useMemo(() => {
     if (!searchQuery) return []
     const byCategory = new Map<string, ToolDefinition[]>()
@@ -103,7 +98,6 @@ const ToolsGrid = forwardRef<ToolsGridHandle, ToolsGridProps>(function ToolsGrid
       <ToolsToolbar
         categories={categories}
         activeCategoryId={activeCategoryId}
-        matchedCategoryIds={matchedCategoryIds}
         onCategoryClick={handleCategoryClick}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}

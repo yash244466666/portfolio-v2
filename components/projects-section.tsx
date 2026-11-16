@@ -52,7 +52,7 @@ export default function ProjectsSection() {
       id="projects"
       aria-labelledby="projects-heading"
       ref={sectionRef}
-      className="py-16 sm:py-20 px-4 sm:px-6 relative overflow-hidden"
+      className="pb-16 pt-8 sm:pb-20 sm:pt-10 px-4 sm:px-6 relative overflow-hidden"
     >
       <ProjectsBackground />
 

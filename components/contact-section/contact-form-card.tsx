@@ -317,7 +317,7 @@ export function ContactFormCard({
                             href={TURNSTILE_ATTRIBUTION_URL}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-block rounded text-[11px] leading-relaxed text-muted-foreground/70 underline-offset-2 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            className="inline-block rounded text-[11px] leading-relaxed text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
                             {protectedByLabel}
                         </a>

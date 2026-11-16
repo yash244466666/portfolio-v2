@@ -88,7 +88,7 @@ export default function ToolPlayground({ toolId }: ToolPlaygroundProps) {
             className="tool-view__body mt-6 sm:mt-8 flex-1 animate-fade-in-up"
             style={{ animationDelay: "150ms" }}
           >
-            <div className="tool-view__body-inner tool-surface-light h-full bg-background/35 backdrop-blur-xl border border-border/40 rounded-2xl p-4 sm:p-8 shadow-2xl">
+            <div className="tool-view__body-inner tool-surface-light h-full bg-background backdrop-blur-xl border border-border/40 rounded-2xl p-4 sm:p-8 shadow-2xl">
               {ToolComponent ? (
                 <Suspense fallback={<ToolFallback />}>
                   <ToolComponent key={resetKey} />

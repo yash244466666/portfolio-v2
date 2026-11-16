@@ -64,6 +64,7 @@ export default function Base64Tool() {
 
           <div className="relative">
             <textarea
+              aria-label="Text or Base64 input"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               placeholder="Enter text or Base64 string..."
@@ -76,6 +77,7 @@ export default function Base64Tool() {
             <div className="relative">
               <textarea
                 readOnly
+                aria-label="Text result"
                 value={textOutput}
                 className="w-full min-h-[150px] p-4 rounded-lg border border-border bg-muted/30 text-foreground resize-y font-mono text-sm"
               />
@@ -86,9 +88,9 @@ export default function Base64Tool() {
       ) : (
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <label className="px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90 text-sm">
+            <label className="px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90 text-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
               Choose File
-              <input type="file" onChange={handleFile} className="hidden" />
+              <input type="file" onChange={handleFile} className="sr-only" />
             </label>
             {fileName && <span className="text-sm text-muted-foreground">{fileName}</span>}
           </div>
@@ -97,6 +99,7 @@ export default function Base64Tool() {
             <div className="relative">
               <textarea
                 readOnly
+                aria-label="Base64 file result"
                 value={fileOutput}
                 className="w-full min-h-[200px] p-4 rounded-lg border border-border bg-muted/30 text-foreground resize-y font-mono text-sm"
               />
@@ -107,7 +110,7 @@ export default function Base64Tool() {
       )}
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+        <div role="alert" className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
           {error}
         </div>
       )}

@@ -55,8 +55,8 @@ export default function HomePage() {
         <Navigation />
         <main id="main-content">
           <HeroSection />
-          <AboutSection />
           <ProjectsSection />
+          <AboutSection />
           <ContactSection />
         </main>
         <Footer />

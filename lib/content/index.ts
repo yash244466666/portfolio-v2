@@ -207,6 +207,7 @@ export const projects: Project[] = [
       "AI Voice Calling",
     ],
     role: "Software Engineer",
+    links: [{ label: "Read Case Study", href: "/projects/provider-scheduling-marketplace/", showOnCard: true }],
   },
   {
     title: "AI Social Media Automation",
@@ -280,6 +281,7 @@ export const projects: Project[] = [
     tech: ["Python", "Vision Models", "GNOME / Wayland"],
     role: "AI Agent Development",
     links: [
+      { label: "Read Case Study", href: "/projects/vision-desktop-agent/", showOnCard: true },
       {
         label: "View Repository",
         href: "https://github.com/yash244466666/vision-desktop-agent",

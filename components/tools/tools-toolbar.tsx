@@ -8,7 +8,6 @@ import { Search, X } from "lucide-react"
 interface ToolsToolbarProps {
   categories: ToolCategory[]
   activeCategoryId?: string | null
-  matchedCategoryIds?: Set<string> | null
   onCategoryClick: (id: string) => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -26,7 +25,6 @@ interface ToolsToolbarProps {
 export default function ToolsToolbar({
   categories,
   activeCategoryId = null,
-  matchedCategoryIds = null,
   onCategoryClick,
   searchQuery,
   onSearchChange,
@@ -230,22 +228,17 @@ export default function ToolsToolbar({
         <div className="tools-toolbar__chips flex flex-nowrap sm:flex-wrap items-center justify-start sm:justify-center gap-2 min-w-0 -mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
           {categories.map((cat) => {
             const isActive = activeCategoryId === cat.id
-            const hasMatches = matchedCategoryIds === null || matchedCategoryIds.has(cat.id)
             return (
               <button
                 type="button"
                 key={cat.id}
                 onClick={() => onCategoryClick(cat.id)}
-                disabled={!hasMatches}
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
-                aria-disabled={!hasMatches}
                 className={`tools-toolbar__chip snap-start min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full text-sm font-medium border whitespace-nowrap transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 ${
                   isActive
                     ? "is-active bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-4px_rgba(250,204,21,0.45)]"
-                    : hasMatches
-                      ? "bg-muted/50 text-foreground/80 border-white/[0.08] hover:bg-muted hover:border-white/[0.14] hover:text-foreground"
-                      : "bg-muted/30 text-muted-foreground/50 border-white/[0.06] cursor-not-allowed"
+                    : "bg-muted/50 text-foreground/80 border-white/[0.08] hover:bg-muted hover:border-white/[0.14] hover:text-foreground"
                 }`}
               >
                 {cat.label}

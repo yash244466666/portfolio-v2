@@ -36,6 +36,7 @@ interface PageMetadataInput {
   path: string;
   type?: "website" | "article" | "profile";
   imageAlt?: string;
+  imagePath?: string;
   keywords?: string[];
 }
 
@@ -55,10 +56,11 @@ export function buildPageMetadata({
   path,
   type = "website",
   imageAlt,
+  imagePath,
   keywords,
 }: PageMetadataInput): Metadata {
   const url = absoluteUrl(path);
-  const image = absoluteUrl(siteMetadata.ogImage);
+  const image = absoluteUrl(imagePath ?? siteMetadata.ogImage);
   const alt = imageAlt ?? `${personalInfo.fullName} — ${siteMetadata.jobTitle}`;
 
   return {
@@ -97,7 +99,7 @@ export function buildPageMetadata({
         {
           url: image,
           width: 1200,
-          height: 630,
+          height: imagePath ? 675 : 630,
           alt,
         },
       ],
@@ -140,7 +142,7 @@ export function buildBreadcrumbStructuredData(items: BreadcrumbItem[]) {
 }
 
 /**
- * WebSite + ProfilePage + Person + Projects ItemList + FAQPage graph for the
+ * WebSite + ProfilePage + Person + Projects ItemList graph for the
  * homepage. The Person @id is stable so sub-pages and profiles can reference the
  * same entity cleanly for both search engines and AI answer engines.
  */
@@ -149,10 +151,9 @@ export function buildHomeStructuredData() {
   const websiteId = `${SITE_URL}/#website`;
   const profileId = `${SITE_URL}/#profile`;
   const projectsListId = `${SITE_URL}/#projects`;
-  const faqId = `${SITE_URL}/#faq`;
 
   const projectSummaries = projects.map((project, index) => {
-    const primaryUrl = project.links?.[0]?.href ?? `${SITE_URL}/#projects`;
+    const primaryUrl = absoluteUrl(project.links?.[0]?.href ?? "/#projects");
     return {
       "@type": "ListItem",
       position: index + 1,
@@ -167,34 +168,6 @@ export function buildHomeStructuredData() {
       },
     };
   });
-
-  const faqEntries = [
-    {
-      question: "Who is MD. Mohi Minul Islam Yash (YashCodes)?",
-      answer: `${personalInfo.fullName} (also known as Yash Sikdar and YashCodes) is a Full-Stack Software Engineer based in Barisal, Bangladesh. He builds web applications, platform integrations, and custom AI agents.`,
-    },
-    {
-      question:
-        "What technologies and engineering areas does MD. Mohi Minul Islam Yash work with?",
-      answer: `${skills.map((skill) => `${skill.title}: ${skill.description}`).join(" ")}`,
-    },
-    {
-      question:
-        "What AI agent and automation projects has MD. Mohi Minul Islam Yash built?",
-      answer:
-        "He has built a vision-based desktop agent prototype (vision-desktop-agent) that uses screenshots over Wayland/D-Bus to plan mouse and keyboard actions, AI voice and provider discovery workflows for a scheduling marketplace, AI-assisted social media automation, and cybersecurity/OSINT automation tools.",
-    },
-    {
-      question:
-        "What projects and free tools are available on yashcodes.com?",
-      answer: `yashcodes.com hosts MD. Mohi Minul Islam Yash's engineering portfolio, his downloadable resume (/resume.pdf), a technical case study (/projects/yashcodes/), and a collection of 88 free browser-based developer tools (/tools/), including ${toolPages.map((p) => p.label).join(", ")}.`,
-    },
-    {
-      question: "How can teams contact or hire MD. Mohi Minul Islam Yash?",
-      answer:
-        "He is open to full-stack software engineering roles and can be reached at info@yashcodes.com, via LinkedIn (linkedin.com/in/md-mohi-minul-islam-yash), GitHub (github.com/yash244466666), or through the contact form on https://yashcodes.com/#contact.",
-    },
-  ];
 
   const brandSameAs = socialLinks
     .filter((link) => !link.sameAs && /^https?:\/\//i.test(link.url))
@@ -307,18 +280,6 @@ export function buildHomeStructuredData() {
         isAccessibleForFree: true,
         offers: FREE_OFFER,
         author: { "@id": personId },
-      },
-      {
-        "@type": "FAQPage",
-        "@id": faqId,
-        mainEntity: faqEntries.map((entry) => ({
-          "@type": "Question",
-          name: entry.question,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: entry.answer,
-          },
-        })),
       },
     ],
   };
