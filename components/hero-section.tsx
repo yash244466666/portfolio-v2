@@ -67,7 +67,7 @@ export default function HeroSection() {
   return (
     <section
       aria-label="Introduction"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pt-20 sm:px-6"
+      className="relative flex items-center justify-center overflow-hidden px-4 pb-6 pt-24 sm:px-6 sm:pb-10 sm:pt-32"
     >
       <div className="relative z-10 mx-auto max-w-4xl text-center">
         <HeroHeading
@@ -87,7 +87,7 @@ export default function HeroSection() {
           onSecondaryClick={handleAnchorClick("contact")}
         />
         <HeroSocialLinks links={socialLinks} />
-        <ScrollIndicator href="#about" onClick={handleAnchorClick("about")} />
+        <ScrollIndicator href="#projects" onClick={handleAnchorClick("projects")} />
       </div>
     </section>
   )

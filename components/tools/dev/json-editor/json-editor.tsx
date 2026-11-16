@@ -101,25 +101,25 @@ export default function JsonEditor() {
     <div className="flex flex-col gap-3">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-        <button onClick={handleFormat} disabled={!isValid} className={btnPrimary}>
+        <button aria-label="Format JSON" onClick={handleFormat} disabled={!isValid} className={btnPrimary}>
           <Braces className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Format</span>
         </button>
-        <button onClick={handleMinify} disabled={!isValid} className={btnSecondary}>
+        <button aria-label="Minify JSON" onClick={handleMinify} disabled={!isValid} className={btnSecondary}>
           <Minimize2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Minify</span>
         </button>
         <div className="w-px h-5 bg-border/50 hidden sm:block" />
-        <button onClick={handleExpandAll} disabled={!isValid} className={btnSecondary}>
+        <button aria-label="Expand all" onClick={handleExpandAll} disabled={!isValid} className={btnSecondary}>
           <ChevronsUpDown className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Expand</span>
         </button>
-        <button onClick={handleCollapseAll} disabled={!isValid} className={btnSecondary}>
+        <button aria-label="Collapse all" onClick={handleCollapseAll} disabled={!isValid} className={btnSecondary}>
           <ChevronDown className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Collapse</span>
         </button>
         <div className="w-px h-5 bg-border/50 hidden sm:block" />
         {jsonString && <CopyButton text={jsonString} />}
-        <button onClick={handleDownload} disabled={!jsonString} className={btnSecondary}>
+        <button aria-label="Download JSON" onClick={handleDownload} disabled={!jsonString} className={btnSecondary}>
           <Download className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Download</span>
         </button>
-        <button onClick={handleClear} className={`${btnSecondary} hover:text-red-400`}>
+        <button aria-label="Clear JSON" onClick={handleClear} className={`${btnSecondary} hover:text-red-400`}>
           <Trash2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Clear</span>
         </button>
         <div className="flex-1" />

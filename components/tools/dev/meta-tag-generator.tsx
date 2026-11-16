@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useId } from "react"
 import { ToolResult } from "@/components/tools/shared/tool-result"
 import { Input } from "@/components/ui/input"
 import CopyButton from "@/components/tools/shared/copy-button"
@@ -19,6 +19,7 @@ function escapeAttribute(value: string): string {
 }
 
 export default function MetaTagGenerator() {
+  const fieldId = useId()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [keywords, setKeywords] = useState("")
@@ -101,8 +102,9 @@ export default function MetaTagGenerator() {
         <div className="space-y-3">
           {fields.map((f) => (
             <div key={f.label}>
-              <label className="text-xs text-muted-foreground block mb-1">{f.label}</label>
+              <label htmlFor={fieldId + f.label.replaceAll(" ", "-")} className="text-xs text-muted-foreground block mb-1">{f.label}</label>
               <Input
+                id={fieldId + f.label.replaceAll(" ", "-")}
                 value={f.value}
                 onChange={(e) => f.setter(e.target.value)}
                 placeholder={f.placeholder}
@@ -131,8 +133,9 @@ export default function MetaTagGenerator() {
         <div className="space-y-3">
           {ogFields.map((f) => (
             <div key={f.label}>
-              <label className="text-xs text-muted-foreground block mb-1">{f.label}</label>
+              <label htmlFor={fieldId + f.label.replaceAll(" ", "-")} className="text-xs text-muted-foreground block mb-1">{f.label}</label>
               <Input
+                id={fieldId + f.label.replaceAll(" ", "-")}
                 value={f.value}
                 onChange={(e) => f.setter(e.target.value)}
                 placeholder={f.placeholder}
@@ -161,8 +164,9 @@ export default function MetaTagGenerator() {
         <div className="space-y-3">
           {twFields.map((f) => (
             <div key={f.label}>
-              <label className="text-xs text-muted-foreground block mb-1">{f.label}</label>
+              <label htmlFor={fieldId + f.label.replaceAll(" ", "-")} className="text-xs text-muted-foreground block mb-1">{f.label}</label>
               <Input
+                id={fieldId + f.label.replaceAll(" ", "-")}
                 value={f.value}
                 onChange={(e) => f.setter(e.target.value)}
                 placeholder={f.placeholder}

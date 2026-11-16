@@ -11,6 +11,7 @@ export const metadata: Metadata = buildPageMetadata({
     "How YashCodes combines 88 browser utilities in one static Next.js site: search, on-demand tool loading, a desktop filmstrip, and mobile fallbacks.",
   path: "/projects/yashcodes/",
   type: "article",
+  imagePath: "/project-cards/yashcodes-tools.webp",
   imageAlt: "The YashCodes tools directory",
 })
 

@@ -157,6 +157,8 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
         {expandable ? (
           <button
             onClick={() => onToggle(pk)}
+            aria-expanded={expanded}
+            aria-label={keyName === undefined ? "Root value" : String(keyName)}
             className="shrink-0 w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-150 ${expanded ? "rotate-90" : ""}`} />
@@ -195,16 +197,17 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
           <div className="flex items-center gap-1 flex-1 min-w-0">
             <input
               ref={inputRef}
+              aria-label="Value"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={commitEdit}
               className="flex-1 min-w-0 text-sm font-mono bg-background/80 border border-primary/50 rounded px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
-            <button onClick={commitEdit} className="shrink-0 text-emerald-400 hover:text-emerald-300">
+            <button aria-label="Save value" onClick={commitEdit} className="shrink-0 text-emerald-400 hover:text-emerald-300">
               <Check className="h-3.5 w-3.5" />
             </button>
-            <button onClick={cancelEdit} className="shrink-0 text-red-400 hover:text-red-300">
+            <button aria-label="Cancel editing" onClick={cancelEdit} className="shrink-0 text-red-400 hover:text-red-300">
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -253,6 +256,7 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
               {typeof value === "object" && value !== null && !Array.isArray(value) && (
                 <input
                   ref={inputRef}
+                  aria-label="Property name"
                   value={addKey}
                   onChange={(e) => setAddKey(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -261,10 +265,10 @@ export function TreeNode({ keyName, value, path, root, expandedPaths, onToggle, 
                   className="text-sm font-mono bg-background/80 border border-primary/50 rounded px-1.5 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary w-32"
                 />
               )}
-              <button onClick={commitAdd} className="text-emerald-400 hover:text-emerald-300">
+              <button aria-label="Add property" onClick={commitAdd} className="text-emerald-400 hover:text-emerald-300">
                 <Check className="h-3.5 w-3.5" />
               </button>
-              <button onClick={() => setIsAdding(false)} className="text-red-400 hover:text-red-300">
+              <button aria-label="Cancel adding property" onClick={() => setIsAdding(false)} className="text-red-400 hover:text-red-300">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
