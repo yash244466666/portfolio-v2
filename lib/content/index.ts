@@ -348,10 +348,10 @@ export type NavigationItem = {
 };
 
 export const navigationItems: NavigationItem[] = [
-  { label: "About", target: "about" },
   { label: "Projects", target: "projects" },
-  { label: "Tools", target: "", href: "/tools/" },
+  { label: "About", target: "about" },
   { label: "Contact", target: "contact" },
+  { label: "Tools", target: "", href: "/tools/" },
 ];
 
 export const buttonTexts: ButtonTexts = {
